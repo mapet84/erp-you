@@ -191,7 +191,10 @@ model Tienda {
   direccion String?
   activo    Boolean @default(true)
 
-  usuarios UserStore[]
+  usuarios     UserStore[]
+  inventarios  Inventario[]
+  movimientos  Movimiento[]
+  compras      Compra[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -457,5 +460,107 @@ model Comision {
 
   @@unique([canalId, medioPagoId])
   @@map("comisiones")
+  @@schema("erp")
+}
+
+// ── Rebanada #6 · inventario, movimientos y compras (CPM por tienda) ─────────
+
+enum TipoItem {
+  INGREDIENTE
+  PRODUCTO
+
+  @@schema("erp")
+}
+
+enum TipoMovimiento {
+  COMPRA
+  VENTA
+  DEVOLUCION
+  AJUSTE
+  MERMA
+
+  @@schema("erp")
+}
+
+enum EstadoCompra {
+  PENDIENTE
+  PAGADA
+  CANCELADA
+
+  @@schema("erp")
+}
+
+/// Existencia por (tienda, código) con costo promedio móvil (CPM/MAP). Las hojas
+/// con costo real son ingredientes y productos; las recetas se costean en vivo.
+model Inventario {
+  id         String   @id @default(cuid())
+  tienda     Tienda   @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
+  tiendaId   String
+  codigo     String
+  nombre     String
+  tipo       TipoItem
+  stock      Decimal  @default(0) @db.Decimal(14, 4)
+  cpm        Decimal  @default(0) @db.Decimal(14, 6)
+  valorTotal Decimal  @default(0) @db.Decimal(14, 2)
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([tiendaId, codigo])
+  @@map("inventario")
+  @@schema("erp")
+}
+
+/// Asiento del kardex: cada entrada/salida deja un movimiento firmado.
+model Movimiento {
+  id             String         @id @default(cuid())
+  tienda         Tienda         @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
+  tiendaId       String
+  codigo         String
+  nombre         String
+  tipoMovimiento TipoMovimiento
+  /// Cantidad firmada: + entrada, − salida.
+  qty            Decimal        @db.Decimal(14, 4)
+  cpm            Decimal        @db.Decimal(14, 6)
+  /// Costo del movimiento (firmado), al CPM aplicable.
+  costoTotal     Decimal        @db.Decimal(14, 2)
+  /// Referencia opcional al origen (p.ej. ticket POS, compra).
+  refTipo        String?
+  refId          String?
+  fecha          DateTime       @default(now())
+
+  @@index([tiendaId, codigo, fecha])
+  @@map("movimientos")
+  @@schema("erp")
+}
+
+/// Medio de compra (proveedor/forma): define días de crédito para cuentas por pagar.
+model MedioCompra {
+  id          String   @id @default(cuid())
+  nombre      String   @unique
+  diasCredito Int      @default(0)
+  compras     Compra[]
+
+  @@map("medios_compra")
+  @@schema("erp")
+}
+
+/// Compra (entrada de inventario) y su cuenta por pagar.
+model Compra {
+  id            String       @id @default(cuid())
+  tienda        Tienda       @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
+  tiendaId      String
+  codigo        String
+  descripcion   String
+  cantidad      Decimal      @db.Decimal(14, 4)
+  costoUnitario Decimal      @db.Decimal(14, 6)
+  monto         Decimal      @db.Decimal(14, 2)
+  medioCompra   MedioCompra? @relation(fields: [medioCompraId], references: [id])
+  medioCompraId String?
+  estado        EstadoCompra @default(PENDIENTE)
+  fechaCompra   DateTime     @default(now())
+  fechaPago     DateTime?
+
+  @@index([tiendaId, fechaCompra])
+  @@map("compras")
   @@schema("erp")
 }

@@ -52,6 +52,13 @@ async function seedErp() {
   for (const nombre of medios) {
     await prisma.medioPago.upsert({ where: { nombre }, update: {}, create: { nombre } });
   }
+  const mediosCompra = [
+    { nombre: "Contado", diasCredito: 0 },
+    { nombre: "Crédito 30", diasCredito: 30 },
+  ];
+  for (const m of mediosCompra) {
+    await prisma.medioCompra.upsert({ where: { nombre: m.nombre }, update: { diasCredito: m.diasCredito }, create: m });
+  }
   console.log(
     `ERP: ${unidades.length} unidades, ${categorias.length} categorías, ${canales.length} canales, ${tamanos.length} tamaños, ${medios.length} medios.`,
   );
