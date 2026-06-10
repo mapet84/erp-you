@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard — Rosa Maracuyá</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --rose:#8B1A4A;--rose-mid:#B5245F;--rose-light:#D4678A;
+  --rose-pale:#F2C4D0;--rose-blush:#FBF0F3;--rose-bg:#FDF5F7;
+  --white:#fff;--border:#EDD0D8;--shadow:rgba(139,26,74,0.10);
+  --text:#1A0810;--text-soft:#9B6070;
+  --ok:#16a34a;--ok-bg:#f0fdf4;
+  --warn:#d97706;--warn-bg:#fffbeb;
+  --err:#b91c1c;--err-bg:#fef2f2;
+  --blue:#1e40af;--blue-bg:#eff6ff;
+}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--rose-bg);min-height:100vh;-webkit-font-smoothing:antialiased;color:var(--text)}
+
+/* HEADER */
+header{background:var(--white);border-bottom:1px solid var(--border);padding:16px 28px;position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:0 1px 4px var(--shadow)}
+.brand-block{display:flex;align-items:center;gap:14px}
+.brand-logo{width:48px;height:48px;background:#fff;border-radius:50%;padding:3px;box-shadow:0 1px 4px var(--shadow);display:flex;align-items:center;justify-content:center}
+.brand-text h1{font-family:'Playfair Display',serif;font-size:22px;font-weight:600;color:var(--rose);line-height:1.1}
+.brand-text p{font-size:11px;color:var(--text-soft);letter-spacing:.08em;text-transform:uppercase;margin-top:2px}
+.header-actions{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.period-tag{background:var(--rose-blush);color:var(--rose);font-size:12px;padding:6px 12px;border-radius:8px;font-weight:500}
+.btn{padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--white);color:var(--text);cursor:pointer;font-family:inherit;font-size:13px;font-weight:500;transition:all .15s}
+.btn:hover{border-color:var(--rose-mid);color:var(--rose-mid)}
+.btn-primary{background:var(--rose);color:var(--white);border-color:var(--rose)}
+.btn-primary:hover{background:var(--rose-mid);color:var(--white)}
+.btn-link{padding:6px 10px;font-size:12px;background:transparent;border:none}
+
+/* MAIN GRID */
+main{padding:24px 28px;max-width:1400px;margin:0 auto}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+.card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:24px;box-shadow:0 1px 8px var(--shadow)}
+.card.span-2{grid-column:1/-1}
+
+.card-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:12px;flex-wrap:wrap}
+.card-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:600;color:var(--rose);display:flex;align-items:center;gap:8px}
+.card-sub{font-size:11px;color:var(--text-soft);letter-spacing:.05em;text-transform:uppercase;margin-top:2px}
+
+/* KPIs */
+.kpi-row{display:flex;gap:24px;align-items:baseline;flex-wrap:wrap;margin-bottom:8px}
+.kpi-big{font-size:34px;font-weight:700;color:var(--rose);line-height:1;font-variant-numeric:tabular-nums}
+.kpi-big.ok{color:var(--ok)} .kpi-big.warn{color:var(--warn)} .kpi-big.err{color:var(--err)}
+.kpi-pct{font-size:14px;font-weight:600;padding:3px 8px;border-radius:6px}
+.kpi-pct.ok{background:var(--ok-bg);color:var(--ok)} .kpi-pct.err{background:var(--err-bg);color:var(--err)} .kpi-pct.warn{background:var(--warn-bg);color:var(--warn)}
+.kpi-meta{font-size:12px;color:var(--text-soft);margin-top:4px}
+
+.mini-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:8px}
+.mini-kpi{background:var(--rose-blush);border-radius:10px;padding:14px;text-align:center;border:1px solid var(--border)}
+.mini-kpi .num{font-size:28px;font-weight:700;color:var(--rose);font-variant-numeric:tabular-nums;line-height:1}
+.mini-kpi .num.warn{color:var(--warn)} .mini-kpi .num.err{color:var(--err)} .mini-kpi .num.ok{color:var(--ok)}
+.mini-kpi .lbl{font-size:11px;color:var(--text-soft);margin-top:4px;text-transform:uppercase;letter-spacing:.05em}
+.mini-kpi .sub{font-size:10px;color:var(--text-soft);margin-top:2px}
+
+/* TABLES */
+.tbl{width:100%;border-collapse:collapse;margin-top:8px}
+.tbl th{text-align:left;font-size:10px;color:var(--text-soft);text-transform:uppercase;letter-spacing:.05em;font-weight:600;padding:8px 6px;border-bottom:1px solid var(--border);background:var(--rose-blush)}
+.tbl td{padding:8px 6px;font-size:12px;border-bottom:1px solid #f5e6ea;vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl .num{text-align:right;font-variant-numeric:tabular-nums;font-weight:500}
+.tbl .code{font-family:ui-monospace,monospace;color:var(--ok);font-weight:600;font-size:11px;background:var(--ok-bg);padding:2px 6px;border-radius:4px;display:inline-block}
+.tbl .neg{color:var(--err);font-weight:600}
+.tbl-wrap{max-height:340px;overflow-y:auto;border:1px solid var(--border);border-radius:10px}
+.empty{padding:30px 16px;text-align:center;color:var(--text-soft);font-size:13px;font-style:italic}
+
+/* CATEGORIA BAR */
+.cat-row{display:grid;grid-template-columns:120px 1fr 110px;gap:10px;padding:8px 4px;align-items:center;font-size:12px;border-bottom:1px solid #f5e6ea}
+.cat-row:last-child{border:none}
+.cat-row .cat-name{font-weight:500}
+.cat-bar-wrap{background:#f5e6ea;height:18px;border-radius:9px;position:relative;overflow:hidden}
+.cat-bar-fcst{position:absolute;top:0;left:0;height:100%;background:var(--rose-pale);border-radius:9px}
+.cat-bar-real{position:absolute;top:0;left:0;height:100%;background:var(--rose);border-radius:9px;transition:width .4s}
+.cat-bar-label{position:absolute;top:50%;right:8px;transform:translateY(-50%);font-size:10px;font-weight:600;color:var(--text);text-shadow:0 0 3px white}
+.cat-row .cat-amounts{text-align:right;font-variant-numeric:tabular-nums;font-size:11px;color:var(--text-soft)}
+.cat-row .cat-amounts strong{color:var(--text);font-size:12px}
+
+/* UNI SUMMARY */
+.uni-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;padding:10px 12px;background:var(--err-bg);border-left:3px solid var(--err);border-radius:6px}
+.uni-chip{background:white;padding:4px 10px;border-radius:6px;font-size:12px;color:var(--err);font-weight:600;border:1px solid #fecaca}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);background:#0F0E2A;color:white;padding:10px 18px;border-radius:8px;font-size:13px;opacity:0;transition:all .25s;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2)}
+.toast.on{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* LOADING */
+.loading{text-align:center;padding:60px 20px;color:var(--text-soft);font-size:13px}
+.spinner{display:inline-block;width:24px;height:24px;border:3px solid var(--rose-pale);border-top-color:var(--rose);border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media (max-width:880px){
+  .grid{grid-template-columns:1fr}
+  main{padding:16px}
+  header{padding:12px 16px}
+  .mini-grid{grid-template-columns:1fr 1fr}
+  .cat-row{grid-template-columns:90px 1fr 90px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand-block">
+    <div class="brand-logo">
+      <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" style="width:38px;height:38px">
+        <g stroke="#d4a5ab" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M120 80 C 90 90, 65 105, 50 130 C 80 122, 105 108, 124 88 Z"/>
+          <path d="M120 80 C 105 110, 95 140, 95 165 C 110 140, 122 110, 128 88 Z"/>
+          <path d="M120 80 C 125 110, 140 140, 150 165 C 140 135, 132 108, 130 88 Z"/>
+          <path d="M120 80 C 145 95, 175 105, 190 130 C 160 120, 138 105, 128 88 Z"/>
+        </g>
+      </svg>
+    </div>
+    <div class="brand-text">
+      <h1>Rosa Maracuyá</h1>
+      <p>Dashboard</p>
+    </div>
+  </div>
+  <div class="header-actions">
+    <span class="period-tag" id="period-tag">Semana —</span>
+    <button class="btn btn-link" onclick="location.href='?'">← Inicio</button>
+    <button class="btn btn-primary" id="btn-reload" onclick="loadAll(true)">🔄 Actualizar</button>
+  </div>
+</header>
+
+<main>
+  <div id="loading" class="loading"><span class="spinner"></span>Cargando datos…</div>
+  <div id="content" class="grid" style="display:none">
+
+    <!-- 1. VENTAS VS FORECAST -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">📈 Ventas vs Forecast</div>
+          <div class="card-sub">Semana en curso · por categoría</div>
+        </div>
+      </div>
+      <div class="kpi-row">
+        <div>
+          <div class="kpi-big" id="vsf-real">$0</div>
+          <div class="kpi-meta">Real esta semana</div>
+        </div>
+        <div>
+          <div class="kpi-big" id="vsf-fcst" style="color:var(--rose-light)">$0</div>
+          <div class="kpi-meta">Forecast</div>
+        </div>
+        <div>
+          <span class="kpi-pct" id="vsf-pct">—</span>
+        </div>
+      </div>
+      <div id="vsf-cats" style="margin-top:14px"></div>
+    </div>
+
+    <!-- 2. PEDIDOS -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">📦 Pedidos</div>
+          <div class="card-sub">Estado de entregas, facturas y cobros</div>
+        </div>
+      </div>
+      <div class="mini-grid">
+        <div class="mini-kpi">
+          <div class="num" id="ped-prox">0</div>
+          <div class="lbl">Próximos 7 días</div>
+          <div class="sub" id="ped-prox-monto"></div>
+        </div>
+        <div class="mini-kpi">
+          <div class="num err" id="ped-atras">0</div>
+          <div class="lbl">Atrasados</div>
+          <div class="sub" id="ped-atras-monto"></div>
+        </div>
+        <div class="mini-kpi">
+          <div class="num warn" id="ped-fac">0</div>
+          <div class="lbl">Por facturar (7d)</div>
+          <div class="sub" id="ped-fac-monto"></div>
+        </div>
+        <div class="mini-kpi">
+          <div class="num warn" id="ped-cob">0</div>
+          <div class="lbl">Por cobrar (7d)</div>
+          <div class="sub" id="ped-cob-monto"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. INVENTARIO NEGATIVO -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">⚠️ Inventario en Negativo</div>
+          <div class="card-sub">Combinaciones artículo–tienda con stock < 0</div>
+        </div>
+      </div>
+      <div class="kpi-row">
+        <div>
+          <div class="kpi-big err" id="inv-neg-cnt">0</div>
+          <div class="kpi-meta">combinaciones afectadas</div>
+        </div>
+      </div>
+      <div id="inv-neg-uni" class="uni-row" style="display:none"></div>
+      <div class="tbl-wrap" id="inv-neg-wrap" style="margin-top:12px">
+        <table class="tbl">
+          <thead><tr><th>Código</th><th>Descripción</th><th>Tienda</th><th class="num">Stock</th><th>Unidad</th></tr></thead>
+          <tbody id="inv-neg-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 4. LISTA DE COMPRAS -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">🛒 Lista de Compras</div>
+          <div class="card-sub" id="lc-period">Próxima semana</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn" onclick="exportListaCompras()" title="Exportar a Excel">📊 Excel</button>
+        </div>
+      </div>
+      <div class="kpi-row">
+        <div>
+          <div class="kpi-big" id="lc-total" style="font-size:24px">$0</div>
+          <div class="kpi-meta">costo total estimado</div>
+        </div>
+        <div>
+          <div class="kpi-big" id="lc-items" style="font-size:24px;color:var(--rose-light)">0</div>
+          <div class="kpi-meta">artículos a comprar</div>
+        </div>
+      </div>
+      <div class="tbl-wrap" style="margin-top:12px">
+        <table class="tbl">
+          <thead><tr><th>Código</th><th>Descripción</th><th>Tienda</th><th class="num">Cantidad</th><th>Unidad</th><th class="num">$ Total</th></tr></thead>
+          <tbody id="lc-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const IN_GAS = typeof google!=='undefined' && google.script && google.script.run;
+const $ = id => document.getElementById(id);
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const fmx = n => '$'+Number(n||0).toLocaleString('es-MX',{minimumFractionDigits:0,maximumFractionDigits:0});
+const fmn = n => Number(n||0).toLocaleString('es-MX',{minimumFractionDigits:0,maximumFractionDigits:2});
+
+function gasCall(fn,arg){
+  if(!IN_GAS) return Promise.reject(new Error('Fuera de GAS'));
+  return new Promise((res,rej)=>{
+    const t=setTimeout(()=>rej(new Error('Timeout 30s')),30000);
+    google.script.run
+      .withSuccessHandler(d=>{clearTimeout(t);res(d);})
+      .withFailureHandler(e=>{clearTimeout(t);rej(new Error(e.message||'Error'));})
+      [fn](arg);
+  });
+}
+function toast(msg,type=''){
+  const el=$('toast'); el.textContent=msg;
+  el.style.background = type==='err'?'#991b1b':type==='ok'?'#15803d':'#0F0E2A';
+  el.className='toast on';
+  setTimeout(()=>el.className='toast',3200);
+}
+
+// ── ISO Week helpers ──
+function isoWeekData(date){
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay()||7;
+  d.setUTCDate(d.getUTCDate()+4-dayNum);
+  const yStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  const week = Math.ceil((((d-yStart)/86400000)+1)/7);
+  // Monday and Sunday of that week
+  const mon = new Date(date); mon.setHours(0,0,0,0);
+  const diff = (mon.getDay()===0 ? -6 : 1 - mon.getDay());
+  mon.setDate(mon.getDate()+diff);
+  const sun = new Date(mon); sun.setDate(sun.getDate()+6); sun.setHours(23,59,59,999);
+  return { year: d.getUTCFullYear(), week, mon, sun };
+}
+function fmtDate(d){
+  const m=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  return d.getDate()+' '+m[d.getMonth()];
+}
+
+// ── Estado global ──
+let DATA = null;
+let CUR_WEEK = null, NEXT_WEEK = null;
+
+async function loadAll(force){
+  $('content').style.display='none';
+  $('loading').style.display='block';
+  try{
+    const sheets = ['Ventas_Restaurante','Pronosticos','Pronostico_Compras','Inventario','Recetas','Productos','Ingredientes'];
+    DATA = await gasCall('getData', sheets);
+    CUR_WEEK = isoWeekData(new Date());
+    const nextDate = new Date(); nextDate.setDate(nextDate.getDate()+7);
+    NEXT_WEEK = isoWeekData(nextDate);
+    $('period-tag').textContent = `Semana ${CUR_WEEK.week} · ${fmtDate(CUR_WEEK.mon)} – ${fmtDate(CUR_WEEK.sun)}`;
+    renderVentasVsForecast();
+    renderPedidos();
+    renderInventarioNeg();
+    renderListaCompras();
+    $('loading').style.display='none';
+    $('content').style.display='grid';
+    if(force) toast('✅ Dashboard actualizado','ok');
+  }catch(e){
+    $('loading').innerHTML = `<div style="color:var(--err)">❌ Error: ${esc(e.message)}</div><button class="btn" style="margin-top:14px" onclick="loadAll(true)">Reintentar</button>`;
+  }
+}
+
+// ── Map codigo → categoria (de Productos + Recetas) ──
+function buildCatMap(){
+  const m = new Map();
+  for(const p of (DATA['Productos']||[])){
+    const cod = String(p['Código']||p['Codigo']||p['codigo']||'').trim();
+    const cat = String(p['Categoría']||p['Categoria']||p['categoria']||'').trim();
+    if(cod) m.set(cod, cat || 'Sin categoría');
+  }
+  for(const r of (DATA['Recetas']||[])){
+    const cod = String(r['SKU']||r['sku']||'').trim();
+    const cat = String(r['Categoría']||r['Categoria']||r['categoria']||'').trim();
+    if(cod) m.set(cod, cat || 'Sin categoría');
+  }
+  return m;
+}
+
+// ── 1. VENTAS VS FORECAST ──
+function renderVentasVsForecast(){
+  const catMap = buildCatMap();
+  // REAL: Ventas_Restaurante con Fecha en semana actual
+  const real = {};
+  let realTot = 0;
+  for(const v of (DATA['Ventas_Restaurante']||[])){
+    const f = parseGASDate(v['Fecha']);
+    if(!f) continue;
+    if(f<CUR_WEEK.mon||f>CUR_WEEK.sun) continue;
+    const cod = String(v['codigo']||v['Código']||'').trim();
+    const cat = catMap.get(cod) || 'Sin categoría';
+    const mt = parseFloat(v['Total Pedido']||v['Subtotal']||0)||0;
+    real[cat] = (real[cat]||0)+mt;
+    realTot += mt;
+  }
+  // FORECAST: Pronosticos filter por anio+semana
+  const fcst = {};
+  let fcstTot = 0;
+  for(const p of (DATA['Pronosticos']||[])){
+    const a = parseInt(p['anio'])||0, w = parseInt(p['semana'])||0;
+    if(a!==CUR_WEEK.year || w!==CUR_WEEK.week) continue;
+    const cod = String(p['codigo']||'').trim();
+    const cat = catMap.get(cod) || 'Sin categoría';
+    const mt = parseFloat(p['ventas_pron']||0)||0;
+    fcst[cat] = (fcst[cat]||0)+mt;
+    fcstTot += mt;
+  }
+  $('vsf-real').textContent = fmx(realTot);
+  $('vsf-fcst').textContent = fmx(fcstTot);
+  const pct = fcstTot>0 ? Math.round(realTot/fcstTot*100) : 0;
+  const pctEl = $('vsf-pct');
+  pctEl.textContent = fcstTot>0 ? (pct+'% cumplido') : 'sin forecast';
+  pctEl.className = 'kpi-pct ' + (pct>=100?'ok':pct>=80?'warn':'err');
+  // Combinar categorías
+  const cats = new Set([...Object.keys(real),...Object.keys(fcst)]);
+  const rows = [...cats].map(c=>({cat:c, real:real[c]||0, fcst:fcst[c]||0}))
+                       .sort((a,b)=>(b.fcst+b.real)-(a.fcst+a.real));
+  const maxVal = Math.max(1, ...rows.map(r=>Math.max(r.real,r.fcst)));
+  const container = $('vsf-cats');
+  if(!rows.length){ container.innerHTML='<div class="empty">Sin datos de ventas ni forecast esta semana</div>'; return; }
+  container.innerHTML = rows.map(r=>{
+    const pctR = Math.min(100, r.fcst>0 ? r.real/r.fcst*100 : (r.real>0?100:0));
+    const wReal = (r.real/maxVal*100).toFixed(1);
+    const wFcst = (r.fcst/maxVal*100).toFixed(1);
+    return `<div class="cat-row">
+      <div class="cat-name">${esc(r.cat)}</div>
+      <div class="cat-bar-wrap">
+        <div class="cat-bar-fcst" style="width:${wFcst}%"></div>
+        <div class="cat-bar-real" style="width:${wReal}%"></div>
+        <div class="cat-bar-label">${Math.round(pctR)}%</div>
+      </div>
+      <div class="cat-amounts"><strong>${fmx(r.real)}</strong><br>fcst ${fmx(r.fcst)}</div>
+    </div>`;
+  }).join('');
+}
+
+function parseGASDate(v){
+  if(!v) return null;
+  if(v instanceof Date) return v;
+  if(typeof v==='string'){
+    const d = new Date(v);
+    return isNaN(d.getTime())?null:d;
+  }
+  return null;
+}
+
+// ── 2. PEDIDOS ──
+function renderPedidos(){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const in7 = new Date(today); in7.setDate(in7.getDate()+7); in7.setHours(23,59,59,999);
+
+  // Agrupa por Folio (cada fila es una línea del pedido)
+  const folios = new Map();
+  for(const v of (DATA['Ventas_Restaurante']||[])){
+    const folio = String(v['Folio']||'').trim(); if(!folio) continue;
+    const f = parseGASDate(v['Fecha']);
+    const mt = parseFloat(v['Total Pedido']||v['Subtotal']||0)||0;
+    if(!folios.has(folio)){
+      folios.set(folio,{
+        folio, fecha:f,
+        estadoEntrega:String(v['Estado Entrega']||'').toUpperCase().trim(),
+        estadoFactura:String(v['Estado Factura']||'').toUpperCase().trim(),
+        estadoCobro:String(v['Estado Cobro']||'').toUpperCase().trim(),
+        total:0
+      });
+    }
+    folios.get(folio).total += mt;
+  }
+
+  const isPending = s => s && s!=='ENTREGADO' && s!=='FACTURADO' && s!=='COBRADO' && s!=='CANCELADO' && s!=='OK';
+  const isPendingDelivery = s => s==='PENDIENTE' || s==='POR ENTREGAR' || s==='' || isPending(s);
+  const isPendingInvoice = s => s==='PENDIENTE' || s==='POR FACTURAR' || s==='' || (s && s!=='FACTURADO' && s!=='CANCELADO');
+  const isPendingPayment = s => s==='PENDIENTE' || s==='POR COBRAR' || s==='' || (s && s!=='COBRADO' && s!=='CANCELADO');
+
+  let nProx=0,mProx=0, nAtras=0,mAtras=0, nFac=0,mFac=0, nCob=0,mCob=0;
+  for(const p of folios.values()){
+    if(!p.fecha) continue;
+    const inNext7 = p.fecha>=today && p.fecha<=in7;
+    const overdue = p.fecha<today;
+    if(inNext7 && isPendingDelivery(p.estadoEntrega)){ nProx++; mProx+=p.total; }
+    if(overdue && isPendingDelivery(p.estadoEntrega)){ nAtras++; mAtras+=p.total; }
+    if(inNext7 && isPendingInvoice(p.estadoFactura)){ nFac++; mFac+=p.total; }
+    if(inNext7 && isPendingPayment(p.estadoCobro)){ nCob++; mCob+=p.total; }
+  }
+  $('ped-prox').textContent=nProx; $('ped-prox-monto').textContent=fmx(mProx);
+  $('ped-atras').textContent=nAtras; $('ped-atras-monto').textContent=fmx(mAtras);
+  $('ped-fac').textContent=nFac; $('ped-fac-monto').textContent=fmx(mFac);
+  $('ped-cob').textContent=nCob; $('ped-cob-monto').textContent=fmx(mCob);
+}
+
+// ── 3. INVENTARIO NEGATIVO ──
+function renderInventarioNeg(){
+  const inv = DATA['Inventario']||[];
+  const getF = (r,keys) => { for(const k of keys){ if(r[k]!==undefined&&r[k]!==null&&r[k]!=='') return r[k]; } return ''; };
+  const neg = [];
+  for(const r of inv){
+    const stock = parseFloat(getF(r,['stock','Stock','existencia','Existencia']))||0;
+    if(stock>=0) continue;
+    neg.push({
+      cod: String(getF(r,['codigo','Código','Codigo','cod'])||''),
+      desc: String(getF(r,['descripcion','Descripción','Descripcion','desc','Nombre','nombre'])||''),
+      tienda: String(getF(r,['tienda','Tienda'])||''),
+      stock,
+      uni: String(getF(r,['unidad','Unidad','uni','UM'])||'pza')
+    });
+  }
+  $('inv-neg-cnt').textContent = neg.length;
+  // Resumen por unidad
+  const byUni = {};
+  for(const r of neg){ byUni[r.uni] = (byUni[r.uni]||0)+r.stock; }
+  const uniEl = $('inv-neg-uni');
+  if(Object.keys(byUni).length){
+    uniEl.innerHTML = '<strong style="color:var(--err);font-size:11px;margin-right:4px">FALTANTE:</strong>' +
+      Object.entries(byUni).map(([u,n])=>`<span class="uni-chip">${fmn(n)} ${esc(u)}</span>`).join('');
+    uniEl.style.display='flex';
+  } else uniEl.style.display='none';
+  const body = $('inv-neg-body');
+  if(!neg.length){ body.innerHTML = `<tr><td colspan="5" class="empty">Sin inventario en negativo ✅</td></tr>`; return; }
+  neg.sort((a,b)=>a.stock-b.stock);
+  body.innerHTML = neg.slice(0,50).map(r=>`<tr>
+    <td><span class="code">${esc(r.cod)}</span></td>
+    <td>${esc(r.desc)}</td>
+    <td>${esc(r.tienda)}</td>
+    <td class="num neg">${fmn(r.stock)}</td>
+    <td>${esc(r.uni)}</td>
+  </tr>`).join('') + (neg.length>50?`<tr><td colspan="5" style="text-align:center;color:var(--text-soft);font-size:11px;padding:8px">… y ${neg.length-50} más</td></tr>`:'');
+}
+
+// ── 4. LISTA DE COMPRAS (siguiente semana) ──
+let LC_DATA = [];
+function renderListaCompras(){
+  const items = (DATA['Pronostico_Compras']||[])
+    .filter(r=>parseInt(r['anio'])===NEXT_WEEK.year && parseInt(r['semana'])===NEXT_WEEK.week)
+    .map(r=>({
+      cod: String(r['codigo']||''),
+      desc: String(r['descripcion']||''),
+      tienda: String(r['tienda']||''),
+      uni: String(r['unidad']||''),
+      cant: parseFloat(r['cantidad_ajustada']||r['cantidad_pron']||0)||0,
+      costo: parseFloat(r['costo_unit']||0)||0,
+      total: parseFloat(r['costo_total']||0)||0
+    }))
+    .filter(r=>r.cant>0)
+    .sort((a,b)=>b.total-a.total);
+  LC_DATA = items;
+  $('lc-period').textContent = `Semana ${NEXT_WEEK.week} · ${fmtDate(NEXT_WEEK.mon)} – ${fmtDate(NEXT_WEEK.sun)}`;
+  $('lc-items').textContent = items.length;
+  $('lc-total').textContent = fmx(items.reduce((s,r)=>s+r.total,0));
+  const body = $('lc-body');
+  if(!items.length){ body.innerHTML = `<tr><td colspan="6" class="empty">Sin lista de compras para la próxima semana<br><span style="font-size:11px">Genera el pronóstico de compras en el módulo de Pronósticos</span></td></tr>`; return; }
+  body.innerHTML = items.slice(0,100).map(r=>`<tr>
+    <td><span class="code">${esc(r.cod)}</span></td>
+    <td>${esc(r.desc)}</td>
+    <td>${esc(r.tienda||'—')}</td>
+    <td class="num">${fmn(r.cant)}</td>
+    <td>${esc(r.uni)}</td>
+    <td class="num">${fmx(r.total)}</td>
+  </tr>`).join('') + (items.length>100?`<tr><td colspan="6" style="text-align:center;color:var(--text-soft);font-size:11px">… y ${items.length-100} más</td></tr>`:'');
+}
+
+function exportListaCompras(){
+  if(!LC_DATA.length){ toast('Sin datos para exportar','warn'); return; }
+  const headers = ['Código','Descripción','Tienda','Cantidad','Unidad','Costo Unit','Costo Total'];
+  const rows = [headers, ...LC_DATA.map(r=>[r.cod,r.desc,r.tienda,r.cant,r.uni,r.costo,r.total])];
+  const csv = '\uFEFF' + rows.map(r=>r.map(v=>{
+    const s=String(v??''); return /[",\n;]/.test(s)?`"${s.replace(/"/g,'""')}"`:s;
+  }).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+  a.download = `lista_compras_semana${NEXT_WEEK.week}_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  toast('✅ Lista exportada','ok');
+}
+
+// ── Boot ──
+if(IN_GAS){ loadAll(); }
+else {
+  $('loading').innerHTML = '<div style="color:var(--err)">⚠️ Esta página debe abrirse desde el launcher (Apps Script).</div>';
+}
+</script>
+</body>
+</html>

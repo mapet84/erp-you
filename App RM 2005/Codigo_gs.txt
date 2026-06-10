@@ -1,0 +1,284 @@
+const SS = SpreadsheetApp.getActiveSpreadsheet();
+
+function doGet(e) {
+  const app = e && e.parameter && e.parameter.app;
+  if (app === 'pos') {
+    return HtmlService.createHtmlOutputFromFile('pos')
+      .setTitle('Rosa Maracuyá — Punto de Venta')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  }
+  if (app === 'fin') {
+    return HtmlService.createHtmlOutputFromFile('finanzas')
+      .setTitle('Rosa Maracuyá — Finanzas')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  }
+  if (app === 'pron') {
+    return HtmlService.createHtmlOutputFromFile('pronosticos')
+      .setTitle('Rosa Maracuyá — Pronósticos')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  }
+  if (app === 'dash') {
+    return HtmlService.createHtmlOutputFromFile('dashboard')
+      .setTitle('Rosa Maracuyá — Dashboard')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  }
+  if (app === 'gest') {
+    return HtmlService.createHtmlOutputFromFile('index')
+      .setTitle('Rosa Maracuyá — Gestión')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  }
+  // Default: launcher
+  return HtmlService.createHtmlOutputFromFile('launcher')
+    .setTitle('Rosa Maracuyá')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+// Safely serialize a cell value to a JSON-safe primitive
+function safeVal(v) {
+  if (v === null || v === undefined || v === '') return '';
+  if (v instanceof Date) {
+    // Format as YYYY-MM-DD HH:MM:SS
+    const pad = n => String(n).padStart(2,'0');
+    return `${v.getFullYear()}-${pad(v.getMonth()+1)}-${pad(v.getDate())} ${pad(v.getHours())}:${pad(v.getMinutes())}:${pad(v.getSeconds())}`;
+  }
+  if (typeof v === 'number' || typeof v === 'boolean') return v;
+  return String(v);
+}
+
+// Single batch read — returns multiple sheets in one call
+function getData(sheetNames) {
+  const result = {};
+  sheetNames.forEach(name => {
+    try {
+      const sheet = SS.getSheetByName(name);
+      if (!sheet) {
+        Logger.log('Sheet not found: ' + name);
+        Logger.log('Available: ' + SS.getSheets().map(s=>s.getName()).join(' | '));
+        result[name] = [];
+        return;
+      }
+      const data = sheet.getDataRange().getValues();
+      if (data.length <= 1) { result[name] = []; return; }
+      const headers = data[0].map(h => String(h).trim());
+      result[name] = data.slice(1).map((row, i) => {
+        const obj = { _row: i + 2 };
+        headers.forEach((h, j) => { obj[h] = safeVal(row[j]); });
+        return obj;
+      });
+    } catch(e) {
+      Logger.log('Error on sheet ' + name + ': ' + e.message);
+      result[name] = [];
+    }
+  });
+  return result;
+}
+
+// Headers for new sheets — auto-created if sheet is empty
+const SHEET_HEADERS = {
+  'Cuentas_por_Pagar': ['Fecha Compra','codigo','descripcion','tienda','Medio de Pago','Monto','Fecha de Pago','Estado','Usuario'],
+  'Medios_Compra':     ['Nombre','Tipo','Dia Corte','Dia Pago','Dias Credito','Fecha Base'],
+  'Colaboradores':     ['codigo','Nombre','RFC','Correo 1','Correo 2','Correo 3','Telefono','WhatsApp','Notificacion','Roles','Dir Facturacion','Dias Pago','Dir Entrega','Dias Credito','Tiempo Entrega','Banco','CLABE','Beneficiario','Dir Despacho'],
+  'Pronosticos':       ['anio','semana','tienda','canal','codigo','articulo','unidades_pron','ventas_pron','costo_pron','utilidad_pron','precio_unit','costo_unit','comision_pct','fecha_generacion','metodo','unidades_firme'],
+  'Pronostico_Compras':['anio','semana','tienda','codigo','descripcion','unidad','cantidad_pron','cantidad_ajustada','costo_unit','costo_total','min_compra'],
+  'Pronostico_Gastos': ['anio','semana','mes','categoria','tipo_er','tienda','monto_pron','monto_ajustado','monto_real','periodicidad','fecha_base','ajustado_por'],
+  'Usuarios_PRON':     ['usuario','password','nombre','rol'],
+  'Pron_Status':       ['Tipo','Fecha','Usuario','Confirmado'],
+  'Ventas_Restaurante':['Folio','Fecha','Cliente','RFC','tienda','Tipo','codigo','articulo','Qty','Precio Unit','Subtotal','Total Pedido','Estado Entrega','Estado Factura','Estado Cobro','Fecha Facturacion','Folio Factura','Fecha Pago','Usuario'],
+  'Clientes':          ['Nombre','RFC','Correo 1','Correo 2','Correo 3','Telefono','WhatsApp','Dias Pago','Dir Facturacion','Dir Entrega'],
+};
+
+// Single row write (add / update / delete)
+function handleRequest(p) {
+  try {
+    let sheet = SS.getSheetByName(p.sheet);
+    if (!sheet) {
+      // Auto-create sheet if it has defined headers
+      if (SHEET_HEADERS[p.sheet]) {
+        sheet = SS.insertSheet(p.sheet);
+        sheet.appendRow(SHEET_HEADERS[p.sheet]);
+      } else {
+        throw new Error('Hoja no encontrada: ' + p.sheet);
+      }
+    }
+    if (p.action === 'add') {
+      // Auto-create headers if sheet is empty
+      if (sheet.getLastRow() === 0 && SHEET_HEADERS[p.sheet]) {
+        sheet.appendRow(SHEET_HEADERS[p.sheet]);
+      }
+      sheet.appendRow(p.values);
+      SpreadsheetApp.flush();
+      return { ok: true };
+    }
+    if (p.action === 'update') {
+      if (Array.isArray(p.values)) {
+        p.values.forEach((v, i) => sheet.getRange(p.row, i + 1).setValue(v));
+      } else {
+        // Object mode: update by column name using header row
+        const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+        Object.entries(p.values).forEach(([key, val]) => {
+          const col = headers.indexOf(key) + 1;
+          if (col > 0) sheet.getRange(p.row, col).setValue(val);
+        });
+      }
+      SpreadsheetApp.flush();
+      return { ok: true };
+    }
+    if (p.action === 'delete') {
+      sheet.deleteRow(p.row);
+      SpreadsheetApp.flush();
+      return { ok: true };
+    }
+    throw new Error('Acción desconocida: ' + p.action);
+  } catch(e) {
+    throw new Error(e.message);
+  }
+}
+
+// Diagnóstico — ejecuta manualmente para ver nombres exactos de hojas
+function diagnostico() {
+  const nombres = SS.getSheets().map(s => '"' + s.getName() + '"');
+  Logger.log('Hojas:\n' + nombres.join('\n'));
+  ['Productos','Productos_Precios','Inventario','Movimientos'].forEach(n => {
+    const s = SS.getSheetByName(n);
+    Logger.log(n + ': ' + (s ? '✓ (' + s.getLastRow() + ' filas)' : '✗ NO ENCONTRADA'));
+  });
+}
+
+// ─────────────────────────────────────────────
+// POS — Punto de Venta
+// Serve pos.html as a separate deployment
+// ─────────────────────────────────────────────
+function doGetPos() {
+  return HtmlService.createHtmlOutputFromFile('pos')
+    .setTitle('Rosa Maracuyá POS')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+// getData and handleRequest are shared — same functions work for both apps
+// No changes needed to existing functions
+
+// ─────────────────────────────────────────────
+// VENTAS SEMANALES — upsert atómico en servidor
+// ─────────────────────────────────────────────
+function upsertVentaSemanal(p) {
+  // p: {yr, wk, tienda, canal, cod, art, ventas, costo, utilidad, qty}
+  try {
+    const HEADERS = ['anio','semana','tienda','canal','codigo','articulo','ventas','costo','utilidad','unidades','transacciones'];
+    let sheet = SS.getSheetByName('Ventas_Semanales');
+    if (!sheet) {
+      sheet = SS.insertSheet('Ventas_Semanales');
+      sheet.appendRow(HEADERS);
+    }
+    if (sheet.getLastRow() === 0) sheet.appendRow(HEADERS);
+
+    const lastRow = sheet.getLastRow();
+    let foundRow = -1;
+
+    if (lastRow > 1) {
+      // Read key columns only: A(yr), B(wk), C(tienda), D(canal), E(cod)
+      const data = sheet.getRange(2, 1, lastRow - 1, 5).getValues();
+      for (let i = 0; i < data.length; i++) {
+        if (
+          String(data[i][0]) === String(p.yr) &&
+          String(data[i][1]) === String(p.wk) &&
+          data[i][2] === p.tienda &&
+          data[i][3] === p.canal &&
+          data[i][4] === p.cod
+        ) {
+          foundRow = i + 2; // 1-indexed, +1 for header
+          break;
+        }
+      }
+    }
+
+    if (foundRow > 0) {
+      // Accumulate
+      const cur = sheet.getRange(foundRow, 7, 1, 5).getValues()[0];
+      sheet.getRange(foundRow, 7, 1, 5).setValues([[
+        (cur[0]||0) + p.ventas,
+        (cur[1]||0) + p.costo,
+        (cur[2]||0) + p.utilidad,
+        (cur[3]||0) + p.qty,
+        (cur[4]||0) + 1
+      ]]);
+    } else {
+      sheet.appendRow([p.yr, p.wk, p.tienda, p.canal, p.cod, p.art,
+        p.ventas, p.costo, p.utilidad, p.qty, 1]);
+    }
+    SpreadsheetApp.flush();
+    return { ok: true };
+  } catch(e) {
+    throw new Error(e.message);
+  }
+}
+
+
+// ─────────────────────────────────────────────
+// TRIGGER — pronóstico automático semanal
+// Ejecuta setupPronosticoTrigger() UNA VEZ desde el editor de GAS
+// ─────────────────────────────────────────────
+function setupPronosticoTrigger() {
+  ScriptApp.getProjectTriggers()
+    .filter(t => t.getHandlerFunction() === 'triggerPronostico')
+    .forEach(t => ScriptApp.deleteTrigger(t));
+  ScriptApp.newTrigger('triggerPronostico')
+    .timeBased()
+    .onWeekDay(ScriptApp.WeekDay.MONDAY)
+    .atHour(22)
+    .create();
+  Logger.log('Trigger creado: lunes 22:00');
+}
+
+function triggerPronostico() {
+  try {
+    const vsSheet = SS.getSheetByName('Ventas_Semanales');
+    if (!vsSheet || vsSheet.getLastRow() < 2) return;
+    const HEADERS_PRON = ['anio','semana','tienda','canal','codigo','articulo','unidades_pron','ventas_pron','costo_pron','utilidad_pron','precio_unit','costo_unit','comision_pct','fecha_generacion','metodo'];
+    let pronSheet = SS.getSheetByName('Pronosticos');
+    if (!pronSheet) { pronSheet = SS.insertSheet('Pronosticos'); pronSheet.appendRow(HEADERS_PRON); }
+    if (pronSheet.getLastRow() === 0) pronSheet.appendRow(HEADERS_PRON);
+    const vsData = vsSheet.getRange(2,1,vsSheet.getLastRow()-1,11).getValues();
+    const prSheet = SS.getSheetByName('Precios');
+    const prData = prSheet && prSheet.getLastRow()>1 ? prSheet.getRange(2,1,prSheet.getLastRow()-1,4).getValues() : [];
+    const comSheet = SS.getSheetByName('Comisiones');
+    const comData = comSheet && comSheet.getLastRow()>1 ? comSheet.getRange(2,1,comSheet.getLastRow()-1,3).getValues() : [];
+    const now = new Date();
+    const yr = now.getFullYear();
+    const jan4 = new Date(yr,0,4);
+    const w1 = new Date(jan4); w1.setDate(jan4.getDate()-(jan4.getDay()||7)+1);
+    const curWk = Math.floor((now-w1)/(7*864e5))+1;
+    const fechaGen = Utilities.formatDate(now, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+    const combos = {};
+    vsData.forEach(r => {
+      const key = r[2]+'|'+r[3]+'|'+r[4];
+      if (!combos[key]) combos[key] = {tienda:r[2],canal:r[3],cod:r[4],art:r[5],hist:[]};
+      combos[key].hist.push({yr:parseInt(r[0]),wk:parseInt(r[1]),uds:parseFloat(r[9])||0,ventas:parseFloat(r[6])||0,costo:parseFloat(r[7])||0});
+    });
+    const rows = [];
+    Object.values(combos).forEach(c => {
+      const hist = c.hist.filter(h=>h.yr<yr||(h.yr===yr&&h.wk<curWk)).sort((a,b)=>a.yr-b.yr||a.wk-b.wk).slice(-12);
+      if (hist.length < 2) return;
+      const p = prData.find(r=>String(r[0])===c.cod&&String(r[2])===c.canal)||prData.find(r=>String(r[0])===c.cod);
+      const precio = p ? parseFloat(p[3])||0 : 0;
+      const totC = hist.reduce((t,h)=>t+h.costo,0); const totU = hist.reduce((t,h)=>t+h.uds,0);
+      const costoUnit = totU>0 ? totC/totU : 0;
+      const com = comData.find(r=>String(r[0])===c.canal);
+      const comPct = com ? parseFloat(com[2])||0 : 0;
+      for (let h=1; h<=4; h++) {
+        let twk=curWk+h,tyr=yr; if(twk>52){twk-=52;tyr++;}
+        let su=0,sw=0;
+        hist.forEach((v,i)=>{const w=Math.pow(1.5,i);su+=v.uds*w;sw+=w;});
+        let pu=sw>0?su/sw:0;
+        const sly=hist.filter(v=>v.yr===yr-1&&Math.abs(v.wk-twk)<=1);
+        const slpy=hist.filter(v=>v.yr===yr-2&&Math.abs(v.wk-twk)<=1);
+        if(sly.length&&slpy.length){const ratio=sly.reduce((t,v)=>t+v.uds,0)/Math.max(1,slpy.reduce((t,v)=>t+v.uds,0));pu*=Math.min(Math.max(ratio,0.5),2.0);}
+        pu=Math.max(0,Math.round(pu*10)/10);
+        const pvSin=precio/1.16;
+        rows.push([tyr,twk,c.tienda,c.canal,c.cod,c.art,pu,Math.round(pu*precio*100)/100,Math.round(pu*costoUnit*100)/100,Math.round(pu*(pvSin-costoUnit-pvSin*comPct/100)*100)/100,precio,costoUnit,comPct,fechaGen,'WA12-exp+EST']);
+      }
+    });
+    rows.forEach(r => pronSheet.appendRow(r));
+    SpreadsheetApp.flush();
+    Logger.log('triggerPronostico OK: '+rows.length+' filas');
+  } catch(e) { Logger.log('triggerPronostico ERROR: '+e.message); }
+}

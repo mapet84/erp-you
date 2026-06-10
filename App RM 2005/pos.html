@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rosa Maracuyá — POS</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --rose:#8B1A4A;--rose-mid:#B5245F;--rose-light:#D4678A;
+  --rose-pale:#F2C4D0;--rose-blush:#FBF0F3;--rose-bg:#FDF5F7;
+  --white:#fff;--cream:#FEFCFD;
+  --text:#1A0810;--text-mid:#5C1A35;--text-soft:#9B6070;--text-muted:#C9A0B0;
+  --border:#EDD0D8;--shadow:rgba(139,26,74,0.10);
+  --green:#15803d;--green-bg:#f0fdf4;--green-border:#86efac;
+  --amber:#92400e;--amber-bg:#fffbeb;--amber-border:#fbbf24;
+  --blue:#1d4ed8;--blue-bg:#eff6ff;--blue-border:#93c5fd;
+  --red:#991b1b;--red-bg:#fef2f2;--red-border:rgba(153,27,27,.2);
+  --r:6px;--r-sm:4px;--r-lg:12px;
+}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--rose-bg);color:var(--text);min-height:100vh;font-size:13px;-webkit-font-smoothing:antialiased}
+
+/* ─── VIEWS: one visible at a time ─── */
+.view{display:none;min-height:100vh}
+.view.active{display:flex}
+
+/* ─── LOGIN VIEW ─── */
+#view-login{align-items:center;justify-content:center;background:var(--rose-bg)}
+.login-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);padding:40px 36px;width:320px;box-shadow:0 8px 32px var(--shadow)}
+.login-brand{text-align:center;margin-bottom:28px}
+.login-brand .cake{font-size:40px;line-height:1}
+.login-brand h1{font-size:20px;font-weight:700;color:var(--rose);margin-top:8px}
+.login-brand p{font-size:11px;color:var(--text-soft);letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
+.login-err{background:var(--red-bg);border:1px solid var(--red-border);border-radius:var(--r-sm);padding:8px 12px;font-size:12px;color:var(--red);margin-bottom:14px;display:none}
+.login-err.show{display:block}
+.lf{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.lf label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-soft)}
+.lf input{font-family:'IBM Plex Sans',sans-serif;font-size:13px;color:var(--text);background:var(--cream);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:9px 12px;outline:none;width:100%;transition:border-color .12s}
+.lf input:focus{border-color:var(--rose-mid);box-shadow:0 0 0 3px rgba(139,26,74,.08)}
+.lbtn{width:100%;background:var(--rose);color:#fff;border:none;border-radius:var(--r-sm);padding:11px;font-family:'IBM Plex Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s;margin-top:4px}
+.lbtn:hover{background:var(--rose-mid)}
+
+/* ─── POS VIEW ─── */
+#view-pos{flex-direction:column}
+.pos-bar{height:48px;background:var(--rose);display:flex;align-items:center;justify-content:space-between;padding:0 18px;flex-shrink:0}
+.pos-bar-left{display:flex;align-items:center;gap:10px;color:#fff}
+.pos-bar-left h1{font-size:15px;font-weight:700}
+.pos-bar-right{display:flex;align-items:center;gap:10px}
+.pos-tienda{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:var(--r-sm);color:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:12px;padding:5px 10px;outline:none}
+.pos-tienda option{background:var(--rose)}
+.pos-user-chip{font-size:11px;color:rgba(255,255,255,.8);display:flex;align-items:center;gap:6px}
+.pos-avatar{width:26px;height:26px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff}
+.bar-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:var(--r-sm);color:rgba(255,255,255,.85);font-size:11px;padding:4px 10px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;transition:all .12s}
+.bar-btn:hover{background:rgba(255,255,255,.22)}
+
+/* MODO SCREEN */
+#screen-modo{flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding:32px}
+#screen-modo.active{display:flex}
+#screen-modo h2{font-size:22px;font-weight:700;color:var(--text)}
+.modo-grid{display:flex;gap:24px;flex-wrap:wrap;justify-content:center}
+.modo-btn{width:200px;height:170px;border-radius:var(--r-lg);border:2px solid var(--border);background:var(--white);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:all .18s;box-shadow:0 2px 10px var(--shadow)}
+.modo-btn:hover{border-color:var(--rose-mid);transform:translateY(-3px);box-shadow:0 8px 24px rgba(139,26,74,.15)}
+.modo-btn .mi{font-size:44px}
+.modo-btn .ml{font-size:17px;font-weight:700;color:var(--text)}
+.modo-btn .ms{font-size:11px;color:var(--text-soft)}
+.modo-btn.venta{border-color:rgba(139,26,74,.3)}
+.modo-btn.reporte{border-color:rgba(29,78,216,.25)}
+.modo-btn.reporte:hover{border-color:var(--blue)}
+.modo-btn.reporte .ml{color:var(--blue)}
+
+/* Medio de pago highlight in cart */
+.medio-highlight{font-weight:700;color:var(--rose-mid);font-size:13px}
+.cart-canal-row.medio-row{background:var(--rose-blush);border-left:3px solid var(--rose-mid)}
+
+/* Screen reporte */
+#screen-reporte{flex:1;display:none;flex-direction:column;overflow:hidden}
+#screen-reporte.active{display:flex}
+.rep-table{width:100%;border-collapse:collapse;font-size:11px}
+.rep-table thead tr{background:var(--rose-blush);position:sticky;top:0}
+.rep-table th{text-align:left;padding:7px 10px;font-size:9px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--text-soft);white-space:nowrap}
+.rep-table tbody tr{border-bottom:1px solid var(--border)}
+.rep-table tbody tr:hover{background:var(--cream)}
+.rep-table td{padding:7px 10px;vertical-align:middle;white-space:nowrap}
+.rep-folio{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted)}
+.rep-medio{font-weight:700;color:var(--rose-mid)}
+.rep-total{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--rose)}
+.rep-dev{color:var(--amber);font-weight:600}
+.rep-cards{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.rep-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;min-width:140px}
+.rep-card-label{font-size:10px;color:var(--text-soft);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+.rep-card-val{font-size:18px;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--rose)}
+
+/* SELL SCREEN */
+#screen-sell{flex:1;display:none;flex-direction:row;overflow:hidden;height:calc(100vh - 48px)}
+#screen-sell.active{display:flex}
+.sell-left{flex:1;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--border)}
+.sell-right{width:340px;flex-shrink:0;display:flex;flex-direction:column;background:var(--white)}
+.sell-topbar{padding:8px 14px;background:var(--rose-blush);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.sell-mode-tag{font-size:11px;font-weight:600;color:var(--rose);text-transform:uppercase;letter-spacing:.08em}
+.sell-mode-tag.dev{color:var(--amber)}
+.back-btn{background:none;border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text-soft);font-size:11px;padding:3px 10px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif}
+.back-btn:hover{border-color:var(--rose-mid);color:var(--rose-mid)}
+.cat-bar{display:flex;gap:6px;padding:10px 14px;overflow-x:auto;flex-shrink:0;border-bottom:1px solid var(--border);background:var(--cream)}
+.cat-bar::-webkit-scrollbar{height:3px}
+.cat-bar::-webkit-scrollbar-thumb{background:var(--rose-pale);border-radius:2px}
+.cat-chip{padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--white);color:var(--text-soft);font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all .12s;flex-shrink:0}
+.cat-chip:hover{border-color:var(--rose-mid);color:var(--rose-mid)}
+.cat-chip.on{background:var(--rose);border-color:var(--rose);color:#fff}
+.prod-grid{flex:1;overflow-y:auto;padding:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;align-content:start}
+.prod-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px 12px;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;gap:5px;position:relative}
+.prod-card:hover{border-color:var(--rose-mid);box-shadow:0 4px 14px var(--shadow);transform:translateY(-2px)}
+.prod-sku{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-muted)}
+.prod-nom{font-size:12px;font-weight:600;color:var(--text);line-height:1.3}
+.prod-price{font-size:16px;font-weight:700;color:var(--rose);font-family:'IBM Plex Mono',monospace}
+.prod-stock{font-size:10px;color:var(--text-soft)}
+.prod-stock.neg{color:var(--amber)}
+.prod-add{position:absolute;top:8px;right:8px;width:20px;height:20px;background:var(--rose-blush);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--rose-mid);opacity:0;transition:opacity .12s}
+.prod-card:hover .prod-add{opacity:1}
+
+/* CART */
+.cart-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.cart-title{font-size:14px;font-weight:700}
+.cart-cnt{background:var(--rose);color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
+.cart-canal-row{padding:8px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.cart-canal-row label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text-soft);white-space:nowrap}
+.cart-sel{flex:1;font-family:'IBM Plex Sans',sans-serif;font-size:12px;color:var(--text);background:var(--cream);border:1px solid var(--border);border-radius:var(--r-sm);padding:5px 8px;outline:none}
+.cart-items{flex:1;overflow-y:auto;padding:8px}
+.cart-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--text-muted);font-size:12px;gap:8px}
+.cart-empty-icon{font-size:36px;opacity:.35}
+.cart-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:6px;background:var(--cream)}
+.ci-info{flex:1;min-width:0}
+.ci-nom{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ci-price{font-size:11px;color:var(--text-soft);font-family:'IBM Plex Mono',monospace}
+.ci-qty{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.qb{width:22px;height:22px;border-radius:50%;border:1px solid var(--border);background:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--text-mid);transition:all .12s}
+.qb:hover{background:var(--rose);border-color:var(--rose);color:#fff}
+.qv{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;width:22px;text-align:center}
+.ci-total{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--rose);min-width:58px;text-align:right;flex-shrink:0}
+.ci-del{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:14px;padding:2px 4px;border-radius:var(--r-sm);transition:all .12s}
+.ci-del:hover{color:var(--red);background:var(--red-bg)}
+.cart-foot{padding:14px 16px;border-top:1px solid var(--border);background:var(--white)}
+.cart-totals{margin-bottom:12px}
+.trow{display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:12px;color:var(--text-soft)}
+.trow.main{font-size:15px;font-weight:700;color:var(--text);padding-top:8px;border-top:1px solid var(--border);margin-top:6px}
+.trow .tv{font-family:'IBM Plex Mono',monospace;font-weight:500}
+.trow.main .tv{color:var(--rose)}
+.sell-btn{width:100%;background:var(--rose);color:#fff;border:none;border-radius:var(--r-sm);padding:13px;font-family:'IBM Plex Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px}
+.sell-btn:hover:not(:disabled){background:var(--rose-mid);box-shadow:0 4px 14px rgba(139,26,74,.3)}
+.sell-btn:disabled{opacity:.4;cursor:not-allowed}
+.sell-btn.dev{background:var(--amber)}
+
+/* TICKET */
+#screen-ticket{flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+#screen-ticket.active{display:flex}
+.ticket-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);max-width:420px;width:100%;box-shadow:0 8px 28px var(--shadow)}
+.ticket-head{background:var(--rose);color:#fff;padding:18px 24px;border-radius:var(--r-lg) var(--r-lg) 0 0;text-align:center}
+.ticket-head.dev{background:var(--amber)}
+.ticket-head h2{font-size:18px;font-weight:700;margin-bottom:2px}
+.ticket-head p{font-size:11px;opacity:.75}
+.ticket-body{padding:20px 24px}
+.ticket-items{border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden;margin-bottom:16px}
+.titem{display:flex;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--border);font-size:12px}
+.titem:last-child{border-bottom:none}
+.titem-n{font-weight:500}
+.titem-v{color:var(--text-soft);font-family:'IBM Plex Mono',monospace}
+.tbreakdown{display:flex;flex-direction:column;gap:5px;margin-bottom:4px}
+.trow2{display:flex;justify-content:space-between;font-size:12px}
+.trow2.big{font-size:16px;font-weight:700;padding-top:10px;border-top:1px solid var(--border);margin-top:6px}
+.trow2 .tl{color:var(--text-soft)}
+.trow2.big .tl{color:var(--text)}
+.trow2 .tv2{font-family:'IBM Plex Mono',monospace;font-weight:500;color:var(--text)}
+.trow2.big .tv2{color:var(--rose)}
+.ticket-actions{display:flex;gap:10px;padding:0 24px 20px}
+.ticket-actions button{flex:1;padding:10px;border-radius:var(--r-sm);font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);transition:all .15s}
+.tbtn-new{background:var(--rose);color:#fff;border-color:var(--rose)!important}
+.tbtn-new:hover{background:var(--rose-mid)}
+.tbtn-print{background:var(--white);color:var(--text-mid)}
+.tbtn-print:hover{background:var(--rose-blush)}
+
+/* ADMIN VIEW */
+#view-admin{flex-direction:column;background:var(--rose-bg)}
+.admin-bar{height:48px;background:var(--rose);display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0}
+.admin-bar h1{color:#fff;font-size:15px;font-weight:700}
+.admin-body{flex:1;padding:24px;max-width:700px;margin:0 auto;width:100%}
+.acard{background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);padding:24px;margin-bottom:20px;box-shadow:0 2px 8px var(--shadow)}
+.acard-head{font-size:14px;font-weight:700;color:var(--rose);margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.agrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.af{display:flex;flex-direction:column;gap:4px}
+.af label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-soft)}
+.af input,.af select{font-family:'IBM Plex Sans',sans-serif;font-size:12px;color:var(--text);background:var(--cream);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:7px 10px;outline:none;width:100%}
+.af input:focus,.af select:focus{border-color:var(--rose-mid)}
+.abtn{font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:500;border:none;border-radius:var(--r-sm);padding:7px 16px;cursor:pointer;transition:all .12s;display:inline-flex;align-items:center;gap:5px}
+.abtn-primary{background:var(--rose);color:#fff}
+.abtn-primary:hover{background:var(--rose-mid)}
+.abtn-secondary{background:var(--rose-blush);color:var(--text-mid);border:1px solid var(--border)}
+.abtn-secondary:hover{background:var(--rose-pale)}
+.abtn-danger{background:transparent;color:var(--red);border:1px solid var(--border)}
+.abtn-danger:hover{background:var(--red-bg)}
+.atable{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px}
+.atable thead tr{background:var(--rose-blush);border-bottom:1px solid var(--border)}
+.atable th{text-align:left;padding:7px 12px;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-soft)}
+.atable tbody tr{border-bottom:1px solid var(--border)}
+.atable tbody tr:hover{background:var(--cream)}
+.atable td{padding:8px 12px;vertical-align:middle}
+.chip{display:inline-block;padding:1px 8px;border-radius:3px;font-size:10px;font-weight:600;border:1px solid}
+.chip-admin{background:var(--blue-bg);border-color:var(--blue-border);color:var(--blue)}
+.chip-user{background:var(--rose-blush);border-color:var(--border);color:var(--text-soft)}
+.adivider{height:1px;background:var(--border);margin:16px 0}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--white);border:1px solid var(--border);border-left:4px solid var(--rose);color:var(--text);padding:10px 16px;border-radius:var(--r-sm);font-size:12px;box-shadow:0 6px 20px var(--shadow);transform:translateY(60px);opacity:0;transition:all .22s cubic-bezier(.34,1.56,.64,1);z-index:9999;max-width:300px;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.ok{border-left-color:var(--green)}
+.toast.err{border-left-color:var(--red)}
+.toast.warn{border-left-color:var(--amber)}
+
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--rose-pale);border-radius:2px}
+
+@media print{
+  #view-login,#view-admin,.pos-bar,.sell-left,.sell-right,.cart-foot,.no-print{display:none!important}
+  #screen-ticket{display:flex!important;padding:0}
+  .ticket-card{box-shadow:none;border:none;max-width:100%}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ LOGIN VIEW ═══ -->
+<div class="view active" id="view-login">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="cake">🎂</div>
+      <h1>Rosa Maracuyá</h1>
+      <p>Punto de Venta</p>
+    </div>
+    <div class="login-err" id="l-err">Usuario o contraseña incorrectos</div>
+    <div class="lf">
+      <label>Usuario</label>
+      <input type="text" id="l-user" placeholder="usuario" autocomplete="username" onkeydown="if(event.key==='Enter')posLogin()"/>
+    </div>
+    <div class="lf">
+      <label>Contraseña</label>
+      <input type="password" id="l-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')posLogin()"/>
+    </div>
+    <button class="lbtn" onclick="posLogin()">Entrar al POS</button>
+  </div>
+</div>
+
+<!-- ═══ POS VIEW ═══ -->
+<div class="view" id="view-pos">
+  <div class="pos-bar">
+    <div class="pos-bar-left">
+      <span style="font-size:18px">🎂</span>
+      <h1>Rosa Maracuyá POS <span style="font-size:10px;opacity:.5;font-weight:400">v4.14</span></h1>
+    </div>
+    <div class="pos-bar-right">
+      <select class="pos-tienda" id="pos-tienda" onchange="setTienda(this.value)"></select>
+      <div class="pos-user-chip">
+        <div class="pos-avatar" id="pos-av">?</div>
+        <span id="pos-uname">—</span>
+      </div>
+      <button class="bar-btn" id="admin-btn" onclick="showView('view-admin')" style="display:none">⚙ Usuarios</button>
+      <button class="bar-btn" onclick="posLogout()">Salir</button>
+    </div>
+  </div>
+
+  <!-- MODO -->
+  <div id="screen-modo" class="active">
+    <h2>¿Qué deseas registrar?</h2>
+    <p style="font-size:13px;color:var(--text-soft)" id="tienda-lbl">—</p>
+    <div class="modo-grid">
+      <button class="modo-btn venta" onclick="startSell('venta')">
+        <span class="mi">🛒</span><span class="ml">Venta</span><span class="ms">Registrar venta</span>
+      </button>
+      <button class="modo-btn" onclick="startSell('devolucion')">
+        <span class="mi">↩️</span><span class="ml">Devolución</span><span class="ms">Revertir venta</span>
+      </button>
+      <button class="modo-btn reporte" onclick="showScreen('screen-reporte');loadReporte()">
+        <span class="mi">📈</span><span class="ml">Ventas</span><span class="ms">Reporte de ventas</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- SELL -->
+  <div id="screen-sell">
+    <div class="sell-left">
+      <div class="sell-topbar">
+        <span class="sell-mode-tag" id="sell-mode-tag">VENTA</span>
+        <button class="back-btn" onclick="showModo()">← Cambiar modo</button>
+      </div>
+      <div class="cat-bar" id="cat-bar"></div>
+      <div class="prod-grid" id="prod-grid">
+        <div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:40px;font-size:12px">Selecciona una categoría</div>
+      </div>
+    </div>
+    <div class="sell-right">
+      <div class="cart-head">
+        <span class="cart-title">Carrito</span>
+        <span class="cart-cnt" id="cart-cnt">0</span>
+      </div>
+      <div class="cart-canal-row">
+        <label>Canal</label>
+        <select class="cart-sel" id="c-canal" onchange="canalChange()"></select>
+      </div>
+      <div class="cart-canal-row" style="border-bottom:1px solid var(--border)">
+        <label class="medio-highlight">Medio pago</label>
+        <select class="cart-sel" id="c-medio" onchange="renderCart()" style="font-weight:700;color:var(--rose-mid)"></select>
+      </div>
+      <div class="cart-items" id="cart-items">
+        <div class="cart-empty"><span class="cart-empty-icon">🛒</span><span>Agrega artículos</span></div>
+      </div>
+      <div class="cart-foot">
+        <div class="cart-totals" id="cart-totals"></div>
+        <button class="sell-btn" id="sell-btn" onclick="doSell()" disabled>
+          <span id="sell-icon">💳</span> <span id="sell-label">Cobrar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TICKET -->
+  <div id="screen-ticket">
+    <div class="ticket-card">
+      <div class="ticket-head" id="t-head"><h2 id="t-title">✅ Venta registrada</h2><p id="t-sub"></p></div>
+      <div class="ticket-body">
+        <div class="ticket-items" id="t-items"></div>
+        <div class="tbreakdown" id="t-breakdown"></div>
+      </div>
+      <div class="ticket-actions">
+        <button class="tbtn-new" onclick="newSale()">＋ Nueva operación</button>
+        <button class="tbtn-print no-print" onclick="window.print()">🖨 Imprimir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORTE -->
+  <div id="screen-reporte">
+    <div style="padding:20px 24px;background:var(--rose-blush);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div>
+        <div style="font-size:16px;font-weight:700;color:var(--rose)">📈 Reporte de Ventas</div>
+        <div style="font-size:11px;color:var(--text-soft);margin-top:2px" id="rep-summary"></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="date" id="rep-f1" style="font-family:'IBM Plex Sans',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--r-sm);padding:5px 8px;background:var(--white);color:var(--text);outline:none" onchange="filterReporte()"/>
+        <input type="date" id="rep-f2" style="font-family:'IBM Plex Sans',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--r-sm);padding:5px 8px;background:var(--white);color:var(--text);outline:none" onchange="filterReporte()"/>
+        <button class="back-btn" onclick="showScreen('screen-modo')">← Volver</button>
+      </div>
+    </div>
+    <div style="flex:1;overflow:auto;padding:16px 20px">
+      <div id="rep-table-wrap"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ADMIN VIEW ═══ -->
+<div class="view" id="view-admin">
+  <div class="admin-bar">
+    <h1>👥 Usuarios POS</h1>
+    <div style="display:flex;gap:8px">
+      <button class="bar-btn" onclick="showView('view-pos')">← Volver al POS</button>
+    </div>
+  </div>
+  <div class="admin-body">
+
+    <!-- Change admin password -->
+    <div class="acard">
+      <div class="acard-head">🔑 Cambiar mi contraseña (admin)</div>
+      <div class="agrid">
+        <div class="af"><label>Nueva contraseña *</label><input type="password" id="a-np1" placeholder="Nueva contraseña"/></div>
+        <div class="af"><label>Confirmar *</label><input type="password" id="a-np2" placeholder="Repite la contraseña"/></div>
+      </div>
+      <button class="abtn abtn-primary" onclick="changeAdminPass()">💾 Actualizar contraseña</button>
+    </div>
+
+    <!-- Add user -->
+    <div class="acard">
+      <div class="acard-head">＋ Agregar usuario</div>
+      <div class="agrid">
+        <div class="af"><label>Usuario *</label><input id="a-user" placeholder="Ej. cajera1"/></div>
+        <div class="af"><label>Contraseña *</label><input id="a-pass" placeholder="Contraseña"/></div>
+        <div class="af"><label>Nombre *</label><input id="a-name" placeholder="Ej. María González"/></div>
+        <div class="af"><label>Tienda asignada</label><select id="a-tienda"><option value="">— Sin asignar —</option></select></div>
+      </div>
+      <button class="abtn abtn-primary" onclick="addUser()">＋ Crear usuario</button>
+      <div class="adivider"></div>
+      <div id="a-user-list"><p style="font-size:12px;color:var(--text-soft)">Cargando usuarios…</p></div>
+      <button class="abtn abtn-secondary" style="margin-top:10px" onclick="loadUsers()">↺ Recargar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── GAS BRIDGE ───────────────────────────────
+const IN_GAS=typeof google!=='undefined'&&typeof google.script!=='undefined';
+function gasCall(fn,arg){
+  if(!IN_GAS)return Promise.reject(new Error('Fuera de GAS'));
+  return new Promise((res,rej)=>{
+    const t=setTimeout(()=>rej(new Error('Timeout 30s')),30000);
+    google.script.run
+      .withSuccessHandler(d=>{clearTimeout(t);res(d);})
+      .withFailureHandler(e=>{clearTimeout(t);rej(new Error(e.message||String(e)));})
+      [fn](arg);
+  });
+}
+
+// ─── HELPERS ──────────────────────────────────
+const $=id=>document.getElementById(id);
+function esc(s){const d=document.createElement('div');d.textContent=String(s||'');return d.innerHTML;}
+function fmx(n){return new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(n||0);}
+function gv(r,keys){for(const k of keys)if(r[k]!==undefined&&r[k]!=='')return r[k];return '';}
+let _toastT;
+function toast(msg,type=''){
+  const t=$('toast');t.textContent=msg;
+  t.className='toast show'+(type?' '+type:'');
+  clearTimeout(_toastT);_toastT=setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ─── STATE ────────────────────────────────────
+const POS_ADMIN={user:'admin',pass:'@dmin123',nombre:'Administrador POS',rol:'admin'};
+let SESSION={user:'',nombre:'',rol:'',tienda:'',logged:false};
+let TIENDA='';
+let MODO='venta';
+let CART=[];
+let LAST_FOLIO=0;
+const DB={rec:[],pro:[],pre:[],proPre:[],cats:[],canales:[],com:[],tiendas:[],inv:[],pos_users:[]};
+
+// ─── VIEW MANAGEMENT ─────────────────────────
+function showView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  $(id).classList.add('active');
+}
+function showScreen(id){
+  ['screen-modo','screen-sell','screen-ticket','screen-reporte'].forEach(s=>{
+    const el=$(s);if(el)el.classList.remove('active');
+  });
+  const el=$(id);if(el)el.classList.add('active');
+}
+function showModo(){showScreen('screen-modo');CART=[];renderCart();}
+
+// ─── AUTH ─────────────────────────────────────
+async function posLogin(){
+  const u=($('l-user').value||'').trim().toLowerCase();
+  const p=($('l-pass').value||'').trim();
+  $('l-err').classList.remove('show');
+
+  let match=null;
+  if(u===POS_ADMIN.user&&p===POS_ADMIN.pass) match=POS_ADMIN;
+  if(!match) match=DB.pos_users.find(x=>x.user===u&&x.pass===p);
+  if(!match){$('l-err').classList.add('show');$('l-pass').value='';return;}
+
+  SESSION={user:match.user,nombre:match.nombre,rol:match.rol,tienda:match.tienda||'',logged:true};
+  $('pos-av').textContent=match.nombre.charAt(0).toUpperCase();
+  $('pos-uname').textContent=match.nombre;
+
+  // Show admin button only for admin
+  $('admin-btn').style.display=match.rol==='admin'?'':'none';
+
+  showView('view-pos');
+
+  // ─── Tienda inmediata (antes de boot) ───────────────────
+  // Si el usuario tiene tienda asignada, fija TIENDA y muestra el chip al instante
+  // sin esperar que termine la carga de Recetas/Productos/Inventario.
+  if(SESSION.tienda){
+    TIENDA=SESSION.tienda;
+    $('tienda-lbl').textContent='Tienda: '+SESSION.tienda;
+    $('pos-tienda').style.display='none';
+    let lbl=$('tienda-fixed-lbl');
+    if(!lbl){
+      lbl=document.createElement('span');
+      lbl.id='tienda-fixed-lbl';
+      lbl.style.cssText='font-size:12px;color:rgba(255,255,255,.9);background:rgba(255,255,255,.15);padding:4px 10px;border-radius:4px;white-space:nowrap';
+      $('pos-tienda').parentNode.insertBefore(lbl,$('pos-tienda'));
+    }
+    lbl.textContent='🏪 '+SESSION.tienda;
+  }
+
+  await boot();
+
+  // Después de boot, sincroniza el select (oculto pero presente) por consistencia
+  if(SESSION.tienda&&DB.tiendas.find(t=>t.nom===SESSION.tienda)){
+    $('pos-tienda').value=SESSION.tienda;
+  }
+}
+
+
+function posLogout(){
+  SESSION={user:'',nombre:'',rol:'',tienda:'',logged:false};
+  CART=[];TIENDA='';
+  $('l-user').value='';$('l-pass').value='';
+  $('l-err').classList.remove('show');
+  showView('view-login');
+}
+
+// ─── BOOT ─────────────────────────────────────
+async function boot(){
+  if(!IN_GAS)return;
+  try{
+    const d=await gasCall('getData',['Recetas','Productos','Precios','Productos_Precios','Categoria','Canales','Comisiones','Tiendas']);
+    DB.rec=(d['Recetas']||[]).map(r=>({cod:String(r['SKU']||''),nom:String(r['Nombre Receta']||r['Nombre']||''),cat:String(r['Categoría']||r['Categoria']||''),tam:String(r['Tamaño']||r['Tamano']||r['tamano']||r['tamaño']||''),tipo:'rec'}));
+    DB.pro=(d['Productos']||[]).map(r=>({cod:String(gv(r,['Código','Codigo'])||''),nom:String(r['Descripción']||r['Descripcion']||''),cat:String(r['Categoría']||r['Categoria']||''),tam:'',tipo:'pro'}));
+    DB.pre=(d['Precios']||[]).map(r=>({cod:String(r['SKU']||''),canal:String(r['Canal']||''),precio:parseFloat(r['Precio']||0)||0}));
+    DB.proPre=(d['Productos_Precios']||[]).map(r=>({cod:String(gv(r,['Código','Codigo'])||''),canal:String(r['Canal']||''),precio:parseFloat(r['Precio']||0)||0}));
+    DB.cats=(d['Categoria']||[]).map(r=>({cat:String(gv(r,['Categoría','Categoria','categoria'])||''),abr:String(r['Abreviatura']||'')}));
+    DB.canales=(d['Canales']||[]).map(r=>({canal:String(r['Canal']||''),medio:String(r['Medio de Pago Principal']||'')}));
+    DB.com=(d['Comisiones']||[]).map(r=>({
+      canal:String(r['Canal']||''),
+      medio:String(r['Medio de Pago']||''),
+      com:parseFloat(gv(r,['Comisión (%)','Comision (%)','Comisión','Comision'])||0)||0
+    }));
+    DB.tiendas=(d['Tiendas']||[]).map(r=>({cod:String(gv(r,['Código','Codigo'])||''),nom:String(r['Nombre']||'')}));
+    const d2=await gasCall('getData',['Inventario','Ventas','Usuarios_POS']);
+    DB.inv=parseFreshInv(d2['Inventario']||[]);
+    LAST_FOLIO=(d2['Ventas']||[]).length;
+    parsePosUsers(d2['Usuarios_POS']||[]);
+    populateTiendas();
+    populateCanales();
+    if(!TIENDA&&DB.tiendas.length){setTienda(DB.tiendas[0].nom);$('pos-tienda').value=DB.tiendas[0].nom;}
+    toast('Datos cargados','ok');
+  }catch(e){toast('Error al cargar: '+e.message,'err');}
+}
+
+function parseFreshInv(rows){
+  return(rows||[]).map(r=>({
+    cod:String(r['Código']||r['Codigo']||'').trim(),
+    tienda:String(r['Tienda']||'').trim(),
+    stock:parseFloat(r['Stock']||0)||0,
+    cpm:parseFloat(r['Costo Promedio']||0)||0,
+    valor:parseFloat(r['Valor Total']||0)||0,
+    row:r._row
+  }));
+}
+
+function parsePosUsers(rows){
+  DB.pos_users=(rows||[]).filter(r=>r['Usuario']||r['usuario']).map(r=>({
+    row:r._row,
+    user:String(r['Usuario']||r['usuario']||'').toLowerCase().trim(),
+    pass:String(r['Contraseña']||r['Contrasena']||''),
+    nombre:String(r['Nombre']||r['nombre']||''),
+    rol:String(r['Rol']||r['rol']||'cajero').toLowerCase(),
+    tienda:String(r['Tienda']||r['tienda']||''),
+  }));
+}
+
+function getInv(cod){return DB.inv.find(i=>i.cod===cod&&i.tienda===TIENDA)||null;}
+function getStock(cod){const r=getInv(cod);return r?r.stock:0;}
+function getCpm(cod){const r=getInv(cod);return r?r.cpm:0;}
+function getPrecio(cod,tipo,canal){
+  if(tipo==='rec'){const p=DB.pre.find(x=>x.cod===cod&&x.canal===canal);return p?p.precio:0;}
+  const p=DB.proPre.find(x=>x.cod===cod&&x.canal===canal);return p?p.precio:0;
+}
+function getComision(canal,medio){const r=DB.com.find(c=>c.canal===canal&&c.medio===medio);return r?r.com/100:0;}
+
+// ─── TIENDA ───────────────────────────────────
+function populateTiendas(){
+  const sel=$('pos-tienda');
+  sel.innerHTML=DB.tiendas.map(t=>`<option value="${esc(t.nom)}">${esc(t.nom)}</option>`).join('');
+  const asel=$('a-tienda');
+  if(asel) asel.innerHTML='<option value="">— Sin asignar —</option>'+DB.tiendas.map(t=>`<option value="${esc(t.nom)}">${esc(t.nom)}</option>`).join('');
+}
+function setTienda(v){
+  TIENDA=v;
+  if(v)$('tienda-lbl').textContent='Tienda: '+v;
+  const catOn=document.querySelector('.cat-chip.on');
+  if(catOn)renderProds(catOn.dataset.cat);
+}
+
+// ─── CANAL / MEDIO ────────────────────────────
+function populateCanales(){
+  const sel=$('c-canal');
+  sel.innerHTML=DB.canales.map(c=>`<option value="${esc(c.canal)}">${esc(c.canal)}</option>`).join('');
+  const tiendaCan=DB.canales.find(c=>c.canal.toLowerCase().includes('tienda'));
+  if(tiendaCan){sel.value=tiendaCan.canal;populateMedios(tiendaCan.canal);}
+}
+function populateMedios(canal){
+  const sel=$('c-medio');
+  const medios=[...new Set(DB.com.filter(c=>c.canal===canal).map(c=>c.medio).filter(Boolean))];
+  sel.innerHTML=medios.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join('');
+  const canalData=DB.canales.find(c=>c.canal===canal);
+  if(canalData&&canalData.medio&&medios.includes(canalData.medio))sel.value=canalData.medio;
+  else if(medios.length===1)sel.value=medios[0];
+}
+function canalChange(){populateMedios($('c-canal').value);renderCart();const cat=document.querySelector('.cat-chip.on');if(cat)renderProds(cat.dataset.cat);}
+
+// ─── CATEGORIES ───────────────────────────────
+function buildCats(){
+  const bar=$('cat-bar');
+  const all=[...new Set([...DB.rec,...DB.pro].map(a=>a.cat).filter(Boolean))];
+  all.sort((a,b)=>{const ia=DB.cats.findIndex(c=>c.cat===a);const ib=DB.cats.findIndex(c=>c.cat===b);return(ia<0?99:ia)-(ib<0?99:ib);});
+  bar.innerHTML=all.map(c=>`<button class="cat-chip" data-cat="${esc(c)}" onclick="selectCat(this,'${esc(c)}')">${esc(c)}</button>`).join('');
+  if(all.length){const first=bar.querySelector('.cat-chip');if(first){first.classList.add('on');renderProds(all[0]);}}
+}
+function selectCat(el,cat){document.querySelectorAll('.cat-chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');renderProds(cat);}
+function renderProds(cat){
+  const canal=$('c-canal').value;
+  const grid=$('prod-grid');
+  // Enriquecer con precio + filtrar items sin precio
+  const items=[...DB.rec,...DB.pro]
+    .filter(a=>a.cat===cat)
+    .map(a=>({...a, precio:getPrecio(a.cod,a.tipo,canal)}))
+    .filter(a=>a.precio>0);
+  if(!items.length){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:40px;font-size:12px">Sin artículos con precio en este canal</div>';return;}
+  // Agrupar por tamaño (vacío = "Sin tamaño")
+  const groups=new Map();
+  for(const a of items){
+    const k=(a.tam||'').trim()||'— Sin tamaño —';
+    if(!groups.has(k)) groups.set(k,[]);
+    groups.get(k).push(a);
+  }
+  // Orden: tamaños conocidos primero (por nombre alfabético), "Sin tamaño" al final
+  const keys=[...groups.keys()].sort((a,b)=>{
+    if(a.startsWith('—')) return 1;
+    if(b.startsWith('—')) return -1;
+    return a.localeCompare(b,'es');
+  });
+  let html='';
+  for(const tam of keys){
+    html+=`<div class="tam-group-hdr" style="grid-column:1/-1;font-size:11px;font-weight:600;color:var(--rose);text-transform:uppercase;letter-spacing:.06em;padding:8px 4px 4px;border-bottom:1px solid var(--border);margin-top:6px">${esc(tam)} <span style="color:var(--text-muted);font-weight:400">· ${groups.get(tam).length}</span></div>`;
+    html+=groups.get(tam).map(a=>{
+      const stock=getStock(a.cod);
+      const sc=stock<0?'neg':'';
+      const stxt=stock<0?`${stock.toFixed(1)} (neg)`:`${Number.isInteger(stock)?stock:stock.toFixed(1)} disp.`;
+      const tamBadge=a.tam?`<div class="prod-tam" style="font-size:10px;color:var(--rose);background:var(--rose-blush);padding:1px 6px;border-radius:8px;display:inline-block;margin-top:2px">${esc(a.tam)}</div>`:'';
+      return`<div class="prod-card" onclick="addToCart('${esc(a.cod)}','${esc(a.nom)}','${esc(a.cat)}','${esc(a.tipo)}',${a.precio},${stock})">
+        <div class="prod-sku">${esc(a.cod)}</div>
+        <div class="prod-nom">${esc(a.nom)}</div>
+        ${tamBadge}
+        <div class="prod-price">${fmx(a.precio)}</div>
+        <div class="prod-stock ${sc}">${stxt}</div>
+        <div class="prod-add">＋</div>
+      </div>`;
+    }).join('');
+  }
+  grid.innerHTML=html;
+}
+
+// ─── CART ─────────────────────────────────────
+function addToCart(cod,nom,cat,tipo,precio,stock){
+  if(!precio){toast('Sin precio en este canal','warn');return;}
+  const ex=CART.find(i=>i.cod===cod);
+  if(ex){ex.qty++;}else{CART.push({cod,nom,cat,tipo,precio,stock,cpm:getCpm(cod),qty:1});}
+  renderCart();
+}
+function setQty(cod,qty){
+  const item=CART.find(i=>i.cod===cod);if(!item)return;
+  if(qty<=0)CART=CART.filter(i=>i.cod!==cod);else item.qty=qty;
+  renderCart();
+}
+function removeItem(cod){CART=CART.filter(i=>i.cod!==cod);renderCart();}
+function renderCart(){
+  const canal=$('c-canal').value;
+  const medio=$('c-medio').value;
+  CART.forEach(i=>{i.precio=getPrecio(i.cod,i.tipo,canal);});
+  const cnt=CART.reduce((t,i)=>t+i.qty,0);
+  $('cart-cnt').textContent=cnt;
+  const ci=$('cart-items');
+  if(!CART.length){
+    ci.innerHTML='<div class="cart-empty"><span class="cart-empty-icon">🛒</span><span>Agrega artículos</span></div>';
+    $('cart-totals').innerHTML='';$('sell-btn').disabled=true;return;
+  }
+  ci.innerHTML=CART.map(i=>`<div class="cart-item">
+    <div class="ci-info"><div class="ci-nom">${esc(i.nom)}</div><div class="ci-price">${fmx(i.precio)} c/u</div></div>
+    <div class="ci-qty">
+      <button class="qb" onclick="setQty('${esc(i.cod)}',${i.qty-1})">−</button>
+      <span class="qv">${i.qty}</span>
+      <button class="qb" onclick="setQty('${esc(i.cod)}',${i.qty+1})">＋</button>
+    </div>
+    <div class="ci-total">${fmx(i.precio*i.qty)}</div>
+    <button class="ci-del" onclick="removeItem('${esc(i.cod)}')">✕</button>
+  </div>`).join('');
+  const sub=CART.reduce((t,i)=>t+i.precio*i.qty,0);
+  const sinIva=sub/1.16;const iva=sub-sinIva;
+  const pct=getComision(canal,medio);
+  const com=sinIva*pct;
+  $('cart-totals').innerHTML=`
+    <div class="trow"><span>Subtotal sin IVA</span><span class="tv">${fmx(sinIva)}</span></div>
+    <div class="trow"><span>IVA 16%</span><span class="tv">${fmx(iva)}</span></div>
+    ${medio?`<div class="trow"><span>Comisión ${esc(medio)} (${(pct*100).toFixed(1)}%)</span><span class="tv">-${fmx(com)}</span></div>`:''}
+    <div class="trow main"><span>Total</span><span class="tv">${fmx(sub)}</span></div>`;
+  $('sell-btn').disabled=!canal||!medio||!TIENDA;
+}
+
+// ─── SELL FLOW ────────────────────────────────
+function startSell(modo){
+  if(!TIENDA){toast('Selecciona una tienda primero','warn');return;}
+  MODO=modo;
+  const tag=$('sell-mode-tag');
+  tag.textContent=modo==='venta'?'VENTA':'DEVOLUCIÓN';
+  tag.className='sell-mode-tag'+(modo==='devolucion'?' dev':'');
+  $('sell-btn').className='sell-btn'+(modo==='devolucion'?' dev':'');
+  $('sell-icon').textContent=modo==='venta'?'💳':'↩️';
+  $('sell-label').textContent=modo==='venta'?'Cobrar':'Procesar devolución';
+  buildCats();renderCart();
+  showScreen('screen-sell');
+}
+
+async function doSell(){
+  if(!CART.length)return;
+  const canal=$('c-canal').value,medio=$('c-medio').value;
+  if(!canal||!medio||!TIENDA){toast('Canal, medio y tienda requeridos','warn');return;}
+  const btn=$('sell-btn');btn.disabled=true;
+  try{
+    const now=new Date();
+    const fecha=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    const hora=now.toTimeString().slice(0,5);
+    LAST_FOLIO++;
+    const folio='V-'+String(LAST_FOLIO).padStart(5,'0');
+    const signo=MODO==='devolucion'?-1:1;
+    const pct=getComision(canal,medio);
+    const freshInv=await gasCall('getData',['Inventario']);
+    DB.inv=parseFreshInv(freshInv['Inventario']||[]);
+    const writes=[];
+    const ticketRows=[];
+    let totVenta=0,totCosto=0,totCom=0,totIva=0;
+    for(const item of CART){
+      const pv=item.precio*item.qty;
+      const pvSin=pv/1.16;const ivai=pv-pvSin;
+      const comi=pvSin*pct;const cpmi=getCpm(item.cod);
+      const costo=cpmi*item.qty;
+      totVenta+=pv;totCosto+=costo;totCom+=comi;totIva+=ivai;
+      ticketRows.push({...item,pv,pvSin,ivai,comi,costo,cpmi});
+      writes.push(gasCall('handleRequest',{action:'add',sheet:'Ventas',values:[
+        folio,fecha,hora,MODO,SESSION.user,TIENDA,canal,medio,
+        item.cod,item.nom,item.qty,item.precio,
+        pv,pvSin,ivai,Math.round(pct*10000)/100,comi,cpmi,costo,
+        pvSin-costo-comi,pvSin>0?Math.round((pvSin-costo-comi)/pvSin*10000)/100:0
+      ]}));
+      writes.push(gasCall('handleRequest',{action:'add',sheet:'Movimientos',values:[
+        fecha,hora,MODO==='venta'?'Venta':'Devolución Venta',canal+' / '+medio,
+        SESSION.user,TIENDA,item.cod,item.nom,'pza',
+        signo*(-item.qty),cpmi,signo*(-costo)
+      ]}));
+      const inv=DB.inv.find(r=>r.cod===item.cod&&r.tienda===TIENDA);
+      if(inv&&inv.row){
+        const ns=inv.stock+signo*(-item.qty);
+        const nv=Math.max(0,inv.valor+signo*(-item.qty)*cpmi);
+        writes.push(gasCall('handleRequest',{action:'update',sheet:'Inventario',row:inv.row,
+          values:[item.cod,item.nom,item.tipo==='rec'?'Receta':'Producto',TIENDA,'pza',ns,ns>0?nv/ns:cpmi,nv]}));
+      }
+    }
+    // Sequential writes to avoid GAS appendRow race conditions
+    for(const w of writes){ await w; }
+    // Registrar en Ventas_Semanales por artículo
+    if(MODO==='venta'){
+      for(const item of ticketRows){
+        const pvSin=item.pv/1.16;
+        const util=pvSin-item.costo;
+        await upsertVentaSemanal(fecha,TIENDA,canal,item.cod,item.nom,
+          item.pv,item.costo,util,item.qty);
+      }
+    }
+    showTicket(folio,canal,medio,pct,ticketRows,totVenta,totCosto,totCom,totIva);
+  }catch(e){toast('Error: '+e.message,'err');btn.disabled=false;}
+}
+
+function showTicket(folio,canal,medio,pct,rows,totVenta,totCosto,totCom,totIva){
+  const dev=MODO==='devolucion';const sg=dev?-1:1;
+  $('t-head').className='ticket-head'+(dev?' dev':'');
+  $('t-title').textContent=dev?'↩️ Devolución procesada':'✅ Venta registrada';
+  $('t-sub').textContent=`${folio} · ${TIENDA} · ${canal} / ${medio}`;
+  $('t-items').innerHTML=rows.map(i=>`<div class="titem"><span class="titem-n">${esc(i.nom)} × ${i.qty}</span><span class="titem-v">${fmx(i.pv)}</span></div>`).join('');
+  const sinIva=totVenta/1.16;
+  $('t-breakdown').innerHTML=`
+    <div class="trow2"><span class="tl">Subtotal sin IVA</span><span class="tv2">${fmx(sg*sinIva)}</span></div>
+    <div class="trow2"><span class="tl">IVA 16%</span><span class="tv2">${fmx(sg*totIva)}</span></div>
+    <div class="trow2 big"><span class="tl">Total cobrado</span><span class="tv2">${fmx(sg*totVenta)}</span></div>`;
+  showScreen('screen-ticket');CART=[];
+}
+function newSale(){showModo();}
+
+// ─── ADMIN USERS ──────────────────────────────
+async function loadUsers(){
+  try{
+    const r=await gasCall('getData',['Usuarios_POS']);
+    parsePosUsers(r['Usuarios_POS']||[]);
+    renderUsers();
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+
+function renderUsers(){
+  const c=$('a-user-list');if(!c)return;
+  if(!DB.pos_users.length){c.innerHTML='<p style="font-size:12px;color:var(--text-soft)">Sin usuarios. Agrega uno arriba.</p>';return;}
+  const tiendaOpts='<option value="">— Sin tienda —</option>'+DB.tiendas.map(t=>`<option value="${esc(t.nom)}">${esc(t.nom)}</option>`).join('');
+  c.innerHTML=`<table class="atable">
+    <thead><tr><th>Usuario</th><th>Nombre</th><th>Tienda asignada</th><th>Rol</th><th></th></tr></thead>
+    <tbody>${DB.pos_users.map(u=>`<tr>
+      <td style="font-family:monospace;font-size:11px">${esc(u.user)}</td>
+      <td>${esc(u.nombre)}</td>
+      <td>
+        <select data-row="${u.row}" data-user="${esc(u.user)}" onchange="changeTiendaUser(this)"
+          style="font-size:11px;border:1px solid var(--border);border-radius:3px;padding:4px 7px;font-family:'IBM Plex Sans',sans-serif;color:var(--text);background:var(--cream);max-width:150px">
+          ${tiendaOpts}
+        </select>
+      </td>
+      <td><span class="chip ${u.rol==='admin'?'chip-admin':'chip-user'}">${esc(u.rol)}</span></td>
+      <td style="display:flex;gap:4px">
+        <button class="abtn abtn-secondary" style="padding:3px 8px;font-size:11px" onclick="changeUserPass(${u.row},'${esc(u.user)}')">🔑</button>
+        <button class="abtn abtn-danger" style="padding:3px 8px;font-size:11px" onclick="deleteUser(${u.row},'${esc(u.user)}')">🗑</button>
+      </td>
+    </tr>`).join('')}
+    </tbody></table>`;
+  // Set current tienda values
+  DB.pos_users.forEach(u=>{
+    const sel=c.querySelector(`select[data-row="${u.row}"]`);
+    if(sel) sel.value=u.tienda||'';
+  });
+}
+
+async function changeTiendaUser(sel){
+  const row=parseInt(sel.dataset.row);
+  const user=sel.dataset.user;
+  const tienda=sel.value;
+  const u=DB.pos_users.find(x=>x.row===row);
+  if(!u)return;
+  try{
+    await gasCall('handleRequest',{action:'update',sheet:'Usuarios_POS',row,
+      values:[u.user,u.pass,u.nombre,u.rol,tienda]});
+    u.tienda=tienda;
+    toast(`✅ Tienda actualizada — ${user}`,'ok');
+  }catch(e){toast('Error: '+e.message,'err');sel.value=u.tienda||'';}
+}
+
+async function addUser(){
+  const user=($('a-user').value||'').trim().toLowerCase();
+  const pass=($('a-pass').value||'').trim();
+  const nombre=($('a-name').value||'').trim();
+  const tienda=($('a-tienda').value||'').trim();
+  if(!user||!pass||!nombre){toast('Usuario, contraseña y nombre requeridos','err');return;}
+  if(user==='admin'){toast('Nombre reservado','err');return;}
+  if(DB.pos_users.find(u=>u.user===user)){toast('Usuario ya existe','err');return;}
+  try{
+    await gasCall('handleRequest',{action:'add',sheet:'Usuarios_POS',values:[user,pass,nombre,'cajero',tienda]});
+    $('a-user').value='';$('a-pass').value='';$('a-name').value='';
+    toast('✅ Usuario creado','ok');await loadUsers();
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+
+async function changeUserPass(row,user){
+  const np=prompt(`Nueva contraseña para "${user}":`);
+  if(!np||!np.trim()){return;}
+  const u=DB.pos_users.find(x=>x.row===row);if(!u)return;
+  try{
+    await gasCall('handleRequest',{action:'update',sheet:'Usuarios_POS',row,values:[u.user,np.trim(),u.nombre,u.rol,u.tienda]});
+    toast('✅ Contraseña actualizada','ok');await loadUsers();
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+
+async function deleteUser(row,user){
+  if(!confirm(`¿Eliminar usuario "${user}"?`))return;
+  try{
+    await gasCall('handleRequest',{action:'delete',sheet:'Usuarios_POS',row});
+    toast('🗑 Eliminado','ok');await loadUsers();
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+
+async function changeAdminPass(){
+  const p1=($('a-np1').value||'').trim();
+  const p2=($('a-np2').value||'').trim();
+  if(!p1){toast('Ingresa la nueva contraseña','err');return;}
+  if(p1!==p2){toast('Las contraseñas no coinciden','err');return;}
+  if(p1.length<4){toast('Mínimo 4 caracteres','err');return;}
+  // Store admin pass override in Usuarios_POS
+  const existing=DB.pos_users.find(u=>u.user==='admin');
+  try{
+    if(existing&&existing.row){
+      await gasCall('handleRequest',{action:'update',sheet:'Usuarios_POS',row:existing.row,values:['admin',p1,'Administrador POS','admin','']});
+    }else{
+      await gasCall('handleRequest',{action:'add',sheet:'Usuarios_POS',values:['admin',p1,'Administrador POS','admin','']});
+    }
+    POS_ADMIN.pass=p1;
+    $('a-np1').value='';$('a-np2').value='';
+    toast('✅ Contraseña actualizada','ok');await loadUsers();
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+
+// ─── REPORTE DE VENTAS ────────────────────────
+let VENTAS_RAW=[];
+async function loadReporte(){
+  $('rep-table-wrap').innerHTML='<p style="color:var(--text-soft);font-size:12px;padding:20px 0">Cargando…</p>';
+  try{
+    const r=await gasCall('getData',['Ventas']);
+    VENTAS_RAW=(r['Ventas']||[]).map(v=>({
+      folio:String(v['Folio']||''),fecha:String(v['Fecha']||'').split(' ')[0],
+      hora:String(v['Hora']||'').substring(0,5),tipo:String(v['Tipo']||''),
+      usuario:String(v['Usuario']||''),tienda:String(v['Tienda']||''),
+      canal:String(v['Canal']||''),medio:String(v['Medio de Pago']||''),
+      cod:String(v['Código']||v['Codigo']||''),art:String(v['Artículo']||v['Articulo']||''),
+      qty:parseFloat(v['Qty']||0)||0,precioUnit:parseFloat(v['Precio Unit']||0)||0,
+      totalVenta:parseFloat(v['Total Venta']||0)||0,sinIva:parseFloat(v['Subtotal sin IVA']||0)||0,
+      iva:parseFloat(v['IVA']||0)||0,comPct:parseFloat(v['Comisión %']||0)||0,
+      comMonto:parseFloat(v['Comisión $']||0)||0,cpm:parseFloat(v['CPM']||0)||0,
+      costo:parseFloat(v['Costo']||0)||0,utilidad:parseFloat(v['Utilidad $']||0)||0,
+      utilPct:parseFloat(v['Utilidad %']||0)||0,
+    }));
+    const now=new Date();
+    const f2=localDate(now);
+    const f1d=new Date(now);f1d.setDate(f1d.getDate()-6);
+    const f1=localDate(f1d);
+    if($('rep-f1'))$('rep-f1').value=f1;
+    if($('rep-f2'))$('rep-f2').value=f2;
+    filterReporte();
+  }catch(e){$('rep-table-wrap').innerHTML=`<p style="color:var(--red);font-size:12px;padding:20px 0">Error: ${esc(e.message)}</p>`;}
+}
+
+function filterReporte(){
+  const f1=($('rep-f1')||{}).value||'';const f2=($('rep-f2')||{}).value||'';
+  const fArt=($('rep-fart')||{}).value||'';const fTipo=($('rep-ftipo')||{}).value||'';
+  const fCanal=($('rep-fcanal')||{}).value||'';const fMedio=($('rep-fmedio')||{}).value||'';
+  const fTienda=($('rep-ftienda')||{}).value||'';
+  let rows=VENTAS_RAW;
+  if(f1) rows=rows.filter(v=>v.fecha>=f1);
+  if(f2) rows=rows.filter(v=>v.fecha<=f2);
+  if(fArt) rows=rows.filter(v=>v.art.toLowerCase().includes(fArt.toLowerCase())||v.cod.toLowerCase().includes(fArt.toLowerCase()));
+  if(fTipo) rows=rows.filter(v=>v.tipo===fTipo);
+  if(fCanal) rows=rows.filter(v=>v.canal===fCanal);
+  if(fMedio) rows=rows.filter(v=>v.medio===fMedio);
+  if(fTienda) rows=rows.filter(v=>v.tienda===fTienda);
+  renderReporte(rows);
+}
+
+function buildRepFilters(){
+  const canales=[...new Set(VENTAS_RAW.map(v=>v.canal).filter(Boolean))];
+  const medios=[...new Set(VENTAS_RAW.map(v=>v.medio).filter(Boolean))];
+  const tiendas=[...new Set(VENTAS_RAW.map(v=>v.tienda).filter(Boolean))];
+  const mk=(id,opts)=>{const el=$(id);if(!el)return;const cur=el.value;el.innerHTML='<option value="">Todos</option>'+opts.map(o=>`<option value="${o}">${o}</option>`).join('');el.value=cur;};
+  mk('rep-ftipo',['venta','devolucion']);mk('rep-fcanal',canales);mk('rep-fmedio',medios);mk('rep-ftienda',tiendas);
+}
+
+function renderReporte(rows){
+  rows=[...rows].sort((a,b)=>b.fecha.localeCompare(a.fecha)||b.hora.localeCompare(a.hora)||b.folio.localeCompare(a.folio));
+  buildRepFilters();
+  const wrap=$('rep-table-wrap');
+  const sum=$('rep-summary');
+  if(!rows.length){if(sum)sum.textContent='Sin ventas';wrap.innerHTML='<p style="font-size:12px;color:var(--text-soft);padding:16px 0">Sin ventas en el período.</p>';return;}
+  const totV=rows.reduce((t,v)=>t+v.totalVenta,0);
+  const totC=rows.reduce((t,v)=>t+v.costo,0);
+  const totK=rows.reduce((t,v)=>t+v.comMonto,0);
+  const totU=rows.reduce((t,v)=>t+v.utilidad,0);
+  const pzas=rows.reduce((t,v)=>t+v.qty,0);
+  const folios=[...new Set(rows.map(v=>v.folio))].length;
+  if(sum) sum.textContent=`${folios} transacciones · ${pzas} pzas`;
+
+  // Chart
+  const f1=($('rep-f1')||{}).value||rows[0].fecha;
+  const f2=($('rep-f2')||{}).value||rows[rows.length-1].fecha;
+  const days=[];const d=new Date(f1);const end=new Date(f2);
+  while(d<=end&&days.length<=31){days.push(d.toISOString().split('T')[0]);d.setDate(d.getDate()+1);}
+  const byDay={};days.forEach(dd=>{byDay[dd]={v:0,u:0};});
+  rows.forEach(v=>{if(byDay[v.fecha]){byDay[v.fecha].v+=v.totalVenta;byDay[v.fecha].u+=v.utilidad;}});
+  const maxV=Math.max(...days.map(dd=>byDay[dd].v),1);
+  const bw=Math.max(18,Math.min(56,Math.floor(420/days.length)-4));
+  const chartHtml=`<div style="background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px">
+    <div style="font-size:12px;font-weight:600;margin-bottom:10px">Ventas y utilidad por día</div>
+    <div style="display:flex;align-items:flex-end;gap:2px;height:110px;overflow-x:auto">
+      ${days.map(dd=>{
+        const vh=Math.round((byDay[dd].v/maxV)*80);
+        const uh=Math.round((byDay[dd].u/maxV)*80);
+        return `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0;width:${bw}px">
+          <div style="display:flex;align-items:flex-end;gap:1px;height:80px">
+            <div style="width:${bw/2-1}px;background:var(--rose);border-radius:2px 2px 0 0;height:${Math.max(vh,byDay[dd].v>0?2:0)}px" title="${fmx(byDay[dd].v)}"></div>
+            <div style="width:${bw/2-1}px;background:var(--green);border-radius:2px 2px 0 0;height:${Math.max(uh,byDay[dd].u>0?2:0)}px" title="${fmx(byDay[dd].u)}"></div>
+          </div>
+          <div style="font-size:8px;color:var(--text-muted)">${dd.slice(5)}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="display:flex;gap:12px;margin-top:6px;font-size:10px;color:var(--text-soft)">
+      <span><span style="display:inline-block;width:8px;height:8px;background:var(--rose);border-radius:1px;margin-right:4px"></span>Venta</span>
+      <span><span style="display:inline-block;width:8px;height:8px;background:var(--green);border-radius:1px;margin-right:4px"></span>Utilidad</span>
+    </div>
+  </div>`;
+
+  wrap.innerHTML=`
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+      <div class="rep-card"><div class="rep-card-label">Ventas</div><div class="rep-card-val">${fmx(totV)}</div></div>
+      <div class="rep-card"><div class="rep-card-label">Costo</div><div class="rep-card-val" style="color:var(--text-mid)">${fmx(totC)}</div></div>
+      <div class="rep-card"><div class="rep-card-label">Comisiones</div><div class="rep-card-val" style="color:var(--amber)">${fmx(totK)}</div></div>
+      <div class="rep-card"><div class="rep-card-label">Utilidad</div><div class="rep-card-val" style="color:var(--green)">${fmx(totU)}</div></div>
+    </div>
+    ${chartHtml}
+    <div style="margin-bottom:10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+      <input placeholder="🔍 Artículo / Código" id="rep-fart" style="font-size:11px;border:1px solid var(--border);border-radius:3px;padding:5px 8px;font-family:inherit;width:160px" oninput="filterReporte()"/>
+      <select id="rep-ftipo" style="font-size:11px;border:1px solid var(--border);border-radius:3px;padding:5px 8px;font-family:inherit" onchange="filterReporte()"><option value="">Tipo</option></select>
+      <select id="rep-fcanal" style="font-size:11px;border:1px solid var(--border);border-radius:3px;padding:5px 8px;font-family:inherit" onchange="filterReporte()"><option value="">Canal</option></select>
+      <select id="rep-fmedio" style="font-size:11px;border:1px solid var(--border);border-radius:3px;padding:5px 8px;font-family:inherit" onchange="filterReporte()"><option value="">Medio</option></select>
+      <select id="rep-ftienda" style="font-size:11px;border:1px solid var(--border);border-radius:3px;padding:5px 8px;font-family:inherit" onchange="filterReporte()"><option value="">Tienda</option></select>
+      <button onclick="clearRepFilters()" style="font-size:11px;border:1px solid var(--border);border-radius:3px;padding:5px 10px;cursor:pointer;font-family:inherit;background:var(--white)">✕ Limpiar</button>
+    </div>
+    <div style="overflow-x:auto;border:1px solid var(--border);border-radius:var(--r-sm)">
+    <table class="rep-table"><thead><tr>
+      <th>Folio</th><th>Fecha</th><th>Tipo</th><th>Usuario</th><th>Tienda</th>
+      <th>Canal</th><th style="color:var(--rose-mid)">Medio</th><th>Código</th><th>Artículo</th>
+      <th>Qty</th><th>Total</th><th>Sin IVA</th><th>Com%</th><th>Com$</th><th>Costo</th><th>Utilidad</th><th>Util%</th>
+    </tr></thead>
+    <tbody>${rows.map(v=>`<tr>
+      <td class="rep-folio">${esc(v.folio)}</td>
+      <td style="font-size:11px;color:var(--text-soft)">${esc(v.fecha)}</td>
+      <td><span style="font-size:10px;font-weight:600;color:${v.tipo==='devolucion'?'var(--amber)':'var(--green)'}">${esc(v.tipo)}</span></td>
+      <td style="font-size:11px;color:var(--text-soft)">${esc(v.usuario)}</td>
+      <td style="font-size:11px;color:var(--text-soft)">${esc(v.tienda)}</td>
+      <td style="font-size:11px">${esc(v.canal)}</td>
+      <td class="rep-medio">${esc(v.medio)}</td>
+      <td style="font-family:monospace;font-size:10px;color:var(--text-muted)">${esc(v.cod)}</td>
+      <td>${esc(v.art)}</td>
+      <td style="text-align:center;font-family:monospace">${v.qty}</td>
+      <td class="rep-total">${fmx(v.totalVenta)}</td>
+      <td style="font-family:monospace;font-size:11px">${fmx(v.sinIva)}</td>
+      <td style="font-family:monospace;font-size:11px">${v.comPct.toFixed(1)}%</td>
+      <td style="font-family:monospace;font-size:11px">${fmx(v.comMonto)}</td>
+      <td style="font-family:monospace;font-size:11px">${fmx(v.costo)}</td>
+      <td style="font-family:monospace;font-weight:600;color:var(--green)">${fmx(v.utilidad)}</td>
+      <td style="font-family:monospace;font-size:11px;color:var(--green)">${v.utilPct.toFixed(1)}%</td>
+    </tr>`).join('')}</tbody></table></div>`;
+  buildRepFilters();
+}
+
+function clearRepFilters(){
+  ['rep-fart','rep-ftipo','rep-fcanal','rep-fmedio','rep-ftienda'].forEach(id=>{const el=$(id);if(el)el.value='';});
+  filterReporte();
+}
+
+// Pre-load POS users so login works immediately
+(async()=>{
+  if(!IN_GAS)return;
+  try{
+    const r=await gasCall('getData',['Usuarios_POS']);
+    parsePosUsers(r['Usuarios_POS']||[]);
+  }catch(e){console.warn('POS users preload:',e.message);}
+})();
+// ── VENTAS SEMANALES ──────────────────────────
+function getIsoWeek(dateStr){
+  const d=new Date(dateStr+'T12:00:00'); // noon to avoid DST issues
+  const yr=d.getFullYear();
+  const jan4=new Date(yr,0,4);
+  const w1Start=new Date(jan4);
+  w1Start.setDate(jan4.getDate()-(jan4.getDay()||7)+1);
+  const wk=Math.floor((d-w1Start)/(7*864e5))+1;
+  if(wk<1){
+    // Last week of previous year
+    const dec28=new Date(yr-1,11,28);
+    const jan4p=new Date(yr-1,0,4);
+    const w1p=new Date(jan4p);w1p.setDate(jan4p.getDate()-(jan4p.getDay()||7)+1);
+    return{yr:yr-1,wk:Math.floor((dec28-w1p)/(7*864e5))+1};
+  }
+  const dec28=new Date(yr,11,28);
+  const maxWk=Math.floor((dec28-w1Start)/(7*864e5))+1;
+  if(wk>maxWk)return{yr:yr+1,wk:1};
+  return{yr,wk};
+}
+
+function gasCallDirect(fn,arg){
+  if(!IN_GAS)return Promise.reject(new Error('Fuera de GAS'));
+  return new Promise((res,rej)=>{
+    google.script.run
+      .withSuccessHandler(r=>res(r))
+      .withFailureHandler(e=>rej(e))
+      [fn](arg);
+  });
+}
+function localDate(d=new Date()){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function localTime(d=new Date()){return d.toTimeString().slice(0,5);}
+
+async function upsertVentaSemanal(fecha,tienda,canal,cod,art,ventas,costo,utilidad,qty){
+  try{
+    const{yr,wk}=getIsoWeek(fecha);
+    console.log('upsertVentaSemanal',{yr,wk,tienda,canal,cod,art,ventas,costo,utilidad,qty});
+    await gasCallDirect('upsertVentaSemanal',{yr,wk,tienda,canal,cod,art,ventas,costo,utilidad,qty});
+    console.log('upsertVentaSemanal OK',cod);
+  }catch(e){
+    console.error('upsertVentaSemanal ERROR:',e.message||e);
+    toast('⚠️ Semana no registrada: '+cod,'warn');
+  }
+}
+</script>
+<div id="rm-corner-logo" style="position:fixed;top:10px;right:10px;z-index:9999;width:44px;height:44px;background:#fff;border-radius:50%;padding:3px;box-shadow:0 2px 8px rgba(0,0,0,.12);pointer-events:none">
+  <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+    <g stroke="#d4a5ab" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M120 80 C 90 90, 65 105, 50 130 C 80 122, 105 108, 124 88 Z"/>
+      <path d="M120 80 C 105 110, 95 140, 95 165 C 110 140, 122 110, 128 88 Z"/>
+      <path d="M120 80 C 125 110, 140 140, 150 165 C 140 135, 132 108, 130 88 Z"/>
+      <path d="M120 80 C 145 95, 175 105, 190 130 C 160 120, 138 105, 128 88 Z"/>
+    </g>
+  </svg>
+</div>
+</html>

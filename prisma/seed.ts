@@ -23,8 +23,35 @@ async function seedCatalogos() {
   console.log(`Catálogos SAT sembrados: ${n} claves (regímenes, usos CFDI, formas de pago).`);
 }
 
+// Catálogos base del ERP (Fase 2). Idempotente. Datos de infraestructura
+// (unidades, categorías, canales, medios); el alta de negocio es por la UI.
+async function seedErp() {
+  const unidades = [
+    { codigo: "KG", nombre: "Kilogramo" },
+    { codigo: "G", nombre: "Gramo" },
+    { codigo: "L", nombre: "Litro" },
+    { codigo: "ML", nombre: "Mililitro" },
+    { codigo: "PZA", nombre: "Pieza" },
+  ];
+  for (const u of unidades) {
+    await prisma.unidad.upsert({ where: { codigo: u.codigo }, update: { nombre: u.nombre }, create: u });
+  }
+  const categorias = ["Postres", "Bebidas", "Panadería"];
+  for (const nombre of categorias) {
+    await prisma.categoria.upsert({ where: { nombre }, update: {}, create: { nombre } });
+  }
+  const canales = ["Tienda", "Uber"];
+  for (const nombre of canales) {
+    await prisma.canal.upsert({ where: { nombre }, update: {}, create: { nombre } });
+  }
+  console.log(
+    `ERP: ${unidades.length} unidades, ${categorias.length} categorías, ${canales.length} canales.`,
+  );
+}
+
 async function main() {
   await seedCatalogos();
+  await seedErp();
 
   // Emisor demo activo → /f/demo renderiza.
   await prisma.emisor.upsert({

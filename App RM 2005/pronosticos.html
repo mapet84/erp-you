@@ -1,0 +1,1970 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rosa Maracuyá — Pronósticos</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --indigo:#3730A3;--indigo-mid:#4338CA;--indigo-light:#6366F1;
+  --indigo-pale:#C7D2FE;--indigo-blush:#EEF2FF;--indigo-bg:#F5F3FF;
+  --white:#fff;--cream:#FAFAFE;
+  --text:#0F0E2A;--text-mid:#2D2B6B;--text-soft:#6B68A8;--text-muted:#A5A3CC;
+  --border:#D4D2F5;--border-mid:#ABA8E8;--shadow:rgba(55,48,163,0.08);
+  --green:#15803d;--green-bg:#f0fdf4;--green-border:#86efac;
+  --red:#991b1b;--red-bg:#fef2f2;--red-border:#fca5a5;
+  --amber:#92400e;--amber-bg:#fffbeb;--amber-border:#fbbf24;
+  --blue:#1d4ed8;--blue-bg:#eff6ff;--blue-border:#93c5fd;
+  --rose:#9B2157;--rose-bg:#FDF2F7;--rose-border:#F0ABCB;
+  --r:6px;--r-sm:4px;--r-lg:12px;
+}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--indigo-bg);color:var(--text);min-height:100vh;font-size:13px;-webkit-font-smoothing:antialiased}
+.view{display:none;min-height:100vh}.view.active{display:flex}
+#view-login{align-items:center;justify-content:center;background:var(--indigo-bg)}
+.login-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);padding:40px 36px;width:320px;box-shadow:0 8px 32px var(--shadow)}
+.login-brand{text-align:center;margin-bottom:28px}
+.login-brand .icon{font-size:40px;line-height:1}
+.login-brand h1{font-size:20px;font-weight:700;color:var(--indigo);margin-top:8px}
+.login-brand p{font-size:11px;color:var(--text-soft);letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
+.login-err{background:var(--red-bg);border:1px solid var(--red-border);border-radius:var(--r-sm);padding:8px 12px;font-size:12px;color:var(--red);margin-bottom:14px;display:none}
+.login-err.show{display:block}
+.lf{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.lf label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-soft)}
+.lf input{font-family:'IBM Plex Sans',sans-serif;font-size:13px;color:var(--text);background:var(--cream);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:9px 12px;outline:none;width:100%;transition:border-color .12s}
+.lf input:focus{border-color:var(--indigo-mid);box-shadow:0 0 0 3px rgba(67,56,202,.12)}
+.lbtn{width:100%;background:var(--indigo);color:#fff;border:none;border-radius:var(--r-sm);padding:11px;font-family:'IBM Plex Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s;margin-top:4px}
+.lbtn:hover{background:var(--indigo-mid)}
+#view-main{flex-direction:column}
+.pron-bar{height:48px;background:var(--indigo);display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0}
+.pron-bar-brand{display:flex;align-items:center;gap:10px;color:#fff}
+.pron-bar-brand h1{font-size:15px;font-weight:700}
+.pron-bar-right{display:flex;align-items:center;gap:10px}
+.bar-chip{font-size:11px;color:rgba(255,255,255,.8);display:flex;align-items:center;gap:6px}
+.bar-av{width:26px;height:26px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff}
+.bar-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:var(--r-sm);color:rgba(255,255,255,.85);font-size:11px;padding:4px 10px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;transition:all .12s}
+.bar-btn:hover{background:rgba(255,255,255,.22)}
+.pron-shell{display:flex;flex:1;overflow:hidden}
+.pron-nav{width:200px;flex-shrink:0;background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.pron-content{flex:1;overflow-y:auto;padding:24px}
+.nav-group{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);padding:14px 16px 4px;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 16px;color:var(--text-soft);font-size:12px;cursor:pointer;transition:all .12s;border-left:2px solid transparent}
+.nav-item:hover{background:var(--indigo-blush);color:var(--indigo)}
+.nav-item.active{background:var(--indigo-blush);color:var(--indigo);font-weight:600;border-left-color:var(--indigo)}
+.nav-icon{font-size:13px;width:16px;text-align:center;flex-shrink:0}
+.nav-footer{padding:12px 16px;border-top:1px solid var(--border);font-size:10px;color:var(--text-muted)}
+.page{display:none}.page.active{display:block}
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px;box-shadow:0 2px 8px var(--shadow)}
+.card-head{font-size:13px;font-weight:700;color:var(--indigo);margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-soft)}
+.field input,.field select{font-family:'IBM Plex Sans',sans-serif;font-size:12px;color:var(--text);background:var(--cream);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:7px 10px;outline:none;width:100%;transition:border-color .12s}
+.field input:focus,.field select:focus{border-color:var(--indigo-mid)}
+.form-actions{display:flex;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
+.btn{font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:500;border:none;border-radius:var(--r-sm);padding:7px 16px;cursor:pointer;transition:all .12s;display:inline-flex;align-items:center;gap:5px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-primary{background:var(--indigo);color:#fff}.btn-primary:hover:not(:disabled){background:var(--indigo-mid)}
+.btn-secondary{background:var(--indigo-blush);color:var(--text-mid);border:1px solid var(--border)}.btn-secondary:hover{background:var(--indigo-pale)}
+.btn-sm{padding:4px 10px;font-size:11px}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{background:var(--indigo-blush);padding:7px 10px;text-align:left;font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--indigo);white-space:nowrap}
+tbody tr:hover{background:var(--indigo-blush)}
+tbody td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.empty-row td{text-align:center;color:var(--text-muted);padding:20px;font-style:italic}
+.chip{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:.04em}
+.chip-up{background:#dcfce7;color:#166534}
+.chip-dn{background:#fee2e2;color:#991b1b}
+.chip-neu{background:var(--indigo-blush);color:var(--indigo)}
+.kpi{background:var(--indigo-blush);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px}
+.kpi-label{font-size:10px;color:var(--text-soft);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.kpi-val{font-size:20px;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--indigo)}
+.kpi-sub{font-size:10px;color:var(--text-muted);margin-top:2px}
+.progress-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.progress-label{font-size:11px;color:var(--text-soft);min-width:120px}
+.progress-bar{flex:1;height:8px;background:var(--indigo-pale);border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;background:var(--indigo-mid);border-radius:4px;transition:width .4s}
+.progress-val{font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--text);min-width:60px;text-align:right}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--text);color:#fff;padding:10px 18px;border-radius:var(--r);font-size:12px;opacity:0;transition:opacity .2s;z-index:999;pointer-events:none}
+.toast.on{opacity:1}
+.status-running{background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:var(--r-sm);padding:10px 14px;font-size:12px;color:var(--amber);display:none}
+.status-running.show{display:flex;align-items:center;gap:8px}
+.spin{animation:spin 1s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="view active" id="view-login">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="icon">🔮</div>
+      <h1>Pronósticos</h1>
+      <p>Rosa Maracuyá</p>
+    </div>
+    <div class="login-err" id="l-err">Usuario o contraseña incorrectos</div>
+    <div class="lf"><label>Usuario</label><input id="l-user" type="text" autocomplete="off" onkeydown="if(event.key==='Enter')pronLogin()"/></div>
+    <div class="lf"><label>Contraseña</label><input id="l-pass" type="password" autocomplete="off" onkeydown="if(event.key==='Enter')pronLogin()"/></div>
+    <button class="lbtn" onclick="pronLogin()">Entrar</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="view" id="view-main">
+  <div class="pron-bar">
+    <div class="pron-bar-brand">
+      <span style="font-size:18px">🔮</span>
+      <h1>Rosa Maracuyá — Pronósticos <span style="font-size:10px;opacity:.5;font-weight:400">v5.2</span></h1>
+    </div>
+    <div class="pron-bar-right">
+      <div class="bar-chip">
+        <div class="bar-av" id="bar-av">?</div>
+        <span id="bar-name">—</span>
+      </div>
+      <button class="bar-btn" onclick="pronLogout()">Salir</button>
+    </div>
+  </div>
+
+  <div class="pron-shell">
+    <div class="pron-nav">
+      <div class="nav-group">Análisis</div>
+      <div class="nav-item active" onclick="goPage('p-comp')"><span class="nav-icon">📊</span>Comparativo Semanal</div>
+      <div class="nav-item" onclick="goPage('p-pron');pronLoad()"><span class="nav-icon">🔮</span>Pronósticos Ventas</div>
+      <div class="nav-item" onclick="goPage('p-compras');comprasLoad()"><span class="nav-icon">🛒</span>Pronóstico Compras</div>
+      <div class="nav-item" onclick="goPage('p-gastosp');gastosLoad()"><span class="nav-icon">💸</span>Pronóstico Gastos</div>
+      <div class="nav-group">Sistema</div>
+      <div class="nav-item" onclick="goPage('p-cfg')"><span class="nav-icon">⚙️</span>Configuración</div>
+      <div class="nav-item admin-pron" style="display:none" onclick="goPage('p-usr')"><span class="nav-icon">👥</span>Usuarios</div>
+      <div style="flex:1"></div>
+      <div class="nav-footer">v4.15 · Pronósticos</div>
+    </div>
+
+    <div class="pron-content">
+
+      <!-- ══ COMPARATIVO SEMANAL ══ -->
+      <div class="page active" id="p-comp">
+        <div class="card">
+          <div class="card-head">
+            <span>📊 Comparativo Semanal — Año actual vs año anterior</span>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <select id="comp-ftienda" style="font-size:11px;border:1px solid var(--border);border-radius:var(--r-sm);padding:3px 8px" onchange="compRender()"><option value="">Todas las tiendas</option></select>
+              <select id="comp-fcanal" style="font-size:11px;border:1px solid var(--border);border-radius:var(--r-sm);padding:3px 8px" onchange="compRender()"><option value="">Todos los canales</option></select>
+              <select id="comp-fart" style="font-size:11px;border:1px solid var(--border);border-radius:var(--r-sm);padding:3px 8px" onchange="compRender()"><option value="">Todos los artículos</option></select>
+              <button class="btn btn-secondary btn-sm" onclick="compLoad()">↺ Recargar</button>
+            </div>
+          </div>
+          <!-- KPIs -->
+          <div class="grid-4" id="comp-kpis" style="margin-bottom:16px">
+            <div class="kpi"><div class="kpi-label">Ventas año actual</div><div class="kpi-val" id="kpi-cur-v">—</div><div class="kpi-sub" id="kpi-cur-wks">— semanas</div></div>
+            <div class="kpi"><div class="kpi-label">Ventas año anterior</div><div class="kpi-val" id="kpi-prev-v">—</div><div class="kpi-sub" id="kpi-prev-wks">— semanas</div></div>
+            <div class="kpi"><div class="kpi-label">Crecimiento</div><div class="kpi-val" id="kpi-growth">—</div><div class="kpi-sub">vs mismo período</div></div>
+            <div class="kpi"><div class="kpi-label">Utilidad actual</div><div class="kpi-val" id="kpi-util">—</div><div class="kpi-sub" id="kpi-margin">— margen</div></div>
+          </div>
+          <!-- Chart canvas -->
+          <canvas id="comp-chart" height="90" style="margin-bottom:16px"></canvas>
+          <!-- Detail table -->
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr>
+                <th>Sem</th><th>Artículo</th><th>Und. actual</th><th>Und. anterior</th><th>Δ Und.</th>
+                <th>Ventas actual</th><th>Ventas anterior</th><th>Δ Ventas</th>
+                <th>Util. actual</th><th>Margen</th>
+              </tr></thead>
+              <tbody id="comp-tbody"><tr class="empty-row"><td colspan="10">Cargando...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PRONÓSTICOS ══ -->
+      <div class="page" id="p-pron">
+        <div class="card">
+          <div class="card-head">
+            <span>🔮 Pronóstico de Ventas</span>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+              <span id="pron-last-run" style="font-size:10px;color:var(--text-muted)">Último: —</span>
+              <button class="btn btn-secondary btn-sm" id="btn-reload-pron" onclick="reloadPronData()">↺ Recargar</button>
+              <button class="btn btn-primary btn-sm" id="btn-run-pron" onclick="openPronModal()">▶ Ejecutar pronóstico</button>
+              <button class="btn btn-secondary btn-sm" id="btn-confirm-pron" onclick="confirmPronostico()">✅ Confirmar pronóstico</button>
+            </div>
+          </div>
+          <!-- STATUS CONFIRMACIÓN VENTAS -->
+          <div id="pron-confirm-status" style="display:none;margin-bottom:12px;padding:8px 14px;border-radius:var(--r-sm);font-size:11px;display:flex;align-items:center;gap:8px"></div>
+          <!-- Progress bar (shown during execution) -->
+          <div id="pron-progress-wrap" style="display:none;margin-bottom:14px">
+            <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:600;margin-bottom:6px">
+              <span id="pron-progress-label" style="color:var(--indigo)">Iniciando...</span>
+              <span id="pron-progress-pct" style="color:var(--text-soft)">0%</span>
+            </div>
+            <div style="height:8px;background:var(--indigo-pale);border-radius:4px;overflow:hidden">
+              <div id="pron-progress-bar" style="height:100%;width:0%;background:var(--indigo-mid);border-radius:4px;transition:width .3s ease"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;margin-top:8px">
+              <div id="pron-step-1" style="flex:1;text-align:center;font-size:10px;padding:4px 8px;border-radius:var(--r-sm);background:var(--indigo-blush);color:var(--indigo);font-weight:600">🗑️ Borrado de datos</div>
+              <div style="color:var(--text-muted);font-size:10px">→</div>
+              <div id="pron-step-2" style="flex:1;text-align:center;font-size:10px;padding:4px 8px;border-radius:var(--r-sm);background:var(--cream);color:var(--text-muted)">📈 Nuevo Pronóstico</div>
+            </div>
+          </div>
+          <div class="status-running" id="pron-status">
+            <span class="spin">⟳</span> <span id="pron-status-msg">Calculando pronóstico...</span>
+          </div>
+          <!-- Filters -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:flex-end">
+            <div class="field" style="margin:0">
+              <label>Tienda</label>
+              <select id="pron-ftienda" style="font-size:11px" onchange="pronRender()"><option value="">Todas</option></select>
+            </div>
+            <div class="field" style="margin:0">
+              <label>Semana</label>
+              <select id="pron-fsem" style="font-size:11px" onchange="pronRender()"><option value="">Todas</option></select>
+            </div>
+            <div class="field" style="margin:0">
+              <label>Artículo</label>
+              <select id="pron-fart" style="font-size:11px" onchange="pronRender()"><option value="">Todos</option></select>
+            </div>
+          </div>
+          <canvas id="pron-chart" height="80" style="margin-bottom:16px"></canvas>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr>
+                <th>Sem</th><th>Tienda</th><th>Artículo</th>
+                <th title="Órdenes pendientes">🔒 Firme</th>
+                <th title="Pronóstico del modelo">📈 Pron. Modelo</th>
+                <th title="Total ajustado (editable)">✏️ Total Ajustado</th>
+                <th>Ventas Est.</th><th>Costo Est.</th><th>Utilidad Bruta</th>
+                <th>Vtas. Año Ant.</th><th>Pzs. Año Ant.</th>
+                <th>Precio</th><th>Guardar</th>
+              </tr></thead>
+              <tbody id="pron-tbody"><tr class="empty-row"><td colspan="13">Ejecuta el pronóstico para ver resultados.</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal: Ejecutar Pronóstico -->
+      <div id="pron-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:900;align-items:center;justify-content:center">
+        <div style="background:#fff;border-radius:12px;padding:28px 32px;width:460px;max-width:96vw;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+          <div style="font-size:16px;font-weight:700;color:var(--indigo);margin-bottom:18px">⚙️ Configurar Pronóstico</div>
+          <div class="field" style="margin-bottom:14px">
+            <label>% Crecimiento esperado</label>
+            <div style="display:flex;align-items:center;gap:6px">
+              <input type="number" id="pron-crecimiento" value="0" step="1" style="width:100px;font-size:14px;font-weight:600;text-align:center;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:8px"/>
+              <span style="font-size:12px;color:var(--text-soft)">% (negativo = decrecimiento)</span>
+            </div>
+          </div>
+          <div style="font-size:12px;font-weight:600;color:var(--text-mid);margin-bottom:10px">¿Qué deseas re-ejecutar?</div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+              <input type="radio" name="pron-scope" value="todo" checked onchange="pronScopeChange()"> Todo el pronóstico
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+              <input type="radio" name="pron-scope" value="categoria" onchange="pronScopeChange()"> Solo una categoría
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+              <input type="radio" name="pron-scope" value="articulo" onchange="pronScopeChange()"> Solo un artículo
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+              <input type="radio" name="pron-scope" value="tienda" onchange="pronScopeChange()"> Solo una tienda
+            </label>
+          </div>
+          <div id="pron-scope-sel" style="display:none;margin-bottom:16px">
+            <div class="field">
+              <label id="pron-scope-lbl">Selecciona</label>
+              <select id="pron-scope-val" style="font-size:12px;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:7px 10px;width:100%">
+              </select>
+            </div>
+          </div>
+          <!-- Step indicator -->
+          <div style="background:var(--indigo-blush);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 14px;font-size:12px;color:var(--text-mid);margin-bottom:14px">
+            ℹ️ Al ejecutar: se borrarán los registros existentes de las semanas a pronosticar y se generarán los nuevos automáticamente.
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end">
+            <button class="btn btn-secondary" onclick="closePronModal()">Cancelar</button>
+            <button class="btn btn-primary" id="btn-modal-ejecutar" onclick="runPronostico()">▶ Ejecutar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ CONFIGURACIÓN ══ -->
+      <div class="page" id="p-cfg">
+        <div class="card">
+          <div class="card-head">⚙️ Configuración de pronóstico</div>
+          <div class="grid-2">
+            <div class="field"><label>Semanas de historial para calcular</label>
+              <select id="cfg-semanas">
+                <option value="8">Últimas 8 semanas</option>
+                <option value="12" selected>Últimas 12 semanas</option>
+                <option value="26">Últimas 26 semanas</option>
+                <option value="52">Últimas 52 semanas</option>
+              </select>
+            </div>
+            <div class="field"><label>Peso semanas recientes vs históricas</label>
+              <select id="cfg-peso">
+                <option value="linear">Lineal (más peso a recientes)</option>
+                <option value="exp" selected>Exponencial (más peso aún a recientes)</option>
+                <option value="flat">Igual peso a todas</option>
+              </select>
+            </div>
+            <div class="field"><label>Ajuste estacional</label>
+              <select id="cfg-estacional">
+                <option value="1" selected>Sí — usar misma semana año anterior</option>
+                <option value="0">No — solo promedio histórico</option>
+              </select>
+            </div>
+            <div class="field"><label>Factor de tendencia</label>
+              <select id="cfg-tendencia">
+                <option value="1" selected>Sí — aplicar tendencia de últimas 4 semanas</option>
+                <option value="0">No</option>
+              </select>
+            </div>
+            <div class="field"><label>Semanas hacia adelante</label>
+              <select id="cfg-horizonte">
+                <option value="4" selected>4 semanas</option>
+                <option value="8">8 semanas</option>
+                <option value="13">13 semanas (trimestre)</option>
+              </select>
+            </div>
+            <div class="field"><label>Día de ejecución automática</label>
+              <select id="cfg-dia">
+                <option value="1" selected>Lunes</option>
+                <option value="2">Martes</option>
+                <option value="3">Miércoles</option>
+              </select>
+            </div>
+            <div class="field"><label>Hora de ejecución automática</label>
+              <select id="cfg-hora">
+                <option value="20">8:00 PM</option>
+                <option value="21">9:00 PM</option>
+                <option value="22" selected>10:00 PM</option>
+                <option value="23">11:00 PM</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" onclick="saveCfg()">💾 Guardar configuración</button>
+            <button class="btn btn-secondary" onclick="runPronostico()">▶ Ejecutar ahora</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ USUARIOS ══ -->
+      <div class="page" id="p-usr">
+        <div class="card">
+          <div class="card-head">👥 Usuarios de Pronósticos</div>
+          <div class="grid-3" style="margin-bottom:16px">
+            <div class="field"><label>Usuario</label><input id="usr-user" placeholder="nombre_usuario"/></div>
+            <div class="field"><label>Contraseña</label><input id="usr-pass" type="password" placeholder="••••••"/></div>
+            <div class="field"><label>Nombre</label><input id="usr-nom" placeholder="Nombre completo"/></div>
+            <div class="field"><label>Rol</label>
+              <select id="usr-rol">
+                <option value="viewer">Viewer</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="usrSave()">＋ Agregar usuario</button>
+          <div class="tbl-wrap" style="margin-top:16px">
+            <table><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th></th></tr></thead>
+            <tbody id="usr-tbody"><tr class="empty-row"><td colspan="4">Sin usuarios</td></tr></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PRONÓSTICO COMPRAS ══ -->
+      <div class="page" id="p-compras">
+        <div class="card">
+          <div class="card-head">
+            <span>🛒 Pronóstico de Compras</span>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <div class="field" style="margin:0;flex-direction:row;align-items:center;gap:6px">
+                <label style="white-space:nowrap;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-soft)">Semanas a cubrir</label>
+                <select id="cmp-semanas-cob" style="font-size:11px;border:1px solid var(--border);border-radius:var(--r-sm);padding:3px 8px">
+                  <option value="1">1 semana</option>
+                  <option value="2" selected>2 semanas</option>
+                  <option value="3">3 semanas</option>
+                  <option value="4">4 semanas</option>
+                  <option value="semanal">📅 Comprar semana a semana</option>
+                </select>
+              </div>
+              <select id="cmp-fsem" style="font-size:11px;border:1px solid var(--border);border-radius:var(--r-sm);padding:3px 8px" onchange="comprasRender()"><option value="">Todas las semanas</option></select>
+              <select id="cmp-ftienda" style="font-size:11px;border:1px solid var(--border);border-radius:var(--r-sm);padding:3px 8px" onchange="comprasRender()"><option value="">Todas las tiendas</option></select>
+              <button class="btn btn-secondary btn-sm" onclick="comprasLoad()">↺ Recargar</button>
+              <button class="btn btn-primary btn-sm" id="btn-compras" onclick="runCompras()">▶ Calcular</button>
+              <button class="btn btn-secondary btn-sm" id="btn-save-compras" onclick="saveAllCompras()" style="display:none">💾 Guardar todo</button>
+              <button class="btn btn-secondary btn-sm" id="btn-confirm-compras" onclick="confirmCompras()">✅ Confirmar compras</button>
+            </div>
+          </div>
+          <!-- STATUS CONFIRMACIÓN COMPRAS -->
+          <div id="compras-confirm-status" style="display:none;margin-bottom:12px;padding:8px 14px;border-radius:var(--r-sm);font-size:11px;display:flex;align-items:center;gap:8px"></div>
+          <!-- Progress bar compras -->
+          <div id="cmp-progress-wrap" style="display:none;margin-bottom:14px">
+            <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:600;margin-bottom:6px">
+              <span id="cmp-progress-label" style="color:var(--indigo)">Iniciando...</span>
+              <span id="cmp-progress-pct" style="color:var(--text-soft)">0%</span>
+            </div>
+            <div style="height:8px;background:var(--indigo-pale);border-radius:4px;overflow:hidden">
+              <div id="cmp-progress-bar" style="height:100%;width:0%;background:var(--indigo-mid);border-radius:4px;transition:width .3s ease"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;margin-top:8px">
+              <div id="cmp-step-1" style="flex:1;text-align:center;font-size:10px;padding:4px 8px;border-radius:var(--r-sm);background:var(--indigo-blush);color:var(--indigo);font-weight:600">🗑️ Borrado de datos</div>
+              <div style="color:var(--text-muted);font-size:10px">→</div>
+              <div id="cmp-step-2" style="flex:1;text-align:center;font-size:10px;padding:4px 8px;border-radius:var(--r-sm);background:var(--cream);color:var(--text-muted)">🛒 Nuevo Cálculo</div>
+            </div>
+          </div>
+          <div class="status-running" id="compras-status"><span class="spin">⟳</span> <span id="compras-status-msg">Calculando...</span></div>
+          <canvas id="compras-chart" height="70" style="margin-bottom:16px"></canvas>
+          <div class="tbl-wrap">
+            <table><thead><tr>
+              <th>Sem</th><th>Tienda</th><th>Código</th><th>Ingrediente / Producto</th><th>Unidad</th>
+              <th>Cant. Pron.</th><th>✏️ Cant. Ajustada</th><th>Mín. Compra</th>
+              <th>Costo Unit.</th><th>Costo Total</th><th>Guardar</th>
+            </tr></thead>
+            <tbody id="compras-tbody"><tr class="empty-row"><td colspan="11">Ejecuta "Calcular".</td></tr></tbody></table>
+          </div>
+          <div id="compras-total" style="margin-top:12px;padding:12px 16px;background:var(--indigo-blush);border-radius:var(--r);display:none">
+            Costo total estimado: <strong id="compras-total-val" style="color:var(--indigo)">$0</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PRONÓSTICO GASTOS ══ -->
+      <div class="page" id="p-gastosp">
+        <div class="card">
+          <div class="card-head">
+            <span>💸 Pronóstico de Gastos</span>
+            <div style="display:flex;gap:8px;align-items:center">
+              <select id="gp-fsem" style="font-size:11px;border:1px solid var(--border);border-radius:var(--r-sm);padding:3px 8px" onchange="gastosRender()"><option value="">Todas las semanas</option></select>
+              <button class="btn btn-secondary btn-sm" onclick="gastosLoad()">↺ Recargar</button>
+              <button class="btn btn-primary btn-sm" id="btn-gastos" onclick="runGastos()">▶ Calcular</button>
+              <button class="btn btn-secondary btn-sm" id="btn-confirm-gastos" onclick="confirmGastos()">✅ Confirmar gastos</button>
+            </div>
+          </div>
+          <!-- STATUS CONFIRMACIÓN GASTOS -->
+          <div id="gastos-confirm-status" style="display:none;margin-bottom:12px;padding:8px 14px;border-radius:var(--r-sm);font-size:11px;display:flex;align-items:center;gap:8px"></div>
+          <!-- Progress bar gastos -->
+          <div id="gp-progress-wrap" style="display:none;margin-bottom:14px">
+            <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:600;margin-bottom:6px">
+              <span id="gp-progress-label" style="color:var(--indigo)">Iniciando...</span>
+              <span id="gp-progress-pct" style="color:var(--text-soft)">0%</span>
+            </div>
+            <div style="height:8px;background:var(--indigo-pale);border-radius:4px;overflow:hidden">
+              <div id="gp-progress-bar" style="height:100%;width:0%;background:var(--indigo-mid);border-radius:4px;transition:width .3s ease"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;margin-top:8px">
+              <div id="gp-step-1" style="flex:1;text-align:center;font-size:10px;padding:4px 8px;border-radius:var(--r-sm);background:var(--indigo-blush);color:var(--indigo);font-weight:600">🗑️ Borrado de datos</div>
+              <div style="color:var(--text-muted);font-size:10px">→</div>
+              <div id="gp-step-2" style="flex:1;text-align:center;font-size:10px;padding:4px 8px;border-radius:var(--r-sm);background:var(--cream);color:var(--text-muted)">💸 Nueva Proyección</div>
+            </div>
+          </div>
+          <div class="status-running" id="gastos-status"><span class="spin">⟳</span> Proyectando gastos...</div>
+          <canvas id="gastos-chart" height="70" style="margin-bottom:16px"></canvas>
+          <div class="tbl-wrap">
+            <table><thead><tr>
+              <th>Sem</th><th>Fecha Est.</th><th>Categoría</th><th>Tienda</th><th>Periodicidad</th>
+              <th>Monto Pron.</th><th>✏️ Monto Ajustado</th><th>Monto Real</th><th>Guardar</th>
+            </tr></thead>
+            <tbody id="gastosp-tbody"><tr class="empty-row"><td colspan="9">Ejecuta "Calcular".</td></tr></tbody></table>
+          </div>
+          <div id="gastosp-total" style="margin-top:12px;padding:12px 16px;background:var(--indigo-blush);border-radius:var(--r);display:none">
+            Gasto proyectado: <strong id="gastosp-total-val" style="color:var(--indigo)">$0</strong>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /pron-content -->
+  </div><!-- /pron-shell -->
+</div><!-- /view-main -->
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+// ─────────────────────────────────────────────
+// CORE
+// ─────────────────────────────────────────────
+const IN_GAS=typeof google!=='undefined'&&typeof google.script!=='undefined';
+const $=id=>document.getElementById(id);
+
+function gasCall(fn,arg){
+  if(!IN_GAS)return Promise.reject(new Error('Fuera de GAS'));
+  return new Promise((res,rej)=>{
+    const t=setTimeout(()=>rej(new Error('Timeout 30s')),30000);
+    google.script.run
+      .withSuccessHandler(d=>{clearTimeout(t);res(d);})
+      .withFailureHandler(e=>{clearTimeout(t);rej(new Error(e.message||'Error'));})
+      [fn](arg);
+  });
+}
+
+function toast(msg,type=''){
+  const el=$('toast');el.textContent=msg;el.className='toast on '+(type==='err'?'style="background:#991b1b"':'');
+  el.style.background=type==='err'?'#991b1b':'#0F0E2A';
+  setTimeout(()=>el.className='toast',3200);
+}
+
+function fmx(n){return'$'+Number(n||0).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fpc(n){return Number(n||0).toFixed(1)+'%';}
+function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function localDate(d=new Date()){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+
+function getIsoWeek(dateStr){
+  const d=new Date(dateStr+'T12:00:00');
+  const yr=d.getFullYear();
+  const jan4=new Date(yr,0,4);
+  const w1=new Date(jan4);w1.setDate(jan4.getDate()-(jan4.getDay()||7)+1);
+  const wk=Math.floor((d-w1)/(7*864e5))+1;
+  if(wk<1){const jan4p=new Date(yr-1,0,4);const w1p=new Date(jan4p);w1p.setDate(jan4p.getDate()-(jan4p.getDay()||7)+1);const dec28p=new Date(yr-1,11,28);return{yr:yr-1,wk:Math.floor((dec28p-w1p)/(7*864e5))+1};}
+  const dec28=new Date(yr,11,28);const maxWk=Math.floor((dec28-w1)/(7*864e5))+1;
+  if(wk>maxWk)return{yr:yr+1,wk:1};
+  return{yr,wk};
+}
+
+// ─────────────────────────────────────────────
+// AUTH
+// ─────────────────────────────────────────────
+let SESSION={};
+let DB_PRON_USERS=[];
+
+async function pronLogin(){
+  const user=($('l-user').value||'').trim();
+  const pass=($('l-pass').value||'').trim();
+  if(!user||!pass){$('l-err').className='login-err show';$('l-err').textContent='Ingresa usuario y contraseña';return;}
+  try{
+    const r=await gasCall('getData',['Usuarios_PRON']);
+    DB_PRON_USERS=(r['Usuarios_PRON']||[]).map(x=>({
+      row:x._row,user:String(x['usuario']||x['Usuario']||''),
+      pass:String(x['password']||x['Contraseña']||x['Password']||''),
+      nom:String(x['nombre']||x['Nombre']||''),rol:String(x['rol']||x['Rol']||'viewer')
+    })).filter(x=>x.user);
+    // Fallback hardcoded admin if no users yet
+    if(!DB_PRON_USERS.length){
+      DB_PRON_USERS=[{user:'admin',pass:'@dmin123',nom:'Admin',rol:'admin',row:null}];
+    }
+    const found=DB_PRON_USERS.find(u=>u.user===user&&u.pass===pass);
+    if(!found){$('l-err').className='login-err show';$('l-err').textContent='Usuario o contraseña incorrectos';return;}
+    SESSION={user:found.user,nom:found.nom,rol:found.rol};
+    $('bar-av').textContent=found.nom.charAt(0).toUpperCase();
+    $('bar-name').textContent=found.nom;
+    if(found.rol==='admin'){document.querySelectorAll('.admin-pron').forEach(el=>el.style.display='flex');}
+    $('view-login').className='view';
+    $('view-main').className='view active';
+    compLoad();
+    loadCfg();
+    pronLoadStatus(); // Cargar status persistido de confirmaciones
+  }catch(e){$('l-err').className='login-err show';$('l-err').textContent='Error: '+e.message;}
+}
+
+function pronLogout(){
+  SESSION={};
+  $('l-user').value='';$('l-pass').value='';
+  $('l-err').className='login-err';
+  $('view-main').className='view';
+  $('view-login').className='view active';
+}
+
+// ─────────────────────────────────────────────
+// NAVIGATION
+// ─────────────────────────────────────────────
+function goPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.className='page');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const pg=$(id);if(pg)pg.className='page active';
+  const ni=document.querySelector(`.nav-item[onclick*="${id}"]`);
+  if(ni)ni.classList.add('active');
+}
+
+// ─────────────────────────────────────────────
+// DATA
+// ─────────────────────────────────────────────
+let VS=[]; // Ventas_Semanales raw
+let PRON=[]; // Pronosticos raw
+let VR=[]; // Ventas_Restaurante pending (en firme)
+let PRECIOS=[]; // Precios sheet
+let PRO_PRECIOS=[]; // Productos_Precios
+let COMISIONES=[]; // Comisiones sheet
+let PRON_ART_REF=new Map(); // cod -> {ref, pct}
+
+async function compLoad(){
+  toast('Cargando datos semanales…');
+  try{
+    const r=await gasCall('getData',['Ventas_Semanales','Comisiones']);
+    VS=(r['Ventas_Semanales']||[]).map(x=>({
+      yr:parseInt(x['anio']||x['Año']||x['Ano']||0),
+      wk:parseInt(x['semana']||x['Semana']||x['wk']||0),
+      tienda:String(x['Tienda']||''),
+      canal:String(x['Canal']||''),
+      cod:String(x['Codigo']||x['Código']||''),
+      cat:String(x['Categoria']||x['Categoría']||''),
+      art:String(x['Articulo']||x['Artículo']||''),
+      ventas:parseFloat(x['ventas']||x['Ventas']||0)||0,
+      costo:parseFloat(x['costo']||x['Costo']||0)||0,
+      util:parseFloat(x['utilidad']||x['Utilidad']||0)||0,
+      uds:parseFloat(x['unidades']||x['Unidades']||0)||0,
+      txns:parseFloat(x['transacciones']||x['Transacciones']||1)||1,
+    })).filter(x=>x.yr>0&&x.wk>0);
+    COMISIONES=(r['Comisiones']||[]).map(x=>({
+      canal:String(x['Canal']||''),medio:String(x['Medio de Pago']||x['Medio']||''),
+      pct:parseFloat(x['Comisión']||x['Comision']||0)||0
+    }));
+    const tiendas=[...new Set(VS.map(v=>v.tienda))].sort();
+    const canales=[...new Set(VS.map(v=>v.canal))].sort();
+    const arts=[...new Set(VS.map(v=>v.cod+'|'+v.art))].sort();
+    ['comp-ftienda','pron-ftienda'].forEach(id=>{
+      const el=$(id);if(!el)return;
+      el.innerHTML='<option value="">Todas las tiendas</option>'+tiendas.map(t=>`<option>${esc(t)}</option>`).join('');
+    });
+    ['comp-fcanal'].forEach(id=>{
+      const el=$(id);if(!el)return;
+      el.innerHTML='<option value="">Todos los canales</option>'+canales.map(c=>`<option>${esc(c)}</option>`).join('');
+    });
+    $('comp-fart').innerHTML='<option value="">Todos los artículos</option>'+arts.map(a=>{const[cod,art]=a.split('|');return`<option value="${esc(cod)}">${esc(cod)} — ${esc(art)}</option>`;}).join('');
+    compRender();
+    toast('✅ Datos cargados');
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+
+async function pronLoad(){
+  try{
+    const r=await gasCall('getData',['Pronosticos','Precios','Productos_Precios','Ventas_Restaurante','Productos','Recetas']);
+    PRON=(r['Pronosticos']||[]).map(x=>({
+      row:x._row,
+      yr:parseInt(x['anio']||x['Año']||x['Ano']||0),
+      wk:parseInt(x['semana']||x['Semana']||x['wk']||0),
+      tienda:String(x['tienda']||x['Tienda']||''),
+      canal:String(x['canal']||x['Canal']||''),
+      cod:String(x['codigo']||x['Codigo']||x['Código']||''),
+      art:String(x['articulo']||x['Articulo']||x['Artículo']||''),
+      udsPron:parseFloat(x['unidades_pron']||x['Unidades_Pron']||0)||0,
+      ventasPron:parseFloat(x['ventas_pron']||x['Ventas_Pron']||0)||0,
+      costoPron:parseFloat(x['costo_pron']||x['Costo_Pron']||0)||0,
+      utilPron:parseFloat(x['utilidad_pron']||x['Utilidad_Pron']||0)||0,
+      precioUnit:parseFloat(x['precio_unit']||x['Precio_Unit']||0)||0,
+      costoUnit:parseFloat(x['costo_unit']||x['Costo_Unit']||0)||0,
+      comPct:parseFloat(x['comision_pct']||x['Comision_Pct']||0)||0,
+      fechaGen:String(x['fecha_generacion']||x['Fecha_Generacion']||''),
+      metodo:String(x['metodo']||x['Metodo']||''),
+      udsFirme:parseFloat(x['unidades_firme']||x['Unidades_Firme']||0)||0,
+    })).filter(x=>x.yr>0);
+    PRECIOS=(r['Precios']||[]).map(x=>({
+      sku:String(x['SKU']||''),canal:String(x['Canal']||''),
+      precio:parseFloat(x['Precio']||0)||0
+    }));
+    PRO_PRECIOS=(r['Productos_Precios']||[]).map(x=>({
+      cod:String(x['Código']||x['Codigo']||''),canal:String(x['Canal']||''),
+      precio:parseFloat(x['Precio']||0)||0
+    }));
+    // Parse pending Ventas_Restaurante as firme
+    VR=(r['Ventas_Restaurante']||[])
+      .filter(x=>String(x['Estado Entrega']||'').toLowerCase().trim()==='pendiente')
+      .map(x=>({
+        cod:String(x['Codigo']||x['Código']||''),
+        art:String(x['Articulo']||x['Artículo']||''),
+        tienda:String(x['Tienda']||''),
+        qty:parseFloat(x['Qty']||0)||0,
+        fecha:String(x['Fecha']||'').split(' ')[0],
+      }));
+    // Assign ISO week to each VR order
+    VR.forEach(v=>{
+      if(v.fecha){const{yr,wk}=getIsoWeek(v.fecha);v.yr=yr;v.wk=wk;}
+    });
+    // Parse artRef from Productos and Recetas
+    PRON_ART_REF=new Map();
+    (r['Productos']||[]).forEach(x=>{
+      const cod=String(x['Código']||x['Codigo']||'');
+      const ref=String(x['articulo_ref']||x['Articulo_Ref']||'');
+      const pct=parseFloat(x['pct_ref']||x['Pct_Ref']||0)||100;
+      if(cod&&ref)PRON_ART_REF.set(cod,{ref,pct});
+    });
+    (r['Recetas']||[]).forEach(x=>{
+      const cod=String(x['SKU']||'');
+      const ref=String(x['articulo_ref']||x['Articulo_Ref']||'');
+      const pct=parseFloat(x['pct_ref']||x['Pct_Ref']||0)||100;
+      if(cod&&ref&&!PRON_ART_REF.has(cod))PRON_ART_REF.set(cod,{ref,pct});
+    });
+    const sems=[...new Set(PRON.map(p=>`${p.yr}-W${String(p.wk).padStart(2,'0')}` ))].sort();
+    $('pron-fsem').innerHTML='<option value="">Todas</option>'+sems.map(s=>`<option value="${s}">${s}</option>`).join('');
+    if(PRON.length){
+      const last=PRON.reduce((a,b)=>a.fechaGen>b.fechaGen?a:b);
+      $('pron-last-run').textContent='Último: '+last.fechaGen;
+      // Update tiendas filter
+      const tiendas=[...new Set(PRON.map(p=>p.tienda))].sort();
+      $('pron-ftienda').innerHTML='<option value="">Todas</option>'+tiendas.map(t=>`<option>${esc(t)}</option>`).join('');
+      // Update articulos filter
+      const arts=[...new Set(PRON.map(p=>p.cod+'|'+p.art))].sort();
+      $('pron-fart').innerHTML='<option value="">Todos</option>'+arts.map(a=>{const[cod,art]=a.split('|');return`<option value="${esc(cod)}">${esc(cod)} — ${esc(art)}</option>`;}).join('');
+    }
+    pronRender();
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+
+// ─────────────────────────────────────────────
+// COMPARATIVO
+// ─────────────────────────────────────────────
+let compChart=null;
+
+function compRender(){
+  const ft=($('comp-ftienda')||{}).value||'';
+  const fc=($('comp-fcanal')||{}).value||'';
+  const fa=($('comp-fart')||{}).value||'';
+  const curY=new Date().getFullYear();
+  const prevY=curY-1;
+  const{yr:curWkNow}=getIsoWeek(localDate());
+  const curWkMax=getIsoWeek(localDate()).wk;
+
+  let data=VS.filter(v=>(v.yr===curY||v.yr===prevY));
+  if(ft)data=data.filter(v=>v.tienda===ft);
+  if(fc)data=data.filter(v=>v.canal===fc);
+  if(fa)data=data.filter(v=>v.cod===fa);
+
+  // Group by yr+wk
+  const byWkYr={};
+  data.forEach(v=>{
+    const key=`${v.yr}-${v.wk}`;
+    if(!byWkYr[key])byWkYr[key]={yr:v.yr,wk:v.wk,ventas:0,util:0,uds:0,costo:0};
+    byWkYr[key].ventas+=v.ventas;
+    byWkYr[key].util+=v.util;
+    byWkYr[key].uds+=v.uds;
+    byWkYr[key].costo+=v.costo;
+  });
+
+  // Build week arrays 1-52
+  const labels=Array.from({length:52},(_,i)=>'S'+(i+1));
+  const curVentas=labels.map((_,i)=>(byWkYr[`${curY}-${i+1}`]||{}).ventas||null);
+  const prevVentas=labels.map((_,i)=>(byWkYr[`${prevY}-${i+1}`]||{}).ventas||null);
+  const curUtil=labels.map((_,i)=>(byWkYr[`${curY}-${i+1}`]||{}).util||null);
+
+  // KPIs — compare same weeks
+  const curTotal=data.filter(v=>v.yr===curY).reduce((t,v)=>t+v.ventas,0);
+  const prevTotal=data.filter(v=>v.yr===prevY&&v.wk<=curWkMax).reduce((t,v)=>t+v.ventas,0);
+  const growth=prevTotal>0?(curTotal-prevTotal)/prevTotal*100:0;
+  const curUtilTotal=data.filter(v=>v.yr===curY).reduce((t,v)=>t+v.util,0);
+  const curVentasTotal=data.filter(v=>v.yr===curY).reduce((t,v)=>t+v.ventas,0);
+  const margin=curVentasTotal>0?curUtilTotal/curVentasTotal*100:0;
+  const curWks=[...new Set(data.filter(v=>v.yr===curY).map(v=>v.wk))].length;
+  const prevWks=[...new Set(data.filter(v=>v.yr===prevY).map(v=>v.wk))].length;
+
+  $('kpi-cur-v').textContent=fmx(curTotal);
+  $('kpi-cur-wks').textContent=`${curWks} semanas (S1–S${curWkMax})`;
+  $('kpi-prev-v').textContent=fmx(prevTotal);
+  $('kpi-prev-wks').textContent=`${prevWks} semanas`;
+  $('kpi-growth').textContent=(growth>=0?'+':'')+fpc(growth);
+  $('kpi-growth').style.color=growth>=0?'var(--green)':'var(--red)';
+  $('kpi-util').textContent=fmx(curUtilTotal);
+  $('kpi-margin').textContent=fpc(margin)+' margen';
+
+  // Chart
+  const canvas=$('comp-chart');
+  if(compChart)compChart.destroy();
+  compChart=new Chart(canvas.getContext('2d'),{
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        {label:`Ventas ${curY}`,data:curVentas,borderColor:'#4338CA',backgroundColor:'rgba(67,56,202,0.07)',borderWidth:2,pointRadius:2,tension:0.3,fill:true,spanGaps:true},
+        {label:`Ventas ${prevY}`,data:prevVentas,borderColor:'rgba(67,56,202,0.35)',borderWidth:1.5,borderDash:[4,3],pointRadius:1,tension:0.3,fill:false,spanGaps:true},
+        {label:`Utilidad ${curY}`,data:curUtil,borderColor:'#15803d',borderWidth:2,pointRadius:2,tension:0.3,fill:false,spanGaps:true},
+      ]
+    },
+    options:{
+      responsive:true,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:true,position:'top',labels:{font:{size:10},boxWidth:20}},
+        tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmx(ctx.raw||0)}`}}
+      },
+      scales:{
+        y:{ticks:{callback:v=>fmx(v),font:{size:9}},grid:{color:'rgba(0,0,0,0.04)'}},
+        x:{ticks:{font:{size:9},maxTicksLimit:26},grid:{display:false}}
+      }
+    }
+  });
+
+  // Detail table — by article+week
+  const byArtWk={};
+  data.forEach(v=>{
+    const key=`${v.wk}|${v.cod}`;
+    if(!byArtWk[key])byArtWk[key]={wk:v.wk,cod:v.cod,art:v.art,curUds:0,prevUds:0,curV:0,prevV:0,curU:0};
+    if(v.yr===curY){byArtWk[key].curUds+=v.uds;byArtWk[key].curV+=v.ventas;byArtWk[key].curU+=v.util;}
+    else{byArtWk[key].prevUds+=v.uds;byArtWk[key].prevV+=v.ventas;}
+  });
+  const rows=Object.values(byArtWk).sort((a,b)=>a.wk-b.wk||a.cod.localeCompare(b.cod));
+  const tb=$('comp-tbody');
+  if(!rows.length){tb.innerHTML='<tr class="empty-row"><td colspan="10">Sin datos para el filtro seleccionado</td></tr>';return;}
+  tb.innerHTML=rows.map(r=>{
+    const dUds=r.curUds-r.prevUds;
+    const dV=r.curV-r.prevV;
+    const pctV=r.prevV>0?((r.curV-r.prevV)/r.prevV*100):0;
+    const mg=r.curV>0?r.curU/r.curV*100:0;
+    const udChip=dUds>=0?`<span class="chip chip-up">+${dUds}</span>`:`<span class="chip chip-dn">${dUds}</span>`;
+    const vChip=dV>=0?`<span class="chip chip-up">+${fpc(pctV)}</span>`:`<span class="chip chip-dn">${fpc(pctV)}</span>`;
+    return`<tr>
+      <td style="font-weight:600">S${r.wk}</td>
+      <td><span style="font-size:10px;background:var(--indigo-blush);color:var(--indigo);padding:1px 6px;border-radius:10px;font-weight:600">${esc(r.cod)}</span> ${esc(r.art)}</td>
+      <td style="text-align:right;font-family:'IBM Plex Mono',monospace">${r.curUds}</td>
+      <td style="text-align:right;font-family:'IBM Plex Mono',monospace;color:var(--text-soft)">${r.prevUds}</td>
+      <td>${udChip}</td>
+      <td style="text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:600">${fmx(r.curV)}</td>
+      <td style="text-align:right;font-family:'IBM Plex Mono',monospace;color:var(--text-soft)">${fmx(r.prevV)}</td>
+      <td>${vChip}</td>
+      <td style="text-align:right;font-family:'IBM Plex Mono',monospace;color:var(--green)">${fmx(r.curU)}</td>
+      <td style="text-align:right"><span class="chip ${mg>=50?'chip-up':mg>=30?'chip-neu':'chip-dn'}">${fpc(mg)}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ─────────────────────────────────────────────
+// PRONÓSTICO ENGINE
+// ─────────────────────────────────────────────
+function getCfg(){
+  return{
+    semanas:parseInt(($('cfg-semanas')||{}).value||12),
+    peso:($('cfg-peso')||{}).value||'exp',
+    estacional:parseInt(($('cfg-estacional')||{}).value||1),
+    tendencia:parseInt(($('cfg-tendencia')||{}).value||1),
+    horizonte:parseInt(($('cfg-horizonte')||{}).value||4),
+  };
+}
+
+function saveCfg(){
+  const cfg=getCfg();
+  try{localStorage.setItem('pron_cfg',JSON.stringify(cfg));toast('✅ Configuración guardada');}
+  catch(e){toast('Guardado en sesión','ok');}
+}
+
+function loadCfg(){
+  try{
+    const s=localStorage.getItem('pron_cfg');if(!s)return;
+    const c=JSON.parse(s);
+    if($('cfg-semanas'))$('cfg-semanas').value=c.semanas;
+    if($('cfg-peso'))$('cfg-peso').value=c.peso;
+    if($('cfg-estacional'))$('cfg-estacional').value=c.estacional;
+    if($('cfg-tendencia'))$('cfg-tendencia').value=c.tendencia;
+    if($('cfg-horizonte'))$('cfg-horizonte').value=c.horizonte;
+  }catch(e){}
+}
+
+function getPrecioActual(cod,canal){
+  const p=PRECIOS.find(x=>x.sku===cod&&x.canal===canal)||PRECIOS.find(x=>x.sku===cod);
+  if(p)return p.precio;
+  const pp=PRO_PRECIOS.find(x=>x.cod===cod&&x.canal===canal)||PRO_PRECIOS.find(x=>x.cod===cod);
+  return pp?pp.precio:0;
+}
+
+function getCostoActual(cod){
+  const hist=VS.filter(v=>v.cod===cod&&v.uds>0).slice(-8);
+  if(!hist.length)return 0;
+  const totCosto=hist.reduce((t,v)=>t+v.costo,0);
+  const totUds=hist.reduce((t,v)=>t+v.uds,0);
+  return totUds>0?totCosto/totUds:0;
+}
+
+function getComisionPct(canal){
+  const c=COMISIONES.find(x=>x.canal===canal);
+  return c?c.pct/100:0;
+}
+
+// ─────────────────────────────────────────────
+// MODAL Y SCOPE
+// ─────────────────────────────────────────────
+function openPronModal(){
+  $('pron-modal').style.display='flex';
+  pronScopeChange();
+}
+function closePronModal(){$('pron-modal').style.display='none';}
+
+function pronScopeChange(){
+  const scope=document.querySelector('input[name="pron-scope"]:checked').value;
+  const selDiv=$('pron-scope-sel');
+  const lbl=$('pron-scope-lbl');
+  const sel=$('pron-scope-val');
+  if(scope==='todo'){selDiv.style.display='none';return;}
+  selDiv.style.display='block';
+  if(scope==='categoria'){
+    lbl.textContent='Categoría';
+    const cats=[...new Set(VS.map(v=>v.cat||'').filter(Boolean))].sort();
+    sel.innerHTML=cats.map(c=>`<option>${esc(c)}</option>`).join('');
+  } else if(scope==='articulo'){
+    lbl.textContent='Artículo';
+    const arts=[...new Set(VS.map(v=>v.cod+'|'+v.art))].sort();
+    sel.innerHTML=arts.map(a=>{const[cod,art]=a.split('|');return`<option value="${esc(cod)}">${esc(cod)} — ${esc(art)}</option>`;}).join('');
+  } else if(scope==='tienda'){
+    lbl.textContent='Tienda';
+    const tiendas=[...new Set(VS.map(v=>v.tienda))].sort();
+    sel.innerHTML=tiendas.map(t=>`<option>${esc(t)}</option>`).join('');
+  }
+}
+
+// ─── Progress bar helpers ───
+function setProgress(pct,label,step){
+  $('pron-progress-wrap').style.display='block';
+  $('pron-progress-bar').style.width=pct+'%';
+  $('pron-progress-pct').textContent=Math.round(pct)+'%';
+  $('pron-progress-label').textContent=label;
+  if(step===1){
+    $('pron-step-1').style.background='var(--indigo)';$('pron-step-1').style.color='#fff';
+    $('pron-step-2').style.background='var(--cream)';$('pron-step-2').style.color='var(--text-muted)';
+  } else if(step===2){
+    $('pron-step-1').style.background='var(--green-bg)';$('pron-step-1').style.color='var(--green)';
+    $('pron-step-2').style.background='var(--indigo)';$('pron-step-2').style.color='#fff';
+  }
+}
+function hideProgress(){$('pron-progress-wrap').style.display='none';}
+
+async function reloadPronData(){
+  const btn=$('btn-reload-pron');
+  btn.disabled=true;btn.textContent='⟳ Recargando...';
+  try{
+    await compLoad();
+    await pronLoad();
+    toast('✅ Datos recargados','ok');
+  }catch(e){toast('Error: '+e.message,'err');}
+  finally{btn.disabled=false;btn.textContent='↺ Recargar';}
+}
+
+let PRON_CONFIRMED=false;
+
+// ── PRON STATUS (persiste en Drive) ──────────────────────────
+const PRON_STATUS_SHEET='Pron_Status';
+
+function fmtNow(){
+  const d=new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  return`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+async function pronSaveStatus(tipo){
+  const fecha=fmtNow();
+  const usuario=SESSION.nombre||SESSION.nom||SESSION.user||'—';
+  try{
+    // Leer fila existente
+    const r=await gasCall('getData',['Pron_Status']);
+    const rows=r['Pron_Status']||[];
+    const existing=rows.find(x=>String(x['Tipo']||'').toLowerCase()===tipo);
+    if(existing&&existing._row){
+      // Borrar fila existente y agregar nueva (más robusto que update)
+      await gasCall('handleRequest',{action:'delete',sheet:'Pron_Status',row:existing._row});
+    }
+    // Agregar fila fresca
+    await gasCall('handleRequest',{action:'add',sheet:'Pron_Status',values:[tipo,fecha,usuario,'SI']});
+  }catch(e){
+    // Último recurso: solo add
+    try{await gasCall('handleRequest',{action:'add',sheet:'Pron_Status',values:[tipo,fmtNow(),SESSION.nombre||SESSION.nom||SESSION.user||'—','SI']});}
+    catch(e2){console.warn('pronSaveStatus error:',e2);}
+  }
+}
+
+async function pronClearStatus(tipo){
+  // Marca como NO confirmado en Drive
+  try{
+    const r=await gasCall('getData',['Pron_Status']);
+    const rows=r['Pron_Status']||[];
+    const existing=rows.find(x=>String(x['Tipo']||'').toLowerCase()===tipo);
+    if(existing&&existing._row){
+      await gasCall('handleRequest',{action:'delete',sheet:'Pron_Status',row:existing._row});
+    }
+  }catch(e){console.warn('pronClearStatus:',e);}
+}
+
+async function pronLoadStatus(){
+  try{
+    const r=await gasCall('getData',[PRON_STATUS_SHEET]);
+    const rows=r[PRON_STATUS_SHEET]||[];
+    ['ventas','compras','gastos'].forEach(tipo=>{
+      const row=rows.find(x=>String(x['Tipo']||'').toLowerCase()===tipo);
+      if(row&&String(row['Confirmado']||'').toUpperCase()==='SI'){
+        const fecha=String(row['Fecha']||'');
+        const user=String(row['Usuario']||'');
+        pronShowStatusBanner(tipo,fecha,user);
+        if(tipo==='ventas'){PRON_CONFIRMED=true;pronStyleBtn('btn-confirm-pron','ventas');}
+        if(tipo==='compras'){pronStyleBtn('btn-confirm-compras','compras');}
+        if(tipo==='gastos'){pronStyleBtn('btn-confirm-gastos','gastos');}
+        // También actualizar localStorage para finanzas.html
+        localStorage.setItem(`rm_pron_${tipo}_confirmed`,'1');
+        localStorage.setItem(`rm_pron_${tipo}_fecha`,fecha);
+        localStorage.setItem(`rm_pron_${tipo}_user`,user);
+      }
+    });
+  }catch(e){console.warn('pronLoadStatus:',e);}
+}
+
+function pronShowStatusBanner(tipo,fecha,user){
+  const idMap={ventas:'pron-confirm-status',compras:'compras-confirm-status',gastos:'gastos-confirm-status'};
+  const el=$(idMap[tipo]);
+  if(!el)return;
+  el.style.display='flex';
+  el.style.background='var(--green-bg)';
+  el.style.border='1px solid var(--green-border)';
+  el.style.color='var(--green)';
+  el.innerHTML=`<span style="font-size:15px">✅</span><span><strong>Confirmado</strong> el ${esc(fecha)} por <strong>${esc(user)}</strong></span>`;
+}
+
+function pronStyleBtn(btnId,tipo){
+  const btn=$(btnId);if(!btn)return;
+  btn.style.background='var(--green)';
+  btn.style.color='#fff';
+  const labels={ventas:'✅ Ventas confirmadas',compras:'✅ Compras confirmadas',gastos:'✅ Gastos confirmados'};
+  btn.textContent=labels[tipo]||'✅ Confirmado';
+}
+
+function pronResetBtn(btnId,tipo){
+  const btn=$(btnId);if(!btn)return;
+  btn.style.background='';btn.style.color='';
+  const labels={ventas:'✅ Confirmar pronóstico',compras:'✅ Confirmar compras',gastos:'✅ Confirmar gastos'};
+  btn.textContent=labels[tipo]||'✅ Confirmar';
+}
+
+function pronHideBanner(tipo){
+  const idMap={ventas:'pron-confirm-status',compras:'compras-confirm-status',gastos:'gastos-confirm-status'};
+  const el=$(idMap[tipo]);
+  if(el){el.style.display='none';el.innerHTML='';}
+}
+
+async function confirmPronostico(){
+  if(!PRON.length){toast('No hay pronóstico generado','err');return;}
+  PRON_CONFIRMED=true;
+  const fecha=fmtNow();
+  const user=SESSION.nombre||SESSION.user||'—';
+  pronStyleBtn('btn-confirm-pron','ventas');
+  pronShowStatusBanner('ventas',fecha,user);
+  localStorage.setItem('rm_pron_ventas_confirmed','1');
+  localStorage.setItem('rm_pron_ventas_fecha',fecha);
+  localStorage.setItem('rm_pron_ventas_user',user);
+  await pronSaveStatus('ventas');
+  toast('✅ Pronóstico de ventas confirmado','ok');
+}
+
+async function confirmCompras(){
+  if(!COMPRAS_PRON.length){toast('Primero calcula el pronóstico de compras','err');return;}
+  const fecha=fmtNow();
+  const user=SESSION.nombre||SESSION.user||'—';
+  pronStyleBtn('btn-confirm-compras','compras');
+  pronShowStatusBanner('compras',fecha,user);
+  localStorage.setItem('rm_pron_compras_confirmed','1');
+  localStorage.setItem('rm_pron_compras_fecha',fecha);
+  localStorage.setItem('rm_pron_compras_user',user);
+  await pronSaveStatus('compras');
+  toast('✅ Pronóstico de compras confirmado','ok');
+}
+
+async function confirmGastos(){
+  if(!GASTOS_PRON_DATA.length){toast('Primero calcula el pronóstico de gastos','err');return;}
+  const fecha=fmtNow();
+  const user=SESSION.nombre||SESSION.user||'—';
+  pronStyleBtn('btn-confirm-gastos','gastos');
+  pronShowStatusBanner('gastos',fecha,user);
+  localStorage.setItem('rm_pron_gastos_confirmed','1');
+  localStorage.setItem('rm_pron_gastos_fecha',fecha);
+  localStorage.setItem('rm_pron_gastos_user',user);
+  await pronSaveStatus('gastos');
+  toast('✅ Pronóstico de gastos confirmado','ok');
+}
+
+async function runPronostico(){
+  closePronModal();
+  const cfg=getCfg();
+  const crecPct=parseInt(($('pron-crecimiento')||{}).value||0)||0;
+  const scope=document.querySelector('input[name="pron-scope"]:checked')?.value||'todo';
+  const scopeVal=($('pron-scope-val')||{}).value||'';
+  const crecFactor=1+(crecPct/100);
+
+  const btn=$('btn-run-pron');
+  btn.disabled=true;
+  $('pron-status').className='status-running show';
+
+  try{
+    // ── FASE 1: BORRADO ──────────────────────────────
+    setProgress(2,'🗑️ Cargando datos actuales...',1);
+    $('pron-status-msg').textContent='Fase 1: Borrado de datos existentes...';
+    await compLoad();
+    await pronLoad();
+
+    const{yr:curYr,wk:curWk}=getIsoWeek(localDate());
+    const targetWeeks=[];
+    for(let h=1;h<=cfg.horizonte;h++){
+      let tw=curWk+h,ty=curYr;
+      if(tw>52){tw-=52;ty++;}
+      targetWeeks.push({yr:ty,wk:tw});
+    }
+
+    setProgress(8,'🗑️ Buscando registros a borrar...',1);
+    const freshR=await gasCall('getData',['Pronosticos']);
+    const allPron=(freshR['Pronosticos']||[]).map(x=>({
+      row:x._row,
+      yr:parseInt(x['anio']||x['Año']||x['Ano']||0),
+      wk:parseInt(x['semana']||x['Semana']||x['wk']||0),
+      tienda:String(x['tienda']||x['Tienda']||''),
+      cod:String(x['codigo']||x['Codigo']||x['Código']||''),
+    })).filter(x=>x.yr>0);
+
+    const toDelete=allPron.filter(p=>{
+      const inWeek=targetWeeks.some(tw=>tw.yr===p.yr&&tw.wk===p.wk);
+      if(!inWeek)return false;
+      if(scope==='categoria'){const vs=VS.find(v=>v.cod===p.cod);return vs&&vs.cat===scopeVal;}
+      if(scope==='articulo')return p.cod===scopeVal;
+      if(scope==='tienda')return p.tienda===scopeVal;
+      return true;
+    });
+
+    const sortedDelete=toDelete.filter(p=>p.row).sort((a,b)=>b.row-a.row);
+    const totalDel=sortedDelete.length;
+    for(let i=0;i<sortedDelete.length;i++){
+      await gasCall('handleRequest',{action:'delete',sheet:'Pronosticos',row:sortedDelete[i].row});
+      const pct=10+Math.round((i+1)/Math.max(totalDel,1)*38); // 10→48%
+      setProgress(pct,`🗑️ Borrando ${i+1}/${totalDel}...`,1);
+    }
+    setProgress(50,'✅ Borrado completo. Calculando pronóstico...',2);
+
+    // ── FASE 2: PRONÓSTICO ───────────────────────────
+    $('pron-status-msg').textContent='Fase 2: Calculando pronóstico...';
+
+    const combos=new Map();
+    VS.forEach(v=>{
+      if(scope==='categoria'&&v.cat!==scopeVal) return;
+      if(scope==='articulo'&&v.cod!==scopeVal) return;
+      if(scope==='tienda'&&v.tienda!==scopeVal) return;
+      const key=`${v.tienda}|${v.cod}`;
+      if(!combos.has(key))combos.set(key,{tienda:v.tienda,cod:v.cod,art:v.art});
+    });
+
+    const results=[];
+    let processed=0;
+    const total=combos.size*cfg.horizonte;
+
+    for(const[,combo] of combos){
+      const{tienda,cod,art}=combo;
+      for(let h=1;h<=cfg.horizonte;h++){
+        let targetWk=curWk+h;
+        let targetYr=curYr;
+        if(targetWk>52){targetWk-=52;targetYr++;}
+
+        const histMap={};
+        VS.filter(v=>v.tienda===tienda&&v.cod===cod&&
+          (v.yr<curYr||(v.yr===curYr&&v.wk<curWk))
+        ).forEach(v=>{
+          const k=`${v.yr}|${v.wk}`;
+          if(!histMap[k])histMap[k]={yr:v.yr,wk:v.wk,uds:0,ventas:0,costo:0};
+          histMap[k].uds+=v.uds;histMap[k].ventas+=v.ventas;histMap[k].costo+=v.costo;
+        });
+        const histArr=Object.values(histMap).sort((a,b)=>a.yr-b.yr||a.wk-b.wk);
+        if(histArr.length<1){processed++;continue;}
+
+        const recent=histArr.slice(-cfg.semanas);
+        let sumUds=0,sumW=0;
+        recent.forEach((v,i)=>{
+          let w=1;
+          if(cfg.peso==='linear')w=(i+1);
+          else if(cfg.peso==='exp')w=Math.pow(1.5,i);
+          sumUds+=v.uds*w;sumW+=w;
+        });
+        let pronUds=sumW>0?sumUds/sumW:0;
+
+        if(cfg.estacional){
+          const sameWkLY=histArr.filter(v=>v.yr===curYr-1&&Math.abs(v.wk-targetWk)<=1);
+          const sameWkPP=histArr.filter(v=>v.yr===curYr-2&&Math.abs(v.wk-targetWk)<=1);
+          if(sameWkLY.length&&sameWkPP.length){
+            const ratioLY=sameWkLY.reduce((t,v)=>t+v.uds,0)/Math.max(1,sameWkPP.reduce((t,v)=>t+v.uds,0));
+            pronUds*=Math.min(Math.max(ratioLY,0.5),2.0);
+          }
+        }
+
+        if(cfg.tendencia&&recent.length>=4){
+          const last4=recent.slice(-4);
+          const xs=[0,1,2,3];const ys=last4.map(v=>v.uds);
+          const xMean=1.5,yMean=ys.reduce((t,y)=>t+y,0)/4;
+          const num=xs.reduce((t,x,i)=>t+(x-xMean)*(ys[i]-yMean),0);
+          const den=xs.reduce((t,x)=>t+(x-xMean)**2,0);
+          const slope=den>0?num/den:0;
+          const trendFactor=1+(slope/Math.max(yMean,1))*h*0.5;
+          pronUds*=Math.min(Math.max(trendFactor,0.5),1.8);
+        }
+
+        pronUds=Math.max(0,Math.round(pronUds*crecFactor));
+        const precioUnit=getPrecioActual(cod,'');
+        const costoUnit=getCostoActual(cod);
+        const pvSinIva=precioUnit/1.16;
+        const ventasPron=Math.round(pronUds*precioUnit);
+        const costoPron=Math.round(pronUds*costoUnit);
+        const utilBruta=Math.round(pronUds*(pvSinIva-costoUnit));
+        const metodo=`WA${cfg.semanas}-${cfg.peso}${cfg.estacional?'+EST':''}${cfg.tendencia?'+TEND':''}${crecPct?'+'+crecPct+'%':''}`;
+        const fechaGen=localDate();
+
+        results.push([targetYr,targetWk,tienda,'',cod,art,
+          pronUds,ventasPron,costoPron,utilBruta,
+          precioUnit,costoUnit,0,fechaGen,metodo]);
+
+        processed++;
+        if(processed%10===0){
+          const pct=50+Math.round(processed/Math.max(total,1)*40); // 50→90%
+          setProgress(pct,`📈 Calculando ${Math.round(processed/Math.max(total,1)*100)}%...`,2);
+          await new Promise(r=>setTimeout(r,0));
+        }
+      }
+    }
+
+    if(!results.length){
+      toast('No hay historial suficiente','err');
+      hideProgress();
+      $('pron-status').className='status-running';
+      btn.disabled=false;return;
+    }
+
+    setProgress(92,`💾 Guardando ${results.length} pronósticos...`,2);
+    $('pron-status-msg').textContent=`Guardando ${results.length} pronósticos...`;
+
+    for(const r of results){
+      await gasCall('handleRequest',{action:'add',sheet:'Pronosticos',values:r});
+    }
+
+    setProgress(100,'✅ ¡Pronóstico completado!',2);
+
+    PRON_CONFIRMED=false;
+    // Reset ventas
+    localStorage.removeItem('rm_pron_ventas_confirmed');
+    localStorage.removeItem('rm_pron_ventas_fecha');
+    pronResetBtn('btn-confirm-pron','ventas');
+    pronHideBanner('ventas');
+    // Reset compras (depende de ventas, hay que recalcular)
+    COMPRAS_PRON=[];
+    localStorage.removeItem('rm_pron_compras_confirmed');
+    localStorage.removeItem('rm_pron_compras_fecha');
+    pronResetBtn('btn-confirm-compras','compras');
+    pronHideBanner('compras');
+    pronClearStatus('ventas');
+    pronClearStatus('compras');
+    const confBtn=$('btn-confirm-pron');
+    confBtn.style.display='inline-flex';
+    confBtn.style.background='';
+    confBtn.textContent='✅ Confirmar pronóstico';
+
+    toast(`✅ Pronóstico generado — ${results.length} registros`,'ok');
+    await pronLoad();
+    setTimeout(()=>hideProgress(),3000);
+
+  }catch(e){toast('Error: '+e.message,'err');hideProgress();}
+  finally{btn.disabled=false;$('pron-status').className='status-running';}
+}
+
+
+// ─────────────────────────────────────────────
+// PRONÓSTICO RENDER
+// ─────────────────────────────────────────────
+let pronChartInst=null;
+
+function pronRender(){
+  const ft=($('pron-ftienda')||{}).value||'';
+  const fs=($('pron-fsem')||{}).value||'';
+  const fa=($('pron-fart')||{}).value||'';
+  let data=PRON;
+  if(ft)data=data.filter(p=>p.tienda===ft);
+  if(fs){const[y,w]=fs.split('-W');data=data.filter(p=>p.yr===parseInt(y)&&p.wk===parseInt(w));}
+  if(fa)data=data.filter(p=>p.cod===fa);
+  data.sort((a,b)=>a.wk-b.wk||a.tienda.localeCompare(b.tienda)||a.cod.localeCompare(b.cod));
+
+  // Attach firme from VR to each pron row
+  data.forEach(p=>{
+    p.udsFirmeCalc=VR.filter(v=>
+      v.cod===p.cod&&
+      v.tienda===p.tienda&&
+      v.yr===p.yr&&v.wk===p.wk
+    ).reduce((t,v)=>t+v.qty,0);
+    // Total adjusted = manual override (udsFirme saved) if set, else firme + pron
+    p.udsAjustado=p.udsFirme>0?Math.round(p.udsFirme):Math.round(Math.max(p.udsFirmeCalc,p.udsPron));
+  });
+
+  const tb=$('pron-tbody');
+  if(!data.length){tb.innerHTML='<tr class="empty-row"><td colspan="12">Sin pronósticos. Ejecuta el proceso primero.</td></tr>';return;}
+
+  // Chart — include real prev-year same weeks + forecast ventas + util pronosticada + util real prev year
+  const wkMap={};
+  data.forEach(p=>{
+    const k=`${p.yr}-S${String(p.wk).padStart(2,'0')}`;
+    if(!wkMap[k])wkMap[k]={firme:0,pron:0,utilPron:0,ventasPrevYr:0,utilPrevYr:0};
+    const precioVivo=p.precioUnit||getPrecioActual(p.cod,'')||0;
+    const costoVivo=p.costoUnit||getCostoActual(p.cod)||0;
+    const pvSin=precioVivo/1.16;
+    wkMap[k].firme+=p.udsFirmeCalc*precioVivo;
+    wkMap[k].pron+=Math.max(0,(p.udsAjustado-p.udsFirmeCalc))*precioVivo;
+    // Utilidad pronosticada = udsAjustado * (pvSinIva - costoUnit)
+    wkMap[k].utilPron+=p.udsAjustado*(pvSin-costoVivo);
+    // Real prev year same week: lookup from VS
+    const prevYr=p.yr-1;
+    const vsKey=VS.filter(v=>v.cod===p.cod&&v.tienda===p.tienda&&v.yr===prevYr&&v.wk===p.wk);
+    vsKey.forEach(v=>{wkMap[k].ventasPrevYr+=v.ventas;wkMap[k].utilPrevYr+=v.util;});
+  });
+  const labels=Object.keys(wkMap).sort();
+  const canvas=$('pron-chart');
+  if(pronChartInst)pronChartInst.destroy();
+  pronChartInst=new Chart(canvas.getContext('2d'),{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'🔒 En firme',data:labels.map(k=>Math.round(wkMap[k].firme)),backgroundColor:'rgba(67,56,202,0.9)',borderRadius:4,stack:'v',order:2},
+      {label:'📈 Proyectado',data:labels.map(k=>Math.round(wkMap[k].pron)),backgroundColor:'rgba(67,56,202,0.3)',borderRadius:4,stack:'v',order:2},
+      {label:'Ventas Año Ant.',data:labels.map(k=>Math.round(wkMap[k].ventasPrevYr)),type:'line',borderColor:'rgba(99,102,241,0.6)',borderWidth:2,borderDash:[5,4],pointRadius:3,tension:0.3,fill:false,yAxisID:'y',order:1},
+      {label:'Util. Pronos.',data:labels.map(k=>Math.round(wkMap[k].utilPron)),type:'line',borderColor:'#15803d',borderWidth:2,pointRadius:3,tension:0.3,fill:false,yAxisID:'y',order:1},
+      {label:'Util. Año Ant.',data:labels.map(k=>Math.round(wkMap[k].utilPrevYr)),type:'line',borderColor:'rgba(21,128,61,0.5)',borderWidth:1.5,borderDash:[4,3],pointRadius:2,tension:0.3,fill:false,yAxisID:'y',order:1},
+    ]},
+    options:{responsive:true,plugins:{legend:{position:'top',labels:{font:{size:10},boxWidth:16}},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmx(ctx.raw||0)}`}}},scales:{y:{ticks:{callback:v=>fmx(v),font:{size:9}},stacked:true},x:{ticks:{font:{size:9}}}}}
+  });
+
+  tb.innerHTML=data.map((p,i)=>{
+    const firme=p.udsFirmeCalc;
+    // Use live price: saved precioUnit or lookup from PRECIOS/PRO_PRECIOS
+    const precioVivo=p.precioUnit||getPrecioActual(p.cod,'')||getPrecioActual(p.cod,p.canal)||0;
+    const costoVivo=p.costoUnit||getCostoActual(p.cod)||0;
+    const pvSin=precioVivo/1.16;
+    // Utilidad bruta (sin comisiones)
+    const udsAdj=Math.round(p.udsAjustado);
+    const ventasAdj=Math.round(udsAdj*precioVivo);
+    const costoAdj=Math.round(udsAdj*costoVivo);
+    // CORRECTED: utilidad = uds * (precio_sin_iva - costo_unit)
+    const utilBruta=Math.round(udsAdj*(pvSin-costoVivo));
+    // Ventas año anterior: mismo artículo, misma tienda, misma semana, año-1
+    const prevYr=p.yr-1;
+    let ventasAñoAnt=VS.filter(v=>v.cod===p.cod&&v.tienda===p.tienda&&v.yr===prevYr&&v.wk===p.wk).reduce((t,v)=>t+v.ventas,0);
+    let pzsAñoAnt=VS.filter(v=>v.cod===p.cod&&v.tienda===p.tienda&&v.yr===prevYr&&v.wk===p.wk).reduce((t,v)=>t+v.uds,0);
+    // Si no hay ventas propias, buscar artículo de referencia
+    if(!ventasAñoAnt){
+      const artRef=PRON_ART_REF.get(p.cod);
+      if(artRef&&artRef.ref){
+        const refVentas=VS.filter(v=>v.cod===artRef.ref&&v.tienda===p.tienda&&v.yr===prevYr&&v.wk===p.wk).reduce((t,v)=>t+v.ventas,0);
+        const refPzs=VS.filter(v=>v.cod===artRef.ref&&v.tienda===p.tienda&&v.yr===prevYr&&v.wk===p.wk).reduce((t,v)=>t+v.uds,0);
+        ventasAñoAnt=Math.round(refVentas*(artRef.pct/100));
+        pzsAñoAnt=Math.round(refPzs*(artRef.pct/100));
+      }
+    }
+    const firmeChip=firme>0?`<span style="background:#e0e7ff;color:#3730A3;padding:1px 7px;border-radius:10px;font-weight:700;font-size:11px;font-family:'IBM Plex Mono',monospace">🔒 ${firme}</span>`:`<span style="color:var(--text-muted);font-size:11px">—</span>`;
+    return`<tr id="pron-row-${p.row}">
+      <td style="font-weight:600;white-space:nowrap">${p.yr}-S${String(p.wk).padStart(2,'0')}</td>
+      <td style="font-size:11px;color:var(--text-soft)">${esc(p.tienda)}</td>
+      <td><span style="font-size:10px;background:var(--indigo-blush);color:var(--indigo);padding:1px 6px;border-radius:10px;font-weight:600">${esc(p.cod)}</span> <span style="font-size:11px">${esc(p.art)}</span></td>
+      <td style="text-align:center">${firmeChip}</td>
+      <td style="text-align:right;font-family:'IBM Plex Mono',monospace;color:var(--text-soft)">${p.udsPron}</td>
+      <td style="text-align:center;padding:4px 8px">
+        <input type="number" id="adj-${i}" value="${udsAdj}" min="0" step="1"
+          style="width:72px;font-size:12px;text-align:right;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:3px 6px;font-family:'IBM Plex Mono',monospace;background:var(--indigo-blush)"
+          oninput="pronRecalcRow(${i},${precioVivo},${costoVivo})"/>
+      </td>
+      <td style="text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--indigo)" id="adj-v-${i}">${fmx(ventasAdj)}</td>
+      <td style="text-align:right;font-family:'IBM Plex Mono',monospace;color:var(--text-soft)" id="adj-c-${i}">${fmx(costoAdj)}</td>
+      <td style="text-align:right;font-family:'IBM Plex Mono',monospace;color:var(--green)" id="adj-u-${i}">${fmx(utilBruta)}</td>
+      <td style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-soft)">${ventasAñoAnt?fmx(ventasAñoAnt):'<span style="color:var(--text-muted)">—</span>'}</td>
+      <td style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-soft)">${pzsAñoAnt||'<span style="color:var(--text-muted)">—</span>'}</td>
+      <td style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11px">${fmx(p.precioUnit)}</td>
+      <td><button class="btn btn-primary btn-sm" onclick="savePronRow(${i},${p.row},${precioVivo},${costoVivo})">💾</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function pronRecalcRow(i,precio,costoUnit){
+  const el=$(`adj-${i}`);if(!el)return;
+  const uds=Math.round(parseFloat(el.value)||0);
+  el.value=uds;
+  const pvSin=precio/1.16;
+  const v=Math.round(uds*precio);
+  const c=Math.round(uds*costoUnit);
+  const u=Math.round(uds*(pvSin-costoUnit));
+  if($(`adj-v-${i}`))$(`adj-v-${i}`).textContent=fmx(v);
+  if($(`adj-c-${i}`))$(`adj-c-${i}`).textContent=fmx(c);
+  if($(`adj-u-${i}`))$(`adj-u-${i}`).textContent=fmx(u);
+}
+
+async function savePronRow(i,row,precio,costoUnit){
+  const el=$(`adj-${i}`);if(!el)return;
+  const udsAdj=Math.round(parseFloat(el.value)||0);
+  const pvSin=precio/1.16;
+  const ventasAdj=Math.round(udsAdj*precio);
+  const costoAdj=Math.round(udsAdj*costoUnit);
+  const utilBruta=Math.round(udsAdj*(pvSin-costoUnit));
+  const orig=PRON.find(p=>p.row===row);
+  if(!orig){toast('Fila no encontrada','err');return;}
+  try{
+    await gasCall('handleRequest',{action:'update',sheet:'Pronosticos',row,values:[
+      orig.yr,orig.wk,orig.tienda,'',orig.cod,orig.art,
+      orig.udsPron,ventasAdj,costoAdj,utilBruta,
+      precio,costoUnit,0,orig.fechaGen,orig.metodo,
+      udsAdj
+    ]});
+    orig.ventasPron=ventasAdj;orig.costoPron=costoAdj;orig.utilPron=utilBruta;orig.udsFirme=udsAdj;
+    toast('✅ Guardado','ok');
+    const rowEl=$(`pron-row-${row}`);
+    if(rowEl){rowEl.style.background='#dcfce7';setTimeout(()=>rowEl.style.background='',1500);}
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+
+// ─────────────────────────────────────────────
+// USUARIOS
+// ─────────────────────────────────────────────
+async function usrSave(){
+  const u=($('usr-user').value||'').trim();
+  const p=($('usr-pass').value||'').trim();
+  const n=($('usr-nom').value||'').trim();
+  const r=$('usr-rol').value;
+  if(!u||!p||!n){toast('Todos los campos requeridos','err');return;}
+  try{
+    await gasCall('handleRequest',{action:'add',sheet:'Usuarios_PRON',values:[u,p,n,r]});
+    toast('✅ Usuario agregado');
+    $('usr-user').value='';$('usr-pass').value='';$('usr-nom').value='';
+    usrLoad();
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+
+async function usrLoad(){
+  try{
+    const r=await gasCall('getData',['Usuarios_PRON']);
+    const users=(r['Usuarios_PRON']||[]).map(x=>({row:x._row,user:String(x['Usuario']||''),nom:String(x['nombre']||x['Nombre']||''),rol:String(x['Rol']||'')})).filter(x=>x.user);
+    $('usr-tbody').innerHTML=users.length?users.map(u=>`<tr><td>${esc(u.user)}</td><td>${esc(u.nom)}</td><td>${esc(u.rol)}</td><td><button class="btn btn-sm" style="color:var(--red)" onclick="usrDel(${u.row})">🗑</button></td></tr>`).join(''):'<tr class="empty-row"><td colspan="4">Sin usuarios</td></tr>';
+  }catch(e){}
+}
+
+async function usrDel(row){
+  if(!confirm('¿Eliminar usuario?'))return;
+  try{await gasCall('handleRequest',{action:'delete',sheet:'Usuarios_PRON',row});usrLoad();}catch(e){toast('Error','err');}
+}
+
+// ─────────────────────────────────────────────
+// BOOT
+// ─────────────────────────────────────────────
+(async()=>{
+  if(!IN_GAS)return;
+  // Pre-load users for login
+})();
+
+// ─────────────────────────────────────────────
+// PRONÓSTICO COMPRAS
+// ─────────────────────────────────────────────
+let COMPRAS_PRON=[];
+let REC_COMPS=[];let INGREDIENTES=[];let PRO_DATA=[];
+let comprasChartInst=null;
+
+async function comprasLoad(){
+  if(!PRON.length) await pronLoad();
+  try{
+    const r=await gasCall('getData',['Recetas_Componentes','Ingredientes','Productos','Pronostico_Compras']);
+    REC_COMPS=(r['Recetas_Componentes']||[]).map(x=>({
+      sku:String(x['SKU']||''),codIng:String(x['Código Ingrediente']||x['Codigo Ingrediente']||''),
+      qty:parseFloat(x['Cantidad Ajustada']||x['Cantidad']||0)||0,
+      uniBase:String(x['Unidad Base']||'')
+    }));
+    INGREDIENTES=(r['Ingredientes']||[]).map(x=>({
+      cod:String(x['Código']||x['Codigo']||''),nom:String(x['Ingrediente']||''),
+      uni:String(x['Unidad']||''),cos:parseFloat(x['Costo (MXN)']||x['Costo']||0)||0,
+      minCompra:parseFloat(x['min_compra']||x['Min_Compra']||0)||0
+    }));
+    PRO_DATA=(r['Productos']||[]).map(x=>({
+      cod:String(x['Código']||x['Codigo']||''),desc:String(x['Descripción']||x['Descripcion']||''),
+      uni:String(x['Unidad']||''),cos:parseFloat(x['Costo']||0)||0,
+      minCompra:parseFloat(x['min_compra']||x['Min_Compra']||0)||0,
+      artRef:String(x['articulo_ref']||x['Articulo_Ref']||''),pctRef:parseFloat(x['pct_ref']||x['Pct_Ref']||0)||0
+    }));
+    COMPRAS_PRON=(r['Pronostico_Compras']||[]).map(x=>({
+      row:x._row,yr:parseInt(x['Año']||0),wk:parseInt(x['semana']||x['Semana']||x['wk']||0),
+      tienda:String(x['Tienda']||''),cod:String(x['Codigo']||''),
+      desc:String(x['Descripcion']||''),uni:String(x['Unidad']||''),
+      cantPron:parseFloat(x['cantidad_pron']||x['Cantidad_Pron']||0)||0,
+      cantAdj:parseFloat(x['cantidad_ajustada']||x['Cantidad_Ajustada']||0)||0,
+      costoUnit:parseFloat(x['costo_unit']||x['Costo_Unit']||0)||0,
+      costoTotal:parseFloat(x['costo_total']||x['Costo_Total']||0)||0,
+      minCompra:parseFloat(x['min_compra']||x['Min_Compra']||0)||0,
+    }));
+    // Populate filters
+    const sems=[...new Set(COMPRAS_PRON.map(c=>`${c.yr}-W${String(c.wk).padStart(2,'0')}` ))].sort();
+    const tiendas=[...new Set(COMPRAS_PRON.map(c=>c.tienda))].sort();
+    $('cmp-fsem').innerHTML='<option value="">Todas las semanas</option>'+sems.map(s=>`<option>${esc(s)}</option>`).join('');
+    $('cmp-ftienda').innerHTML='<option value="">Todas las tiendas</option>'+tiendas.map(t=>`<option>${esc(t)}</option>`).join('');
+    comprasRender();
+  }catch(e){toast('Error cargando compras: '+e.message,'err');}
+}
+
+async function runCompras(){
+  if(!PRON_CONFIRMED){toast('Primero confirma el pronóstico de ventas','err');return;}
+  if(!PRON.length) await pronLoad();
+  const btn=$('btn-compras');btn.disabled=true;
+  $('compras-status').className='status-running show';
+
+  const setP=(pct,lbl,step)=>{
+    $('cmp-progress-wrap').style.display='block';
+    $('cmp-progress-bar').style.width=pct+'%';
+    $('cmp-progress-pct').textContent=Math.round(pct)+'%';
+    $('cmp-progress-label').textContent=lbl;
+    if(step===1){
+      $('cmp-step-1').style.cssText='flex:1;text-align:center;font-size:10px;padding:4px 8px;border-radius:var(--r-sm);background:var(--indigo);color:#fff;font-weight:600';
+      $('cmp-step-2').style.cssText='flex:1;text-align:center;font-size:10px;padding:4px 8px;border-radius:var(--r-sm);background:var(--cream);color:var(--text-muted)';
+    } else {
+      $('cmp-step-1').style.cssText='flex:1;text-align:center;font-size:10px;padding:4px 8px;border-radius:var(--r-sm);background:var(--green-bg);color:var(--green);font-weight:600';
+      $('cmp-step-2').style.cssText='flex:1;text-align:center;font-size:10px;padding:4px 8px;border-radius:var(--r-sm);background:var(--indigo);color:#fff;font-weight:600';
+    }
+  };
+
+  try{
+    // ── FASE 1: BORRADO ──
+    setP(5,'🗑️ Cargando datos actuales...',1);
+    $('compras-status-msg').textContent='Fase 1: Borrando datos existentes...';
+    await comprasLoad();
+
+    const freshR=await gasCall('getData',['Pronostico_Compras']);
+    const allCmp=(freshR['Pronostico_Compras']||[]).map(x=>({row:x._row})).filter(x=>x.row);
+    setP(15,'🗑️ Borrando registros anteriores...',1);
+    const sortedDel=allCmp.sort((a,b)=>b.row-a.row);
+    for(let i=0;i<sortedDel.length;i++){
+      await gasCall('handleRequest',{action:'delete',sheet:'Pronostico_Compras',row:sortedDel[i].row});
+      setP(15+Math.round((i+1)/Math.max(sortedDel.length,1)*35),`🗑️ Borrando ${i+1}/${sortedDel.length}...`,1);
+    }
+    setP(50,'✅ Borrado. Calculando explosión...',2);
+
+    // ── FASE 2: CÁLCULO ──
+    $('compras-status-msg').textContent='Fase 2: Calculando explosión de ingredientes...';
+    const semanasRaw=($('cmp-semanas-cob')||{}).value||'2';
+    const modoSemanal=semanasRaw==='semanal';
+    const semanasCobertura=modoSemanal?4:parseInt(semanasRaw)||2;
+    const{yr:curYr,wk:curWk}=getIsoWeek(localDate());
+
+    // Helper: obtener lunes de una semana ISO
+    function getLunes(yr,wk){
+      const jan4=new Date(yr,0,4);
+      const startOfWeek1=new Date(jan4.getTime()-(((jan4.getDay()||7)-1)*86400000));
+      const lunes=new Date(startOfWeek1.getTime()+((wk-1)*7*86400000));
+      return lunes.toISOString().slice(0,10);
+    }
+
+    if(modoSemanal){
+      // Modo semanal: generar una fila por semana, compra el lunes de esa semana
+      const rows=[];
+      for(let si=1;si<=semanasCobertura;si++){
+        let swk=curWk+si,syr=curYr;
+        while(swk>52){swk-=52;syr++;}
+        const explosion={};
+        const addToExp=(tienda,cod,desc,uni,qty,costoUnit,minCompra)=>{
+          const key=`${tienda}|${cod}`;
+          if(!explosion[key])explosion[key]={tienda,cod,desc,uni,qty:0,costoUnit,minCompra};
+          explosion[key].qty+=qty;
+        };
+        const pronSem=PRON.filter(p=>p.yr===syr&&p.wk===swk);
+        pronSem.forEach(p=>{
+          const uds=p.udsFirme>0?p.udsFirme:p.udsPron;
+          if(!uds)return;
+          const comps=REC_COMPS.filter(c=>c.sku===p.cod);
+          if(comps.length){
+            for(const comp of comps){
+              const ing=INGREDIENTES.find(i=>i.cod===comp.codIng);
+              if(!ing)continue;
+              addToExp(p.tienda,comp.codIng,ing.nom,ing.uni,comp.qty*uds,ing.cos,ing.minCompra);
+            }
+          } else {
+            const prod=PRO_DATA.find(x=>x.cod===p.cod);
+            if(prod)addToExp(p.tienda,p.cod,prod.desc||p.art,prod.uni,uds,prod.cos,prod.minCompra);
+          }
+        });
+        const lunnes=getLunes(syr,swk);
+        const semLabel=`S${String(swk).padStart(2,'0')}/${syr} (Lunes ${lunnes})`;
+        Object.values(explosion).forEach(e=>{
+          const cantPron=Math.round(e.qty);
+          if(!cantPron)return;
+          const cantAdj=e.minCompra>0?Math.max(cantPron,Math.ceil(e.minCompra)):cantPron;
+          rows.push({...e,cantPron,cantAdj,costoTotal:Math.round(cantAdj*e.costoUnit),semLabel,yr:syr,wk:swk,fechaCompra:lunnes});
+        });
+        setP(50+Math.round(si/semanasCobertura*35),`📈 Semana ${si}/${semanasCobertura}...`,2);
+      }
+      const rowsFinal=rows.filter(r=>r.cantPron>0).sort((a,b)=>a.yr-b.yr||a.wk-b.wk||a.tienda.localeCompare(b.tienda)||a.cod.localeCompare(b.cod));
+      setP(85,`💾 Guardando ${rowsFinal.length} registros...`,2);
+      $('compras-status-msg').textContent=`Guardando ${rowsFinal.length} registros...`;
+      for(const r of rowsFinal){
+        await gasCall('handleRequest',{action:'add',sheet:'Pronostico_Compras',
+          values:[r.yr,r.wk,r.tienda,r.cod,r.desc,r.uni,r.cantPron,r.cantAdj,r.costoUnit,r.costoTotal,r.minCompra]});
+      }
+      COMPRAS_PRON=rowsFinal.map(r=>({...r,row:null}));
+    } else {
+      // Modo agrupado: suma todas las semanas en una sola compra
+      const explosion={};
+      const addToExplosion=(tienda,cod,desc,uni,qty,costoUnit,minCompra)=>{
+        const key=`${tienda}|${cod}`;
+        if(!explosion[key])explosion[key]={tienda,cod,desc,uni,qty:0,costoUnit,minCompra};
+        explosion[key].qty+=qty;
+      };
+      const pronFiltered=PRON.filter(p=>{
+        const weekDiff=(p.yr-curYr)*52+(p.wk-curWk);
+        return weekDiff>0&&weekDiff<=semanasCobertura;
+      });
+      pronFiltered.forEach((p,idx)=>{
+        const uds=p.udsFirme>0?p.udsFirme:p.udsPron;
+        if(!uds) return;
+        const comps=REC_COMPS.filter(c=>c.sku===p.cod);
+        if(comps.length){
+          for(const comp of comps){
+            const ing=INGREDIENTES.find(i=>i.cod===comp.codIng);
+            if(!ing) continue;
+            addToExplosion(p.tienda,comp.codIng,ing.nom,ing.uni,comp.qty*uds,ing.cos,ing.minCompra);
+          }
+        } else {
+          const prod=PRO_DATA.find(x=>x.cod===p.cod);
+          if(prod) addToExplosion(p.tienda,p.cod,prod.desc||p.art,prod.uni,uds,prod.cos,prod.minCompra);
+        }
+        setP(50+Math.round((idx+1)/Math.max(pronFiltered.length,1)*30),`📈 Calculando ${idx+1}/${pronFiltered.length}...`,2);
+      });
+      const rows=Object.values(explosion).map(e=>{
+        const cantPron=Math.round(e.qty);
+        const cantAdj=e.minCompra>0?Math.max(cantPron,Math.ceil(e.minCompra)):cantPron;
+        let wk1=curWk+1,yr1=curYr;if(wk1>52){wk1-=52;yr1++;}
+        let wk2=curWk+semanasCobertura,yr2=curYr;if(wk2>52){wk2-=52;yr2++;}
+        const semLabel=semanasCobertura===1?`S${String(wk1).padStart(2,'0')}`:`S${String(wk1).padStart(2,'0')}–S${String(wk2).padStart(2,'0')}`;
+        return{...e,cantPron,cantAdj,costoTotal:Math.round(cantAdj*e.costoUnit),semLabel,yr:yr1,wk:wk1};
+      }).filter(r=>r.cantPron>0)
+        .sort((a,b)=>a.tienda.localeCompare(b.tienda)||a.cod.localeCompare(b.cod));
+      setP(85,`💾 Guardando ${rows.length} registros...`,2);
+      $('compras-status-msg').textContent=`Guardando ${rows.length} registros...`;
+      for(const r of rows){
+        await gasCall('handleRequest',{action:'add',sheet:'Pronostico_Compras',
+          values:[r.yr,r.wk,r.tienda,r.cod,r.desc,r.uni,r.cantPron,r.cantAdj,r.costoUnit,r.costoTotal,r.minCompra]});
+      }
+      COMPRAS_PRON=rows.map(r=>({...r,row:null}));
+    } // end else modo agrupado
+
+    const allRows=COMPRAS_PRON;
+    const tiendas=[...new Set(allRows.map(r=>r.tienda))].sort();
+    $('cmp-ftienda').innerHTML='<option value="">Todas las tiendas</option>'+tiendas.map(t=>`<option>${esc(t)}</option>`).join('');
+    $('cmp-fsem').innerHTML='<option value="">—</option>';
+    $('btn-save-compras').style.display='inline-flex';
+    const cbc=$('btn-confirm-compras');if(cbc)cbc.style.display='inline-flex';
+
+    setP(100,'✅ ¡Compras calculadas!',2);
+    toast(`✅ ${allRows.length} registros calculados`,'ok');
+    comprasRender();
+    setTimeout(()=>{$('cmp-progress-wrap').style.display='none';},3000);
+
+  }catch(e){toast('Error: '+e.message,'err');$('cmp-progress-wrap').style.display='none';}
+  finally{btn.disabled=false;$('compras-status').className='status-running';}
+}
+
+async function saveAllCompras(){
+  const btn=$('btn-save-compras');btn.disabled=true;
+  try{
+    const rows=COMPRAS_PRON;
+    if(!rows.length){toast('Sin datos para guardar','err');return;}
+    let saved=0;
+    for(const r of rows){
+      const cantAdj=parseFloat(document.getElementById(`ca-${COMPRAS_PRON.indexOf(r)}`)||{value:r.cantAdj}).value||r.cantAdj;
+      const adjRound=Math.round(cantAdj);
+      await gasCall('handleRequest',{action:'add',sheet:'Pronostico_Compras',
+        values:[new Date().getFullYear(),getIsoWeek(localDate()).wk,r.tienda,r.cod,r.desc,r.uni,r.cantPron,adjRound,r.costoUnit,Math.round(adjRound*r.costoUnit),r.minCompra]});
+      saved++;
+    }
+    toast(`✅ ${saved} registros guardados en Drive`,'ok');
+  }catch(e){toast('Error: '+e.message,'err');}
+  finally{btn.disabled=false;}
+}
+function comprasRender(){
+  const ft=($('cmp-ftienda')||{}).value||'';
+  let data=[...COMPRAS_PRON];
+  if(ft)data=data.filter(r=>r.tienda===ft);
+  const tb=$('compras-tbody');
+  if(!data.length){tb.innerHTML='<tr class="empty-row"><td colspan="11">Sin datos.</td></tr>';return;}
+  const total=data.reduce((t,r)=>t+r.costoTotal,0);
+  $('compras-total').style.display='block';
+  $('compras-total-val').textContent=fmx(total);
+
+  // ── GRÁFICA: últimas 4 semanas reales de VS + próxima semana pronosticada
+  // Comparado con las mismas 5 semanas del año anterior
+  const{yr:curYr,wk:curWk}=getIsoWeek(localDate());
+  const prevYr=curYr-1;
+
+  // Build 5 week slots: [curWk-3, curWk-2, curWk-1, curWk, curWk+1(forecast)]
+  const weekSlots=[];
+  for(let d=-3;d<=1;d++){
+    let wk=curWk+d,yr=curYr;
+    if(wk<1){wk+=52;yr--;}
+    if(wk>52){wk-=52;yr++;}
+    weekSlots.push({yr,wk,isForecast:d===1});
+  }
+
+  // Real ventas by week from VS (sum costo = uds * costoUnit proxy — use ventas as spend proxy)
+  // Better: for compras, use VS costo field as "costo de venta" to represent purchasing need
+  const realCurr=weekSlots.map(s=>{
+    if(s.isForecast){
+      // Use COMPRAS_PRON total cost for this slot (already filtered by tienda)
+      return data.reduce((t,r)=>t+r.costoTotal,0);
+    }
+    // Sum costo from VS for this tienda+week
+    return VS.filter(v=>{
+      const tiendaOk=!ft||v.tienda===ft;
+      return tiendaOk&&v.yr===s.yr&&v.wk===s.wk;
+    }).reduce((t,v)=>t+v.costo,0);
+  });
+
+  const realPrev=weekSlots.map(s=>{
+    let pwk=s.wk,pyr=prevYr;
+    return VS.filter(v=>{
+      const tiendaOk=!ft||v.tienda===ft;
+      return tiendaOk&&v.yr===pyr&&v.wk===pwk;
+    }).reduce((t,v)=>t+v.costo,0);
+  });
+
+  const chartLabels=weekSlots.map((s,i)=>
+    i===4?`S${String(s.wk).padStart(2,'0')} 📈`:`S${String(s.wk).padStart(2,'0')}`
+  );
+
+  const canvas=$('compras-chart');
+  if(comprasChartInst)comprasChartInst.destroy();
+  comprasChartInst=new Chart(canvas.getContext('2d'),{
+    type:'bar',
+    data:{labels:chartLabels,datasets:[
+      {label:'Costo real (sem. actual)',
+        data:realCurr.map((v,i)=>i<4?v:null),
+        backgroundColor:'rgba(67,56,202,0.7)',borderRadius:4},
+      {label:'Compra pronosticada (próx. sem.)',
+        data:realCurr.map((v,i)=>i===4?v:null),
+        backgroundColor:'rgba(67,56,202,0.35)',borderRadius:4,borderWidth:2,borderColor:'rgba(67,56,202,0.9)',borderDash:[],
+        borderSkipped:false},
+      {label:`Costo real ${prevYr} (mismas sem.)`,
+        data:realPrev,
+        type:'line',borderColor:'rgba(99,102,241,0.7)',borderWidth:2,borderDash:[4,3],
+        pointRadius:4,tension:0.3,fill:false},
+    ]},
+    options:{responsive:true,
+      plugins:{legend:{position:'top',labels:{font:{size:10},boxWidth:16}},
+        tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmx(ctx.raw||0)}`}}},
+      scales:{y:{ticks:{callback:v=>fmx(v),font:{size:9}}},x:{ticks:{font:{size:9}}}}}
+  });
+
+  tb.innerHTML=data.map((r,i)=>`<tr id="cr-${i}">
+    <td style="font-weight:600;white-space:nowrap;font-size:11px">${esc(r.semLabel||'—')}</td>
+    <td style="font-size:11px;color:var(--text-soft)">${esc(r.tienda)}</td>
+    <td><span style="font-size:10px;background:var(--indigo-blush);color:var(--indigo);padding:1px 6px;border-radius:10px;font-weight:600">${esc(r.cod)}</span></td>
+    <td style="font-size:11px">${esc(r.desc)}</td>
+    <td style="font-size:11px;color:var(--text-soft)">${esc(r.uni)}</td>
+    <td style="text-align:right;font-family:'IBM Plex Mono',monospace;color:var(--text-soft)">${r.cantPron}</td>
+    <td style="padding:4px 8px"><input type="number" id="ca-${i}" value="${r.cantAdj}" min="0" step="1"
+      style="width:80px;font-size:12px;text-align:right;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:3px 6px;font-family:'IBM Plex Mono',monospace;background:var(--indigo-blush)"
+      oninput="$('ct-${i}').textContent=fmx(Math.round((parseFloat(this.value)||0)*${r.costoUnit}))"/></td>
+    <td style="text-align:right;font-size:11px;color:var(--text-soft)">${r.minCompra||'—'}</td>
+    <td style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11px">${fmx(r.costoUnit)}</td>
+    <td style="text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--indigo)" id="ct-${i}">${fmx(r.costoTotal)}</td>
+    <td><button class="btn btn-primary btn-sm" onclick="saveComprasRow(${i},${r.costoUnit})">💾</button></td>
+  </tr>`).join('');
+}
+
+async function saveComprasRow(i,costoUnit){
+  const cantAdj=Math.round(parseFloat(($(`ca-${i}`)||{}).value)||0);
+  const r=COMPRAS_PRON[i];if(!r)return;
+  try{
+    await gasCall('handleRequest',{action:'add',sheet:'Pronostico_Compras',
+      values:[new Date().getFullYear(),getIsoWeek(localDate()).wk,r.tienda,r.cod,r.desc,r.uni,r.cantPron,cantAdj,costoUnit,Math.round(cantAdj*costoUnit),r.minCompra]});
+    r.cantAdj=cantAdj;r.costoTotal=Math.round(cantAdj*costoUnit);
+    toast('✅ Guardado');
+    const rowEl=$(`cr-${i}`);if(rowEl){rowEl.style.background='#dce7fb';setTimeout(()=>rowEl.style.background='',1500);}
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+
+// ─────────────────────────────────────────────
+// PRONÓSTICO GASTOS
+// ─────────────────────────────────────────────
+let GASTOS_HIST=[];let GASTOS_PRON_DATA=[];
+let gastosChartInst=null;
+
+async function gastosLoad(){
+  try{
+    const r=await gasCall('getData',['Gastos','Pronostico_Gastos']);
+    GASTOS_HIST=(r['Gastos']||[]).map(x=>({
+      fecha:String(x['Fecha']||'').split(' ')[0],
+      cat:String(x['Categoría']||x['Categoria']||''),
+      tipo:String(x['Tipo ER']||''),
+      tienda:String(x['Tienda']||x['Reparto']||''),
+      desc:String(x['Descripción']||x['Descripcion']||''),
+      monto:parseFloat(x['Monto']||0)||0,
+      periodicidad:String(x['periodicidad']||x['Periodicidad']||'mensual').toLowerCase().trim(),
+    })).filter(x=>x.monto>0);
+    GASTOS_PRON_DATA=(r['Pronostico_Gastos']||[]).map(x=>({
+      row:x._row,yr:parseInt(x['Año']||0),wk:parseInt(x['semana']||x['Semana']||x['wk']||0),
+      mes:parseInt(x['Mes']||0),cat:String(x['Categoria']||''),
+      tipo:String(x['tipo_er']||x['Tipo_ER']||''),tienda:String(x['Tienda']||''),
+      montoPron:parseFloat(x['monto_pron']||x['Monto_Pron']||0)||0,
+      montoAdj:parseFloat(x['monto_ajustado']||x['Monto_Ajustado']||0)||0,
+      montoReal:parseFloat(x['monto_real']||x['Monto_Real']||0)||0,
+      periodicidad:String(x['periodicidad']||x['Periodicidad']||''),
+      fechaBase:String(x['fecha_base']||x['Fecha_Base']||''),
+    }));
+    const sems=[...new Set(GASTOS_PRON_DATA.map(g=>`${g.yr}-W${String(g.wk).padStart(2,'0')}` ))].sort();
+    $('gp-fsem').innerHTML='<option value="">Todas las semanas</option>'+sems.map(s=>`<option>${esc(s)}</option>`).join('');
+    gastosRender();
+  }catch(e){toast('Error gastos: '+e.message,'err');}
+}
+
+async function runGastos(){
+  const btn=$('btn-gastos');btn.disabled=true;
+  $('gastos-status').className='status-running show';
+
+  const setP=(pct,lbl,step)=>{
+    $('gp-progress-wrap').style.display='block';
+    $('gp-progress-bar').style.width=pct+'%';
+    $('gp-progress-pct').textContent=Math.round(pct)+'%';
+    $('gp-progress-label').textContent=lbl;
+    if(step===1){
+      $('gp-step-1').style.cssText='flex:1;text-align:center;font-size:10px;padding:4px 8px;border-radius:var(--r-sm);background:var(--indigo);color:#fff;font-weight:600';
+      $('gp-step-2').style.cssText='flex:1;text-align:center;font-size:10px;padding:4px 8px;border-radius:var(--r-sm);background:var(--cream);color:var(--text-muted)';
+    } else {
+      $('gp-step-1').style.cssText='flex:1;text-align:center;font-size:10px;padding:4px 8px;border-radius:var(--r-sm);background:var(--green-bg);color:var(--green);font-weight:600';
+      $('gp-step-2').style.cssText='flex:1;text-align:center;font-size:10px;padding:4px 8px;border-radius:var(--r-sm);background:var(--indigo);color:#fff;font-weight:600';
+    }
+  };
+
+  try{
+    // ── FASE 1: BORRADO ──
+    setP(5,'🗑️ Cargando datos actuales...',1);
+    await gastosLoad();
+
+    const freshR=await gasCall('getData',['Pronostico_Gastos']);
+    const allGp=(freshR['Pronostico_Gastos']||[]).map(x=>({row:x._row})).filter(x=>x.row);
+    setP(15,'🗑️ Borrando registros anteriores...',1);
+    const sortedDel=allGp.sort((a,b)=>b.row-a.row);
+    for(let i=0;i<sortedDel.length;i++){
+      await gasCall('handleRequest',{action:'delete',sheet:'Pronostico_Gastos',row:sortedDel[i].row});
+      setP(15+Math.round((i+1)/Math.max(sortedDel.length,1)*35),`🗑️ Borrando ${i+1}/${sortedDel.length}...`,1);
+    }
+    setP(50,'✅ Borrado. Proyectando gastos...',2);
+
+    // ── FASE 2: PROYECCIÓN ──
+    const{yr:curYr,wk:curWk}=getIsoWeek(localDate());
+    const horizonte=8;
+    const perioDays={quincenal:15,mensual:30,bimestral:61,semestral:183,anual:365};
+    const results=[];
+
+    const groups={};
+    GASTOS_HIST.forEach(g=>{
+      const key=`${g.cat}|${g.tienda}|${g.periodicidad}`;
+      if(!groups[key])groups[key]={cat:g.cat,tipo:g.tipo,tienda:g.tienda,periodicidad:g.periodicidad,entries:[]};
+      groups[key].entries.push(g);
+    });
+
+    const groupEntries=Object.entries(groups);
+    groupEntries.forEach(([,grp],gi)=>{
+      if(!grp.entries.length) return;
+      const dias=perioDays[grp.periodicidad]||30;
+      const sorted=grp.entries.sort((a,b)=>b.fecha.localeCompare(a.fecha));
+      const lastEntry=sorted[0];
+      const avgMonto=grp.entries.reduce((t,e)=>t+e.monto,0)/grp.entries.length;
+      let nextDate=new Date(lastEntry.fecha+'T12:00:00');
+      nextDate.setDate(nextDate.getDate()+dias);
+      let proyected=0;
+      while(proyected<horizonte){
+        const dateStr=localDate(nextDate);
+        const{yr,wk}=getIsoWeek(dateStr);
+        const weekDiff=(yr-curYr)*52+(wk-curWk);
+        if(weekDiff<0||weekDiff>horizonte) break;
+        results.push({
+          yr,wk,mes:nextDate.getMonth()+1,
+          cat:grp.cat,tipo:grp.tipo,tienda:grp.tienda,
+          montoPron:Math.round(avgMonto*100)/100,
+          montoAdj:Math.round(avgMonto*100)/100,
+          montoReal:0,periodicidad:grp.periodicidad,fechaBase:dateStr
+        });
+        nextDate.setDate(nextDate.getDate()+dias);
+        proyected++;
+      }
+      setP(50+Math.round((gi+1)/Math.max(groupEntries.length,1)*35),`📈 Proyectando ${gi+1}/${groupEntries.length}...`,2);
+    });
+
+    setP(88,`💾 Guardando ${results.length} registros...`,2);
+    for(const r of results){
+      await gasCall('handleRequest',{action:'add',sheet:'Pronostico_Gastos',
+        values:[r.yr,r.wk,r.mes,r.cat,r.tipo,r.tienda,r.montoPron,r.montoAdj,r.montoReal,r.periodicidad,r.fechaBase,'']});
+    }
+
+    GASTOS_PRON_DATA=results.map(r=>({...r,row:null}));
+    const sems=[...new Set(results.map(r=>`${r.yr}-W${String(r.wk).padStart(2,'0')}` ))].sort();
+    $('gp-fsem').innerHTML='<option value="">Todas las semanas</option>'+sems.map(s=>`<option>${esc(s)}</option>`).join('');
+    const cg=$('btn-confirm-gastos');if(cg)cg.style.display='inline-flex';
+
+    setP(100,'✅ ¡Gastos proyectados!',2);
+    toast(`✅ ${results.length} gastos proyectados`,'ok');
+    gastosRender();
+    setTimeout(()=>{$('gp-progress-wrap').style.display='none';},3000);
+
+  }catch(e){toast('Error: '+e.message,'err');$('gp-progress-wrap').style.display='none';}
+  finally{btn.disabled=false;$('gastos-status').className='status-running';}
+}
+
+function gastosRender(){
+  const fs=($('gp-fsem')||{}).value||'';
+  let data=[...GASTOS_PRON_DATA];
+  if(fs){const[y,w]=fs.split('-W');data=data.filter(r=>r.yr===parseInt(y)&&r.wk===parseInt(w));}
+  data.sort((a,b)=>a.yr-b.yr||a.wk-b.wk||a.fechaBase.localeCompare(b.fechaBase));
+  const tb=$('gastosp-tbody');
+  if(!data.length){tb.innerHTML='<tr class="empty-row"><td colspan="9">Sin datos.</td></tr>';return;}
+  const total=data.reduce((t,r)=>t+r.montoAdj,0);
+  $('gastosp-total').style.display='block';
+  $('gastosp-total-val').textContent=fmx(total);
+
+  // Chart: gasto pronosticado por semana vs mismo período año anterior
+  const{yr:curYr}=getIsoWeek(localDate());
+  const prevYr=curYr-1;
+  const wkPron={};
+  data.forEach(r=>{
+    const k=`${r.yr}-S${String(r.wk).padStart(2,'0')}`;
+    if(!wkPron[k])wkPron[k]=0;
+    wkPron[k]+=r.montoAdj;
+  });
+  const wkPrev={};
+  GASTOS_HIST.filter(g=>{
+    const d=new Date(g.fecha+'T12:00:00');
+    return d.getFullYear()===prevYr;
+  }).forEach(g=>{
+    const{wk}=getIsoWeek(g.fecha);
+    const k=`${prevYr}-S${String(wk).padStart(2,'0')}`;
+    // Map to current year same week for comparison
+    const kCur=`${curYr}-S${String(wk).padStart(2,'0')}`;
+    if(!wkPrev[kCur])wkPrev[kCur]=0;
+    wkPrev[kCur]+=g.monto;
+  });
+  const chartLabels=Object.keys(wkPron).sort();
+  const canvas=$('gastos-chart');
+  if(gastosChartInst)gastosChartInst.destroy();
+  gastosChartInst=new Chart(canvas.getContext('2d'),{
+    type:'bar',
+    data:{labels:chartLabels,datasets:[
+      {label:'Gasto Pronosticado',data:chartLabels.map(k=>wkPron[k]||0),backgroundColor:'rgba(146,64,14,0.6)',borderRadius:4},
+      {label:`Gasto Real ${prevYr} (misma sem)`,data:chartLabels.map(k=>wkPrev[k]||0),type:'line',borderColor:'rgba(146,64,14,0.8)',borderWidth:2,borderDash:[4,3],pointRadius:3,tension:0.3,fill:false},
+    ]},
+    options:{responsive:true,plugins:{legend:{position:'top',labels:{font:{size:10},boxWidth:16}},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmx(ctx.raw||0)}`}}},scales:{y:{ticks:{callback:v=>fmx(v),font:{size:9}}},x:{ticks:{font:{size:9}}}}}
+  });
+
+  const chips={quincenal:'chip-comp',mensual:'chip-neu',bimestral:'chip-up',semestral:'chip-up',anual:'chip-dn'};
+  tb.innerHTML=data.map((r,i)=>`<tr id="gr-${i}">
+    <td style="font-weight:600">${r.yr}-S${String(r.wk).padStart(2,'0')}</td>
+    <td style="font-size:11px">${esc(r.fechaBase)}</td>
+    <td style="font-size:11px;font-weight:600">${esc(r.cat)}</td>
+    <td style="font-size:11px;color:var(--text-soft)">${esc(r.tienda)||'—'}</td>
+    <td><span class="chip ${chips[r.periodicidad]||'chip-neu'}" style="font-size:9px">${esc(r.periodicidad)}</span></td>
+    <td style="text-align:right;font-family:'IBM Plex Mono',monospace;color:var(--text-soft)">${fmx(r.montoPron)}</td>
+    <td style="padding:4px 8px"><input type="number" id="ga-${i}" value="${r.montoAdj}" min="0" step="0.01"
+      style="width:100px;font-size:12px;text-align:right;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:3px 6px;font-family:'IBM Plex Mono',monospace;background:var(--indigo-blush)"/></td>
+    <td style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-soft)">${r.montoReal?fmx(r.montoReal):'—'}</td>
+    <td>${r.row?`<button class="btn btn-primary btn-sm" onclick="saveGastosRow(${i},${r.row})">💾</button>`:'<span style="font-size:10px;color:var(--text-muted)">no guardado</span>'}</td>
+  </tr>`).join('');
+}
+
+async function saveGastosRow(i,row){
+  const r=GASTOS_PRON_DATA[i];if(!r)return;
+  const adj=parseFloat($(`ga-${i}`).value)||0;
+  try{
+    await gasCall('handleRequest',{action:'update',sheet:'Pronostico_Gastos',row,
+      values:[r.yr,r.wk,r.mes,r.cat,r.tipo,r.tienda,r.montoPron,adj,r.montoReal,r.periodicidad,r.fechaBase,'']});
+    r.montoAdj=adj;toast('✅ Guardado');
+    const el=$(`gr-${i}`);if(el){el.style.background='#dce7fb';setTimeout(()=>el.style.background='',1500);}
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+</script>
+<div id="rm-corner-logo" style="position:fixed;top:10px;right:10px;z-index:9999;width:44px;height:44px;background:#fff;border-radius:50%;padding:3px;box-shadow:0 2px 8px rgba(0,0,0,.12);pointer-events:none">
+  <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+    <g stroke="#d4a5ab" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M120 80 C 90 90, 65 105, 50 130 C 80 122, 105 108, 124 88 Z"/>
+      <path d="M120 80 C 105 110, 95 140, 95 165 C 110 140, 122 110, 128 88 Z"/>
+      <path d="M120 80 C 125 110, 140 140, 150 165 C 140 135, 132 108, 130 88 Z"/>
+      <path d="M120 80 C 145 95, 175 105, 190 130 C 160 120, 138 105, 128 88 Z"/>
+    </g>
+  </svg>
+</div>
+</body>
+</html>

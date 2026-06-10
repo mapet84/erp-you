@@ -1,12 +1,30 @@
+import Link from "next/link";
 import { requireCan } from "@/lib/erp/session.server";
-import { ModuloProximamente } from "../modulo-proximamente";
+
+const SECCIONES = [
+  { href: "/gestion/ingredientes", label: "Ingredientes", desc: "Materia prima y costo de compra" },
+  { href: "/gestion/recetas", label: "Recetas", desc: "Recetas, costo y precio sugerido" },
+  { href: "/gestion/margenes", label: "Márgenes objetivo", desc: "Margen por categoría y canal" },
+];
 
 export default async function GestionPage() {
   await requireCan("GESTION", "read");
   return (
-    <ModuloProximamente
-      titulo="Gestión"
-      descripcion="Ingredientes, recetas, costeo y precios."
-    />
+    <div className="mx-auto max-w-3xl">
+      <h1 className="text-xl font-semibold text-neutral-900">Gestión</h1>
+      <p className="mt-1 text-sm text-neutral-500">Datos maestros, costeo y precios.</p>
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {SECCIONES.map((s) => (
+          <Link
+            key={s.href}
+            href={s.href}
+            className="rounded-xl border border-neutral-200 bg-white p-4 hover:border-neutral-400"
+          >
+            <h2 className="font-medium text-neutral-900">{s.label}</h2>
+            <p className="mt-1 text-sm text-neutral-500">{s.desc}</p>
+          </Link>
+        ))}
+      </div>
+    </div>
   );
 }

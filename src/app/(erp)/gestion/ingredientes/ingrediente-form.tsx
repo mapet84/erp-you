@@ -1,0 +1,49 @@
+"use client";
+
+import { useActionState, useEffect, useRef } from "react";
+import { crearIngrediente, type IngredienteState } from "./actions";
+
+const initial: IngredienteState = {};
+const inputCls =
+  "w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-500 focus:ring-1 focus:ring-neutral-400";
+
+export function IngredienteForm({ unidades }: { unidades: { id: string; codigo: string }[] }) {
+  const [state, action, pending] = useActionState(crearIngrediente, initial);
+  const ref = useRef<HTMLFormElement>(null);
+  useEffect(() => {
+    if (state.ok) ref.current?.reset();
+  }, [state.ok]);
+
+  return (
+    <form ref={ref} action={action} className="flex flex-wrap items-end gap-3 rounded-xl border border-neutral-200 bg-white p-4">
+      <div>
+        <label className="block text-xs text-neutral-500">Código</label>
+        <input name="codigo" required className={`mt-1 w-28 ${inputCls}`} />
+      </div>
+      <div className="flex-1">
+        <label className="block text-xs text-neutral-500">Nombre</label>
+        <input name="nombre" required className={`mt-1 ${inputCls}`} />
+      </div>
+      <div>
+        <label className="block text-xs text-neutral-500">Unidad</label>
+        <select name="unidadId" required className={`mt-1 ${inputCls}`}>
+          {unidades.map((u) => (
+            <option key={u.id} value={u.id}>{u.codigo}</option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label className="block text-xs text-neutral-500">Costo compra</label>
+        <input name="costoCompra" required inputMode="decimal" defaultValue="0" className={`mt-1 w-28 ${inputCls}`} />
+      </div>
+      <div>
+        <label className="block text-xs text-neutral-500">Mín. compra</label>
+        <input name="minCompra" inputMode="decimal" defaultValue="0" className={`mt-1 w-24 ${inputCls}`} />
+      </div>
+      <button type="submit" disabled={pending} className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-60">
+        {pending ? "…" : "Agregar"}
+      </button>
+      {state.error && <p className="w-full text-sm text-red-600">{state.error}</p>}
+    </form>
+  );
+}

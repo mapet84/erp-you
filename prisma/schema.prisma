@@ -226,3 +226,107 @@ model UserStore {
   @@map("usuario_tienda")
   @@schema("erp")
 }
+
+// ── Módulo 1 · Gestión — catálogos y datos maestros (rebanada #3) ────────────
+
+/// Unidad de medida (kg, pza, l, …).
+model Unidad {
+  id           String        @id @default(cuid())
+  codigo       String        @unique
+  nombre       String
+  ingredientes Ingrediente[]
+
+  @@map("unidades")
+  @@schema("erp")
+}
+
+/// Categoría de receta/producto (postres, bebidas, …). Eje del margen objetivo.
+model Categoria {
+  id       String           @id @default(cuid())
+  nombre   String           @unique
+  recetas  Receta[]
+  margenes MargenObjetivo[]
+
+  @@map("categorias")
+  @@schema("erp")
+}
+
+/// Canal de venta (Tienda, Uber, …). Eje de precios, comisiones y margen objetivo.
+model Canal {
+  id       String           @id @default(cuid())
+  nombre   String           @unique
+  margenes MargenObjetivo[]
+
+  @@map("canales")
+  @@schema("erp")
+}
+
+/// Ingrediente (materia prima). `costoCompra` = costo de compra general (editable,
+/// base del costeo y del precio). El CPM por tienda llega en la rebanada #6.
+model Ingrediente {
+  id          String  @id @default(cuid())
+  codigo      String  @unique
+  nombre      String
+  unidad      Unidad  @relation(fields: [unidadId], references: [id])
+  unidadId    String
+  /// Costo de compra general por unidad base.
+  costoCompra Decimal @default(0) @db.Decimal(14, 6)
+  /// Mínimo de compra (para redondeo en la explosión de compras, #11).
+  minCompra   Decimal @default(0) @db.Decimal(14, 4)
+
+  componentes RecetaComponente[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("ingredientes")
+  @@schema("erp")
+}
+
+/// Receta (producto vendible compuesto). El costo se calcula en vivo desde sus
+/// componentes (no se guarda snapshot). Semi-terminados y tamaño: rebanada #4.
+model Receta {
+  id          String  @id @default(cuid())
+  sku         String  @unique
+  nombre      String
+  categoria   Categoria @relation(fields: [categoriaId], references: [id])
+  categoriaId String
+
+  componentes RecetaComponente[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("recetas")
+  @@schema("erp")
+}
+
+/// Componente de una receta. `cantidad` está en la unidad base del ingrediente;
+/// `rendimiento` (%) ajusta por merma/rendimiento del proceso (100 = sin ajuste).
+model RecetaComponente {
+  id            String      @id @default(cuid())
+  receta        Receta      @relation(fields: [recetaId], references: [id], onDelete: Cascade)
+  recetaId      String
+  ingrediente   Ingrediente @relation(fields: [ingredienteId], references: [id])
+  ingredienteId String
+  cantidad      Decimal     @db.Decimal(14, 4)
+  rendimiento   Decimal     @default(100) @db.Decimal(7, 4)
+
+  @@map("receta_componentes")
+  @@schema("erp")
+}
+
+/// Margen objetivo por (categoría, canal): % usado para sugerir el precio de
+/// venta a partir del costo de compra. Se guarda como número humano (60 = 60%).
+model MargenObjetivo {
+  id          String    @id @default(cuid())
+  categoria   Categoria @relation(fields: [categoriaId], references: [id], onDelete: Cascade)
+  categoriaId String
+  canal       Canal     @relation(fields: [canalId], references: [id], onDelete: Cascade)
+  canalId     String
+  margen      Decimal   @db.Decimal(7, 4)
+
+  @@unique([categoriaId, canalId])
+  @@map("margen_objetivo")
+  @@schema("erp")
+}
