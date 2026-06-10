@@ -77,8 +77,36 @@ src/
   test/                # tests de la lógica pura
 ```
 
+## ERP · Fase 2 (en construcción)
+
+El ERP operativo de 4 módulos (Gestión, POS, Finanzas, Pronósticos) se construye en el
+esquema Postgres `erp` (separado del portal CFDI, que vive en `public`). Ver
+[`PRD-fase2.md`](PRD-fase2.md) y los issues `issues/f2-*.md` (`issues/f2-00-INDEX.md`).
+
+**Rebanada #1 — Login al ERP (lista):** autenticación por credenciales (Auth.js v5, sesión
+JWT, bcrypt). Para entrar:
+
+```bash
+# 1. Pon un AUTH_SECRET en .env  (genera uno con: npx auth secret)
+# 2. Aplica migraciones (crea el esquema erp + tabla usuarios)
+npm run db:migrate:dev
+# 3. Crea el primer administrador
+npm run usuario:alta -- --email admin@empresa.mx --nombre "Admin" --password "secreta123"
+# 4. Arranca e inicia sesión
+npm run dev
+```
+
+- http://localhost:3000/login — inicio de sesión del ERP
+- http://localhost:3000/dashboard — panel (requiere sesión; sin ella redirige a /login)
+
+El portal de Fase 1 (`/f/demo`) sigue funcionando igual.
+
+> Nota de diseño: el proveedor Credentials de Auth.js v5 solo admite sesión **JWT** (no
+> "database"); los usuarios se gestionan en la tabla `erp.usuarios` y la desactivación se
+> aplica revalidando contra la BD en cada request (callback `session`).
+
 ## Roadmap
 
-Ver [`PRD.md`](PRD.md) y los slices en [`issues/`](issues/) (`issues/00-INDEX.md`).
-Slice #1 (este) deja el esqueleto + resolución de tenant. Siguiente: #2 (alta de emisor
-por CLI + `facturama-client`, HITL — requiere credenciales sandbox de Facturama y un CSD).
+Ver [`PRD.md`](PRD.md) (Fase 1) y [`PRD-fase2.md`](PRD-fase2.md) (Fase 2). Slices de Fase 1 en
+`issues/00-INDEX.md` (completos); slices de Fase 2 en `issues/f2-00-INDEX.md`.
+Siguiente tras #1: **#2 — Usuarios, tiendas y permisos (RBAC por módulo y tienda)**.

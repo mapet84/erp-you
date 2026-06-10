@@ -7,8 +7,11 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  // Fase 1 (portal CFDI) vive en `public`; el ERP (Fase 2) en `erp`.
+  schemas   = ["public", "erp"]
 }
 
 /// Un emisor = un tenant del portal. Se resuelve por `slug` en /f/[slug].
@@ -40,6 +43,7 @@ model Emisor {
   updatedAt DateTime @updatedAt
 
   @@map("emisores")
+  @@schema("public")
 }
 
 /// Una factura (CFDI) emitida por autofacturación. Slice #3: camino feliz.
@@ -91,6 +95,7 @@ model Invoice {
   /// "error" se reintenta (se actualiza), uno "timbrada" bloquea el re-timbrado.
   @@unique([emisorId, folioTicket])
   @@map("invoices")
+  @@schema("public")
 }
 
 /// Archivo fiscal (XML/PDF) del CFDI, conservado como bytea (#4).
@@ -109,6 +114,7 @@ model InvoiceFile {
 
   @@unique([invoiceId, tipo])
   @@map("invoice_files")
+  @@schema("public")
 }
 
 /// Catálogo del SAT sembrado en BD (#6): c_RegimenFiscal, c_UsoCFDI, c_FormaPago.
@@ -123,4 +129,30 @@ model CatalogoSat {
 
   @@unique([tipo, clave])
   @@map("catalogos_sat")
+  @@schema("public")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ERP · Fase 2 — esquema `erp`
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Usuario del ERP (módulo único de usuarios). Fase 2 · rebanada #1.
+/// La autenticación es por credenciales (Auth.js v5, sesión JWT): `authorize`
+/// busca por `email`, compara `passwordHash` con bcrypt y exige `activo`.
+/// Los roles por módulo (UserModuleRole) y el alcance por tienda (UserStore)
+/// llegan en la rebanada #2.
+model User {
+  id           String  @id @default(cuid())
+  email        String  @unique
+  nombre       String
+  /// Hash bcrypt de la contraseña (nunca la contraseña en claro).
+  passwordHash String
+  /// Usuario desactivado: conserva historial pero no puede iniciar sesión.
+  activo       Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("usuarios")
+  @@schema("erp")
 }
