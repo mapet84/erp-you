@@ -76,6 +76,12 @@ model Invoice {
   /// Detalle del rechazo del PAC cuando estatus = "error" (#8).
   errorPac        String?
 
+  // --- Entrega por correo (#5) ---
+  /// ¿Se entregó la factura por correo? (complementario a la descarga).
+  correoEnviado Boolean @default(false)
+  /// Detalle del fallo de envío de correo, si lo hubo (para reintento).
+  correoError   String?
+
   files InvoiceFile[]
 
   createdAt DateTime @default(now())

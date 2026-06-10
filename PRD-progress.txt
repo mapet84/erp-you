@@ -106,9 +106,24 @@ ERP YOU — Fase 1 · Bitácora de progreso
     Ruta de descarga: PDF/XML 200 con Content-Type correcto, 404/400 en faltante/tipo inválido.
   - 82 tests verdes. Lint, typecheck y build de producción limpios. (commit pendiente)
 
+2026-06-10 — Slice #5 (entrega por correo, Resend): CÓDIGO COMPLETO (falta verificación HITL real)
+  - email/resend-client.ts (fetch inyectable, POST api.resend.com/emails, EmailError),
+    email/config.ts (RESEND_API_KEY/EMAIL_FROM; "" cuenta como ausente → devuelve null sin lanzar),
+    email/template.ts (HTML en español con resumen + UUID, escapado), email/send-invoice.ts
+    (orquesta adjuntos XML+PDF en base64; best-effort, NUNCA lanza).
+  - Integrado en la Server Action tras conservar archivos. Invoice += correoEnviado/correoError;
+    pantalla de éxito muestra "Enviamos tu factura a <email>" o cae a la descarga.
+  - BUG corregido de paso: el try/catch envolvía también los efectos best-effort (archivos/correo),
+    así que un fallo posterior al timbrado se reportaba como "no se pudo timbrar" aunque el CFDI ya
+    estaba timbrado. Ahora SOLO createCfdi está en el catch de rechazo del PAC; los pasos posteriores
+    no pueden voltear un timbrado a "error". (Lo destapó el Zod min(1) sobre RESEND_API_KEY="".)
+  - +9 tests (resend-client, template, send-invoice: no-config/adjuntos/fallo). 91 verdes, lint+build OK.
+  - Verificado el camino "sin configurar": timbra ok, correoEnviado=false, correoError registrado.
+
 PENDIENTE:
-  - Slice #5 (HITL): entrega por correo (Resend) — requiere API key + dominio verificado. Único
-    slice de F1 que falta; el "aviso de correo" en la pantalla de éxito queda como placeholder.
+  - Slice #5 (HITL): falta SOLO la verificación real — con RESEND_API_KEY (+ remitente) llega el
+    correo con XML y PDF adjuntos. En pruebas: from="onboarding@resend.dev" y enviar al propio correo
+    de la cuenta Resend (sin verificar dominio). Con eso cierra la Fase 1.
   - Nota producto: receptor con RFC real se valida contra el padrón del SAT (nombre+CP+régimen). El
     happy path de demo usa Público en General (XAXX010101000/616/S01). El emisor debe darse de alta
     con el nombre EXACTO del padrón sin "SA DE CV".

@@ -14,11 +14,15 @@ El correo es complementario a la descarga en pantalla: si el envío falla, el ti
 siguen siendo válidos; el fallo de correo se registra sin romper el flujo.
 
 ## Acceptance criteria
-- [ ] `email-sender` con Resend: API key desde variable de entorno, remitente del dominio configurado.
-- [ ] Plantilla de correo en español con XML y PDF adjuntos.
-- [ ] El envío se dispara tras un timbrado + persistencia de archivos exitosos.
-- [ ] Un fallo de correo no invalida el timbrado ni la descarga; queda registrado para reintento.
-- [ ] Verificación manual (HITL): con la key y el dominio configurados, llega el correo con ambos adjuntos.
+- [x] `email-sender` con Resend: API key desde variable de entorno, remitente del dominio configurado. *(`email/resend-client.ts` + `email/config.ts`; sin key/remitente → correo deshabilitado, no rompe.)*
+- [x] Plantilla de correo en español con XML y PDF adjuntos. *(`email/template.ts` + adjuntos base64 en `send-invoice.ts`.)*
+- [x] El envío se dispara tras un timbrado + persistencia de archivos exitosos. *(en la Server Action, después de `guardarArchivos`.)*
+- [x] Un fallo de correo no invalida el timbrado ni la descarga; queda registrado para reintento. *(best-effort; `Invoice.correoEnviado/correoError`.)*
+- [ ] Verificación manual (HITL): con la key y el dominio configurados, llega el correo con ambos adjuntos. *(pendiente: requiere `RESEND_API_KEY`.)*
+
+## Estado
+**Código completo (2026-06-10).** Falta sólo la verificación HITL real (enviar un correo con una API
+key de Resend). En pruebas basta `from="onboarding@resend.dev"` enviando al propio correo de la cuenta.
 
 ## Blocked by
 - #4 · [Descarga y conservación de XML/PDF](04-descarga-conservacion-archivos.md)

@@ -10,6 +10,7 @@ import { receptorSchema, dentroDeVentana, type VentanaPolitica } from "@/lib/bil
 import { loadCatalogos, clavesValidas } from "@/lib/catalogs.server";
 import { desglosarIva } from "@/lib/tax";
 import { traducirErrorPac } from "@/lib/pac-errors";
+import { enviarFacturaPorCorreo } from "@/lib/email/send-invoice";
 import { facturamaClientFromEnv } from "@/lib/facturama/config";
 import {
   FacturamaError,
@@ -25,6 +26,10 @@ export interface FacturaResumen {
   subtotal: number;
   iva: number;
   total: number;
+  /** Correo del receptor (a dónde se envió / enviará la factura). */
+  email: string;
+  /** ¿Se entregó por correo en este timbrado? (#5). */
+  correoEnviado: boolean;
 }
 
 export interface EmitirState {
@@ -45,30 +50,36 @@ function str(formData: FormData, key: string): string {
   return String(formData.get(key) ?? "").trim();
 }
 
-/** Descarga y conserva XML/PDF del CFDI (best-effort: no tumba el timbrado). */
+/**
+ * Descarga y conserva XML/PDF del CFDI (best-effort: no tumba el timbrado).
+ * Devuelve los bytes obtenidos para reusarlos como adjuntos del correo (#5).
+ */
 async function guardarArchivos(
   facturama: FacturamaClient,
   invoiceId: string,
   cfdiId: string,
-): Promise<void> {
+): Promise<{ xml?: Buffer; pdf?: Buffer }> {
   const archivos = [
-    { tipo: "xml", contentType: "application/xml", fetch: () => facturama.getXml(cfdiId) },
-    { tipo: "pdf", contentType: "application/pdf", fetch: () => facturama.getPdf(cfdiId) },
-  ] as const;
+    { tipo: "xml" as const, contentType: "application/xml", fetch: () => facturama.getXml(cfdiId) },
+    { tipo: "pdf" as const, contentType: "application/pdf", fetch: () => facturama.getPdf(cfdiId) },
+  ];
 
+  const bytes: { xml?: Buffer; pdf?: Buffer } = {};
   for (const a of archivos) {
     try {
-      const contenido = new Uint8Array(await a.fetch());
+      const buf = await a.fetch();
+      bytes[a.tipo] = buf;
       await prisma.invoiceFile.upsert({
         where: { invoiceId_tipo: { invoiceId, tipo: a.tipo } },
-        update: { contenido, contentType: a.contentType },
-        create: { invoiceId, tipo: a.tipo, contenido, contentType: a.contentType },
+        update: { contenido: new Uint8Array(buf), contentType: a.contentType },
+        create: { invoiceId, tipo: a.tipo, contenido: new Uint8Array(buf), contentType: a.contentType },
       });
     } catch {
       // Si Facturama falla la descarga, el Invoice queda timbrado (no se pierde
       // el UUID); el archivo faltante se puede reintentar después (#4).
     }
   }
+  return bytes;
 }
 
 export async function emitirFactura(
@@ -160,6 +171,8 @@ export async function emitirFactura(
         subtotal: Number(existente.subtotal),
         iva: Number(existente.iva),
         total: Number(existente.total),
+        email: existente.email,
+        correoEnviado: existente.correoEnviado,
       },
       values,
     };
@@ -202,40 +215,13 @@ export async function emitirFactura(
     email: receptor.email,
   };
 
+  // Sólo el timbrado (createCfdi) decide éxito/rechazo: un fallo en los pasos
+  // best-effort posteriores (archivos, correo) NO debe convertir un CFDI ya
+  // timbrado en un "error".
+  const facturama = facturamaClientFromEnv();
+  let cfdi;
   try {
-    const facturama = facturamaClientFromEnv();
-    const cfdi = await facturama.createCfdi(payload);
-    const uuid = extractUuid(cfdi);
-
-    const invoice = await prisma.invoice.upsert({
-      where: { emisorId_folioTicket: { emisorId: emisor.id, folioTicket: values.folioTicket } },
-      update: { ...datosReceptor, estatus: "timbrada", uuid, facturamaCfdiId: cfdi.Id, errorPac: null },
-      create: {
-        emisorId: emisor.id,
-        folioTicket: values.folioTicket,
-        ...datosReceptor,
-        estatus: "timbrada",
-        uuid,
-        facturamaCfdiId: cfdi.Id,
-      },
-    });
-
-    // #4: conservación de archivos (best-effort, no bloquea el éxito).
-    await guardarArchivos(facturama, invoice.id, cfdi.Id);
-
-    return {
-      ok: true,
-      factura: {
-        invoiceId: invoice.id,
-        uuid,
-        receptorRfc: receptor.rfc,
-        receptorNombre: receptor.nombre,
-        subtotal,
-        iva,
-        total: totalExacto,
-      },
-      values,
-    };
+    cfdi = await facturama.createCfdi(payload);
   } catch (e) {
     // #8: traduce el rechazo del PAC y deja el Invoice en estatus "error"
     //     (folio NO consumido para timbrado → un reintento exitoso sí timbra).
@@ -256,4 +242,57 @@ export async function emitirFactura(
     }
     return { ok: false, error: "No se pudo timbrar la factura. Intenta de nuevo.", values };
   }
+
+  // Timbrado exitoso: persiste el Invoice como "timbrada".
+  const uuid = extractUuid(cfdi);
+  const invoice = await prisma.invoice.upsert({
+    where: { emisorId_folioTicket: { emisorId: emisor.id, folioTicket: values.folioTicket } },
+    update: { ...datosReceptor, estatus: "timbrada", uuid, facturamaCfdiId: cfdi.Id, errorPac: null },
+    create: {
+      emisorId: emisor.id,
+      folioTicket: values.folioTicket,
+      ...datosReceptor,
+      estatus: "timbrada",
+      uuid,
+      facturamaCfdiId: cfdi.Id,
+    },
+  });
+
+  // #4: conservación de archivos (best-effort, no bloquea el éxito).
+  const archivos = await guardarArchivos(facturama, invoice.id, cfdi.Id);
+
+  // #5: entrega por correo (best-effort). Complementaria a la descarga: un
+  //     fallo no invalida el timbrado; se registra para reintento.
+  const envio = await enviarFacturaPorCorreo({
+    to: receptor.email,
+    emisorNombre: emisor.razonSocial,
+    receptorNombre: receptor.nombre,
+    uuid,
+    folioTicket: values.folioTicket,
+    subtotal,
+    iva,
+    total: totalExacto,
+    xml: archivos.xml,
+    pdf: archivos.pdf,
+  });
+  await prisma.invoice.update({
+    where: { id: invoice.id },
+    data: { correoEnviado: envio.enviado, correoError: envio.enviado ? null : envio.error ?? null },
+  });
+
+  return {
+    ok: true,
+    factura: {
+      invoiceId: invoice.id,
+      uuid,
+      receptorRfc: receptor.rfc,
+      receptorNombre: receptor.nombre,
+      subtotal,
+      iva,
+      total: totalExacto,
+      email: receptor.email,
+      correoEnviado: envio.enviado,
+    },
+    values,
+  };
 }

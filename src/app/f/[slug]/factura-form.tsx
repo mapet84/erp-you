@@ -95,7 +95,9 @@ export function FacturaForm({ slug, color, tasaIva, catalogos }: Props) {
           </a>
         </div>
         <p className="text-xs text-neutral-500">
-          También enviaremos tu factura por correo próximamente.
+          {f.correoEnviado
+            ? `Enviamos tu factura a ${f.email}.`
+            : "Descarga tu factura con los botones de arriba."}
         </p>
       </div>
     );
