@@ -28,6 +28,17 @@ ERP YOU — Fase 1 · Bitácora de progreso
     body de uploadCsd, parseo de respuesta, FacturamaError en fallo, get/remove. Total suite: 15 verdes.
   - FALTA (HITL): verificación manual con CSD real en sandbox → necesita credenciales + CSD.
 
+2026-06-10 (autónomo) — Slice #3 (parcial): módulos puros tax + cfdi-builder
+  - tax (src/lib/tax.ts): desglosarIva(total, tasa) en centavos; subtotal+iva===total exacto.
+    Tests: tabla amplia (1, .99, 116, 100, grandes), valores conocidos, entradas inválidas.
+  - cfdi-builder (src/lib/cfdi-builder.ts): arma payload CFDI 4.0 Multiemisor desde
+    emisor+receptor+monto+concepto. Defaults fijos: CfdiType=I, PaymentMethod=PUE,
+    Currency=MXN, Exportation=01, TaxObject=02, traslado IVA. Nombres de campo verificados
+    vs SDK oficial (CfdiMulti/Issuer/Item/Receiver/Tax). Tests: defaults, mapeo emisor/receptor,
+    concepto+IVA, reconciliación de centavos, RFC moral(12)/física(13). Suite total: 49 verdes.
+  - FALTA del #3 (HITL/integración): createCfdi vs sandbox, modelo Invoice, formulario
+    /f/[slug], primer timbrado real (requiere credenciales + CSD del #2).
+
 PENDIENTE (requiere intervención humana antes de continuar la cadena):
   - Slice #2 (HITL): alta de emisor por CLI + facturama-client. Necesita credenciales
     de la cuenta SANDBOX de Facturama + un CSD de prueba (.cer/.key/contraseña).

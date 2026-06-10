@@ -19,13 +19,20 @@ se persiste un `Invoice` en estatus `timbrada` con su UUID → pantalla de éxit
 Este slice establece los dos módulos puros centrales (`tax`, `cfdi-builder`) con sus tests.
 
 ## Acceptance criteria
-- [ ] Módulo `tax`: total con IVA → { subtotal, iva } a 2 decimales con `subtotal + iva === total`.
-- [ ] Módulo `cfdi-builder`: arma el payload Multiemisor con todos los defaults fijos y el concepto/impuestos correctos a partir de emisor + receptor + monto.
+- [x] Módulo `tax`: total con IVA → { subtotal, iva } a 2 decimales con `subtotal + iva === total`.
+- [x] Módulo `cfdi-builder`: arma el payload Multiemisor con todos los defaults fijos y el concepto/impuestos correctos a partir de emisor + receptor + monto.
 - [ ] `facturama-client.createCfdi` integrado contra sandbox; idempotencia básica (no timbrar dos veces por doble submit).
 - [ ] Modelo `Invoice` (emisorId, montos, datos del receptor, formaPago, estatus, uuid, facturamaCfdiId, createdAt) persistido en estatus `timbrada` al éxito.
 - [ ] Formulario mínimo en `/f/[slug]` que dispara el flujo y muestra pantalla de éxito con UUID.
-- [ ] **Tests** de `tax` (tabla amplia de montos, casos de descuadre de centavos) y `cfdi-builder` (defaults, mapeo, persona física RFC 13 y moral RFC 12) verdes.
+- [x] **Tests** de `tax` (tabla amplia de montos, casos de descuadre de centavos) y `cfdi-builder` (defaults, mapeo, persona física RFC 13 y moral RFC 12) verdes.
 - [ ] Verificación manual (HITL): un submit con datos de prueba válidos genera un CFDI timbrado en sandbox con UUID real.
+
+## Estado
+**Parcial (2026-06-10, autónomo):** adelantados los dos módulos puros del slice —
+`tax` (src/lib/tax.ts) y `cfdi-builder` (src/lib/cfdi-builder.ts) — con sus tests
+verdes (contrato de payload Multiemisor verificado vs SDK oficial de Facturama).
+Falta la parte de integración/HITL: `createCfdi` contra sandbox, modelo `Invoice`,
+formulario en `/f/[slug]`, y el primer timbrado real (requiere credenciales + CSD del #2).
 
 ## Blocked by
 - #2 · [Alta de emisor por CLI + facturama-client](02-alta-emisor-cli.md)
