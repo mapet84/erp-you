@@ -39,6 +39,16 @@ ERP YOU — Fase 1 · Bitácora de progreso
   - FALTA del #3 (HITL/integración): createCfdi vs sandbox, modelo Invoice, formulario
     /f/[slug], primer timbrado real (requiere credenciales + CSD del #2).
 
+2026-06-10 (autónomo) — billing-rules (núcleo puro de #6 y #7)
+  - src/lib/billing-rules.ts: esRfcValido/tipoPersona (moral 12 / física 13), esCpValido (5 díg),
+    perteneceACatalogo, receptorSchema (Zod: RFC+CP+catálogos+email), dentroDeVentana (mismo mes,
+    configurable). 15 tests (RFC válidos/ inválidos, CP, fuera de catálogo, ventana dentro/fuera,
+    cruce fin de mes, año distinto). Suite total: 64 verdes.
+  - Con esto quedan los 4 módulos puros con tests del PRD: tax, cfdi-builder, facturama-client
+    (contrato), billing-rules.
+  - FALTA de #6/#7 (dependen de #3/UI): seed de catálogos, dropdowns, formulario, restricción
+    única (emisorId, folioTicket) + idempotencia (necesitan el modelo Invoice del #3).
+
 PENDIENTE (requiere intervención humana antes de continuar la cadena):
   - Slice #2 (HITL): alta de emisor por CLI + facturama-client. Necesita credenciales
     de la cuenta SANDBOX de Facturama + un CSD de prueba (.cer/.key/contraseña).

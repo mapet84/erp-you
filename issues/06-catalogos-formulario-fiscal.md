@@ -19,8 +19,12 @@ Fiscal, Uso CFDI, Forma de Pago y correo.
 - [ ] Seed curado de `c_RegimenFiscal`, `c_UsoCFDI` y `c_FormaPago` (claves vigentes relevantes para autofactura).
 - [ ] Dropdowns de Régimen, Uso CFDI y Forma de Pago alimentados desde la BD.
 - [ ] Formulario completo del receptor cableado al flujo de timbrado.
-- [ ] `billing-rules`: validación de formato (RFC 12 moral / 13 física, CP 5 dígitos, pertenencia a catálogo) vía Zod, ejecutada antes de llamar al PAC.
-- [ ] **Tests** de `billing-rules` para validación de formato: RFC válidos/ inválidos (12 y 13), CP, clave fuera de catálogo.
+- [x] `billing-rules`: validación de formato (RFC 12 moral / 13 física, CP 5 dígitos, pertenencia a catálogo) vía Zod, ejecutada antes de llamar al PAC. *(src/lib/billing-rules.ts: `receptorSchema`, `esRfcValido`, `esCpValido`, `perteneceACatalogo`.)*
+- [x] **Tests** de `billing-rules` para validación de formato: RFC válidos/ inválidos (12 y 13), CP, clave fuera de catálogo.
+
+> Avance autónomo 2026-06-10: el módulo puro `billing-rules` (validación de formato) y sus tests
+> están hechos. Falta lo dependiente de #3/UI: seed curado de catálogos, dropdowns desde BD y el
+> formulario completo cableado al timbrado.
 
 ## Blocked by
 - #3 · [Timbrado feliz end-to-end](03-timbrado-feliz.md)

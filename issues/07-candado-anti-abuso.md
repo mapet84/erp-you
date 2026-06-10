@@ -19,9 +19,13 @@ El monto capturado se guarda para auditoría; su validación contra venta real e
 ## Acceptance criteria
 - [ ] Captura de folio, fecha del ticket y monto en el formulario.
 - [ ] Restricción única `(emisorId, folioTicket)` en `Invoice` + chequeo que bloquea folios ya usados con mensaje claro.
-- [ ] `billing-rules`: regla de ventana (default mismo mes calendario, configurable por emisor) que rechaza fechas fuera de ventana con mensaje claro.
+- [x] `billing-rules`: regla de ventana (default mismo mes calendario, configurable por emisor) que rechaza fechas fuera de ventana con mensaje claro. *(src/lib/billing-rules.ts: `dentroDeVentana`.)*
 - [ ] Idempotencia: un doble submit del mismo folio no produce dos timbrados.
-- [ ] **Tests** de `billing-rules` para la ventana: dentro/fuera, cruces de fin de mes, configuración por emisor.
+- [x] **Tests** de `billing-rules` para la ventana: dentro/fuera, cruces de fin de mes, configuración por emisor.
+
+> Avance autónomo 2026-06-10: la regla pura de ventana (`dentroDeVentana`) y sus tests están hechos.
+> Falta lo dependiente de #3/UI: captura de folio+fecha+monto, restricción única (emisorId, folioTicket)
+> e idempotencia anti doble-timbrado (necesitan el modelo `Invoice` del slice #3).
 
 ## Blocked by
 - #3 · [Timbrado feliz end-to-end](03-timbrado-feliz.md)
