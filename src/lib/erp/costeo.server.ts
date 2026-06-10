@@ -6,7 +6,7 @@
 
 import { prisma } from "@/lib/db";
 import { Decimal } from "./money";
-import { costoRecetaArbol, type Componente, type Insumo } from "./costeo";
+import { costoRecetaArbol, explotar, type Componente, type Insumo } from "./costeo";
 
 type CompRow = {
   ingredienteId: string | null;
@@ -91,5 +91,40 @@ export async function costosCPMPorReceta(tiendaId: string): Promise<Map<string, 
   const aComponente = builder((id) => cpmPorIngrediente.get(id) ?? new Decimal(0), partes);
   const out = new Map<string, Decimal>();
   for (const r of recetas) out.set(r.id, costoRecetaArbol(r.componentes.map(aComponente)));
+  return out;
+}
+
+export interface DatosPOSReceta {
+  /// Costo CPM por unidad (COGS) de la receta en la tienda.
+  cpmUnit: Decimal;
+  /// Explosión a ingredientes hoja por unidad de receta (para descontar stock).
+  explosion: { codigo: string; nombre: string; qty: Decimal }[];
+}
+
+/// Para el POS: por receta, su costo CPM unitario y la explosión a ingredientes
+/// (cantidad por unidad de receta) en una tienda, en una sola pasada.
+export async function datosPOSPorReceta(tiendaId: string): Promise<Map<string, DatosPOSReceta>> {
+  const [recetas, ingredientes, inventario, partes] = await Promise.all([
+    prisma.receta.findMany({ include: { componentes: true } }),
+    prisma.ingrediente.findMany({ select: { id: true, codigo: true, nombre: true } }),
+    prisma.inventario.findMany({ where: { tiendaId }, select: { codigo: true, cpm: true } }),
+    partesSemiMap(),
+  ]);
+  const cpmPorCodigo = new Map(inventario.map((i) => [i.codigo, i.cpm]));
+  const info = new Map(
+    ingredientes.map((i) => [i.id, { codigo: i.codigo, nombre: i.nombre, cpm: cpmPorCodigo.get(i.codigo) ?? new Decimal(0) }]),
+  );
+  const aComponente = builder((id) => info.get(id)?.cpm ?? new Decimal(0), partes);
+
+  const out = new Map<string, DatosPOSReceta>();
+  for (const r of recetas) {
+    const arbol = r.componentes.map(aComponente);
+    const explosion = [...explotar(arbol)].map(([id, qty]) => ({
+      codigo: info.get(id)?.codigo ?? id,
+      nombre: info.get(id)?.nombre ?? id,
+      qty,
+    }));
+    out.set(r.id, { cpmUnit: costoRecetaArbol(arbol), explosion });
+  }
   return out;
 }

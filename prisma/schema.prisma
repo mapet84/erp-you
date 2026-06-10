@@ -195,6 +195,8 @@ model Tienda {
   inventarios  Inventario[]
   movimientos  Movimiento[]
   compras      Compra[]
+  tickets      TicketPOS[]
+  ventas       Venta[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -562,5 +564,73 @@ model Compra {
 
   @@index([tiendaId, fechaCompra])
   @@map("compras")
+  @@schema("erp")
+}
+
+// ── Rebanada #7 · Punto de Venta (POS) ───────────────────────────────────────
+
+enum TipoVenta {
+  VENTA
+  DEVOLUCION
+
+  @@schema("erp")
+}
+
+/// Encabezado del ticket POS (folio único). Liga 1:1 con la autofactura del
+/// portal por `folioTicket` (rebanada #10).
+model TicketPOS {
+  id             String    @id @default(cuid())
+  folio          String    @unique
+  tienda         Tienda    @relation(fields: [tiendaId], references: [id])
+  tiendaId       String
+  usuarioId      String
+  canalId        String
+  medioPagoId    String?
+  tipo           TipoVenta @default(VENTA)
+  total          Decimal   @db.Decimal(14, 2)
+  subtotalSinIva Decimal   @db.Decimal(14, 2)
+  iva            Decimal   @db.Decimal(14, 2)
+  comisionMonto  Decimal   @db.Decimal(14, 2)
+  costo          Decimal   @db.Decimal(14, 2)
+  utilidad       Decimal   @db.Decimal(14, 2)
+  /// Folio para autofacturación en el portal (#10). Igual a `folio`.
+  folioTicket    String?
+  fecha          DateTime  @default(now())
+
+  lineas Venta[]
+
+  @@index([tiendaId, fecha])
+  @@map("tickets_pos")
+  @@schema("erp")
+}
+
+/// Línea de venta del POS (un renglón por artículo del ticket).
+model Venta {
+  id             String    @id @default(cuid())
+  ticket         TicketPOS @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  ticketId       String
+  tienda         Tienda    @relation(fields: [tiendaId], references: [id])
+  tiendaId       String
+  fecha          DateTime  @default(now())
+  tipo           TipoVenta @default(VENTA)
+  usuarioId      String
+  canalId        String
+  medioPagoId    String?
+  codigo         String
+  articulo       String
+  qty            Decimal   @db.Decimal(14, 4)
+  precioUnit     Decimal   @db.Decimal(14, 2)
+  totalVenta     Decimal   @db.Decimal(14, 2)
+  subtotalSinIva Decimal   @db.Decimal(14, 2)
+  iva            Decimal   @db.Decimal(14, 2)
+  comisionPct    Decimal   @db.Decimal(7, 4)
+  comisionMonto  Decimal   @db.Decimal(14, 2)
+  cpm            Decimal   @db.Decimal(14, 6)
+  costo          Decimal   @db.Decimal(14, 2)
+  utilidadMonto  Decimal   @db.Decimal(14, 2)
+  utilidadPct    Decimal   @db.Decimal(7, 4)
+
+  @@index([tiendaId, fecha])
+  @@map("ventas")
   @@schema("erp")
 }

@@ -12,7 +12,7 @@ Orden de dependencias: **1 → 2 → 3 → 4 → 5**, con **6** tras #3, **7** t
 | 4 | [Recetas completas](f2-04-recetas-completas.md) ✅ | AFK | #3 | 13, 14, 16 |
 | 5 | [Repreciado por impacto + productos + canales](f2-05-repreciado-productos-canales.md) ✅ | AFK | #4 | 15, 21, 22, 23, 24 |
 | 6 | [Compras y recosteo (CPM por tienda)](f2-06-compras-recosteo-cpm.md) ✅ | AFK | #3 | 18, 40, 41, 42, 43 |
-| 7 | [POS: vender, ticket y descuento de inventario](f2-07-pos-venta-ticket.md) | AFK | #5, #6 | 30–39 |
+| 7 | [POS: vender, ticket y descuento de inventario](f2-07-pos-venta-ticket.md) ✅ | AFK | #5, #6 | 30–39 |
 | 8 | [Órdenes de venta con estados](f2-08-ordenes-venta.md) | AFK | #5 | 25, 26, 27, 28, 29 |
 | 9 | [Gastos y estado de resultados](f2-09-gastos-estado-resultados.md) | AFK | #7 | 44, 45, 46, 47, 48, 49 |
 | 10 | [Estado de factura (integración portal CFDI)](f2-10-estado-factura-portal.md) | AFK | #7 | 50 |
