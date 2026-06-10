@@ -17,15 +17,16 @@ Orden de dependencias: **1 → 2 → 3 → 4 → 5**, con **6** tras #3, **7** t
 | 9 | [Gastos y estado de resultados](f2-09-gastos-estado-resultados.md) ✅ | AFK | #7 | 44, 45, 46, 47, 48, 49 |
 | 10 | [Estado de factura (integración portal CFDI)](f2-10-estado-factura-portal.md) ✅ | AFK | #7 | 50 |
 | 11 | [Pronóstico de ventas + explosión de compras](f2-11-pronostico-ventas-bom.md) ✅ | AFK | #7, #4 | 51, 52, 53, 54, 56, 58 |
-| 12 | [Pronóstico de gastos + Cron semanal](f2-12-pronostico-gastos-cron.md) | HITL | #11, #9 | 55, 57 |
+| 12 | [Pronóstico de gastos + Cron semanal](f2-12-pronostico-gastos-cron.md) 🟡 código ✅ | HITL | #11, #9 | 55, 57 |
 
 **Cobertura de tests (módulos puros, dentro de su rebanada):**
 `rbac` → #2 · `costeo` + `pricing` → #3 (ampliados en #4/#5) · `inventario` → #6 · `pos-line` → #7 ·
 `estado-resultados` → #9 · `forecast` → #11 · `money` → transversal (desde #1).
 
 **HITL (requieren intervención humana):**
-- #1 — `AUTH_SECRET` + correr el CLI de alta del primer admin.
-- #12 — `CRON_SECRET` + configurar Vercel Cron / deploy.
+- #1 — `AUTH_SECRET` + correr el CLI de alta del primer admin. ✅ código completo.
+- #12 — **código completo** (endpoint + `vercel.json` + `PronosticoGasto` + proyección de gastos,
+  verificado local con secreto). Falta solo lo HITL: definir `CRON_SECRET` en Vercel y desplegar.
 
 El resto son **AFK** (implementables y mergeables sin intervención).
 

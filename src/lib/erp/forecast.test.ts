@@ -6,6 +6,7 @@ import {
   factorTendencia,
   pronosticarUnidades,
   redondearMinCompra,
+  ocurrenciasEnHorizonte,
 } from "./forecast";
 
 const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
@@ -73,6 +74,19 @@ describe("pronosticarUnidades", () => {
   });
   it("nunca negativo y serie vacía → 0", () => {
     expect(pronosticarUnidades({ serie: [], metodo: "lineal" })).toBe(0);
+  });
+});
+
+describe("ocurrenciasEnHorizonte", () => {
+  it("mensual en 4 semanas ≈ 1, quincenal ≈ 2", () => {
+    expect(ocurrenciasEnHorizonte("MENSUAL", 4)).toBe(1);
+    expect(ocurrenciasEnHorizonte("QUINCENAL", 4)).toBe(2);
+  });
+  it("anual no ocurre en 4 semanas (0)", () => {
+    expect(ocurrenciasEnHorizonte("ANUAL", 4)).toBe(0);
+  });
+  it("UNICA nunca es recurrente (0)", () => {
+    expect(ocurrenciasEnHorizonte("UNICA", 52)).toBe(0);
   });
 });
 

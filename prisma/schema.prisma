@@ -838,8 +838,23 @@ model Pronostico {
 
   lineas  PronosticoLinea[]
   compras PronosticoCompra[]
+  gastos  PronosticoGasto[]
 
   @@map("pronosticos")
+  @@schema("erp")
+}
+
+/// Gasto proyectado en el horizonte (desde gastos recurrentes por periodicidad).
+model PronosticoGasto {
+  id           String       @id @default(cuid())
+  pronostico   Pronostico   @relation(fields: [pronosticoId], references: [id], onDelete: Cascade)
+  pronosticoId String
+  categoria    String
+  periodicidad Periodicidad
+  ocurrencias  Int
+  monto        Decimal      @db.Decimal(14, 2)
+
+  @@map("pronostico_gastos")
   @@schema("erp")
 }
 

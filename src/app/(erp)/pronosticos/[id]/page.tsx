@@ -13,13 +13,18 @@ export default async function PronosticoDetallePage({ params }: { params: Promis
 
   const pron = await prisma.pronostico.findUnique({
     where: { id },
-    include: { lineas: { orderBy: { ventas: "desc" } }, compras: { orderBy: { costoEstimado: "desc" } } },
+    include: {
+      lineas: { orderBy: { ventas: "desc" } },
+      compras: { orderBy: { costoEstimado: "desc" } },
+      gastos: { orderBy: { monto: "desc" } },
+    },
   });
   if (!pron) notFound();
   const t = await prisma.tienda.findUnique({ where: { id: pron.tiendaId } });
 
   const totalVentas = pron.lineas.reduce((a, l) => a.plus(l.ventas), new Decimal(0));
   const totalCompras = pron.compras.reduce((a, c) => a.plus(c.costoEstimado), new Decimal(0));
+  const totalGastos = pron.gastos.reduce((a, g) => a.plus(g.monto), new Decimal(0));
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -80,6 +85,28 @@ export default async function PronosticoDetallePage({ params }: { params: Promis
                   <td className="px-4 py-2 text-right text-neutral-500">{c.cantidad.toString()}</td>
                   <td className="px-4 py-2 text-right text-neutral-700">{c.cantidadRedondeada.toString()}</td>
                   <td className="px-4 py-2 text-right text-neutral-700">{formatMXN(c.costoEstimado)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2 className="mb-2 text-sm font-medium text-neutral-800">Gastos proyectados — {formatMXN(totalGastos)}</h2>
+        <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+          <table className="w-full text-sm">
+            <thead className="bg-neutral-50 text-left text-neutral-500">
+              <tr><th className="px-4 py-2 font-medium">Categoría</th><th className="px-4 py-2 font-medium">Periodicidad</th><th className="px-4 py-2 font-medium text-right">Ocurrencias</th><th className="px-4 py-2 font-medium text-right">Monto</th></tr>
+            </thead>
+            <tbody>
+              {pron.gastos.length === 0 && (<tr><td colSpan={4} className="px-4 py-6 text-center text-neutral-400">Sin gastos recurrentes en el horizonte.</td></tr>)}
+              {pron.gastos.map((g) => (
+                <tr key={g.id} className="border-t border-neutral-100">
+                  <td className="px-4 py-2 text-neutral-800">{g.categoria}</td>
+                  <td className="px-4 py-2 text-neutral-500">{g.periodicidad}</td>
+                  <td className="px-4 py-2 text-right text-neutral-500">{g.ocurrencias}</td>
+                  <td className="px-4 py-2 text-right text-neutral-700">{formatMXN(g.monto)}</td>
                 </tr>
               ))}
             </tbody>

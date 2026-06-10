@@ -75,6 +75,25 @@ export function pronosticarUnidades(input: PronosticoInput): number {
   return u > 0 ? u : 0;
 }
 
+export type Periodicidad = "UNICA" | "QUINCENAL" | "MENSUAL" | "BIMESTRAL" | "SEMESTRAL" | "ANUAL";
+
+const DIAS_PERIODICIDAD: Record<Periodicidad, number> = {
+  UNICA: Infinity,
+  QUINCENAL: 15,
+  MENSUAL: 30,
+  BIMESTRAL: 61,
+  SEMESTRAL: 183,
+  ANUAL: 365,
+};
+
+/// Número de veces que un gasto de cierta periodicidad ocurre dentro del
+/// horizonte (en semanas). UNICA → 0 (no recurrente).
+export function ocurrenciasEnHorizonte(periodicidad: Periodicidad, horizonteSemanas: number): number {
+  const dias = DIAS_PERIODICIDAD[periodicidad];
+  if (!Number.isFinite(dias) || horizonteSemanas <= 0) return 0;
+  return Math.round((horizonteSemanas * 7) / dias);
+}
+
 /// Redondeo a múltiplos del mínimo de compra. qty ≤ 0 → 0; sin mínimo → qty.
 export function redondearMinCompra(qty: DecimalLike, minCompra: DecimalLike): Decimal {
   const q = toDecimal(qty);

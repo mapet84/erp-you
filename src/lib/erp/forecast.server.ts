@@ -4,7 +4,14 @@
 import type { MetodoPronostico } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { Decimal } from "./money";
-import { pronosticarUnidades, factorTendencia, redondearMinCompra, type MetodoPonderacion } from "./forecast";
+import {
+  pronosticarUnidades,
+  factorTendencia,
+  redondearMinCompra,
+  ocurrenciasEnHorizonte,
+  type MetodoPonderacion,
+  type Periodicidad,
+} from "./forecast";
 import { datosPOSPorReceta } from "./costeo.server";
 
 export interface ParamsPronostico {
@@ -93,6 +100,30 @@ export async function generarPronostico(tiendaId: string, p: ParamsPronostico): 
     };
   });
 
+  // Proyección de gastos recurrentes (no UNICA) que caen en el horizonte.
+  const gastosHist = await prisma.gasto.findMany({
+    where: { periodicidad: { not: "UNICA" }, OR: [{ tiendaId }, { tiendaId: null }] },
+    include: { categoriaGasto: true },
+  });
+  const grupos = new Map<string, { categoria: string; periodicidad: Periodicidad; suma: Decimal; n: number }>();
+  for (const g of gastosHist) {
+    const key = `${g.categoriaGasto.nombre}|${g.periodicidad}`;
+    let x = grupos.get(key);
+    if (!x) {
+      x = { categoria: g.categoriaGasto.nombre, periodicidad: g.periodicidad as Periodicidad, suma: new Decimal(0), n: 0 };
+      grupos.set(key, x);
+    }
+    x.suma = x.suma.plus(g.monto);
+    x.n += 1;
+  }
+  const gastos = [...grupos.values()]
+    .map((x) => {
+      const ocurrencias = ocurrenciasEnHorizonte(x.periodicidad, p.horizonteSemanas);
+      const promedio = x.n > 0 ? x.suma.div(x.n) : new Decimal(0);
+      return { categoria: x.categoria, periodicidad: x.periodicidad, ocurrencias, monto: promedio.mul(ocurrencias).toDecimalPlaces(2) };
+    })
+    .filter((g) => g.ocurrencias > 0);
+
   const pron = await prisma.pronostico.create({
     data: {
       tiendaId,
@@ -104,6 +135,7 @@ export async function generarPronostico(tiendaId: string, p: ParamsPronostico): 
       crecimiento: p.crecimiento.toString(),
       lineas: { create: lineas },
       compras: { create: compras },
+      gastos: { create: gastos },
     },
   });
   return pron.id;
