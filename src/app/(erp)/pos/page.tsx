@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { requireCan } from "@/lib/erp/session.server";
 import { PosClient } from "./pos-client";
@@ -37,7 +38,10 @@ export default async function PosPage() {
 
   return (
     <div>
-      <h1 className="mb-4 text-xl font-semibold text-neutral-900">Punto de Venta</h1>
+      <div className="mb-4 flex items-center justify-between">
+        <h1 className="text-xl font-semibold text-neutral-900">Punto de Venta</h1>
+        <Link href="/pos/historial" className="text-sm text-neutral-500 hover:text-neutral-800">Historial →</Link>
+      </div>
       <PosClient
         tiendas={tiendasDb.map((t) => ({ id: t.id, codigo: t.codigo, nombre: t.nombre }))}
         canales={canales.map((c) => ({ id: c.id, nombre: c.nombre }))}
