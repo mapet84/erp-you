@@ -59,8 +59,19 @@ async function seedErp() {
   for (const m of mediosCompra) {
     await prisma.medioCompra.upsert({ where: { nombre: m.nombre }, update: { diasCredito: m.diasCredito }, create: m });
   }
+  const catGasto: { nombre: string; tipoER: "GASTO_OPERATIVO_ADMIN" | "GASTO_OPERATIVO_VENTAS" | "GASTO_FINANCIERO" | "IMPUESTO"; ivaPct: number; isrPct: number }[] = [
+    { nombre: "Renta", tipoER: "GASTO_OPERATIVO_ADMIN", ivaPct: 16, isrPct: 0 },
+    { nombre: "Nómina", tipoER: "GASTO_OPERATIVO_ADMIN", ivaPct: 0, isrPct: 0 },
+    { nombre: "Servicios", tipoER: "GASTO_OPERATIVO_ADMIN", ivaPct: 16, isrPct: 0 },
+    { nombre: "Publicidad", tipoER: "GASTO_OPERATIVO_VENTAS", ivaPct: 16, isrPct: 0 },
+    { nombre: "Comisiones bancarias", tipoER: "GASTO_FINANCIERO", ivaPct: 16, isrPct: 0 },
+    { nombre: "Impuestos", tipoER: "IMPUESTO", ivaPct: 0, isrPct: 0 },
+  ];
+  for (const c of catGasto) {
+    await prisma.categoriaGasto.upsert({ where: { nombre: c.nombre }, update: { tipoER: c.tipoER, ivaPct: c.ivaPct, isrPct: c.isrPct }, create: c });
+  }
   console.log(
-    `ERP: ${unidades.length} unidades, ${categorias.length} categorías, ${canales.length} canales, ${tamanos.length} tamaños, ${medios.length} medios.`,
+    `ERP: ${unidades.length} unidades, ${categorias.length} categorías, ${canales.length} canales, ${tamanos.length} tamaños, ${medios.length} medios, ${catGasto.length} cat. gasto.`,
   );
 }
 

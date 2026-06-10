@@ -14,7 +14,7 @@ Orden de dependencias: **1 → 2 → 3 → 4 → 5**, con **6** tras #3, **7** t
 | 6 | [Compras y recosteo (CPM por tienda)](f2-06-compras-recosteo-cpm.md) ✅ | AFK | #3 | 18, 40, 41, 42, 43 |
 | 7 | [POS: vender, ticket y descuento de inventario](f2-07-pos-venta-ticket.md) ✅ | AFK | #5, #6 | 30–39 |
 | 8 | [Órdenes de venta con estados](f2-08-ordenes-venta.md) ✅ | AFK | #5 | 25, 26, 27, 28, 29 |
-| 9 | [Gastos y estado de resultados](f2-09-gastos-estado-resultados.md) | AFK | #7 | 44, 45, 46, 47, 48, 49 |
+| 9 | [Gastos y estado de resultados](f2-09-gastos-estado-resultados.md) ✅ | AFK | #7 | 44, 45, 46, 47, 48, 49 |
 | 10 | [Estado de factura (integración portal CFDI)](f2-10-estado-factura-portal.md) | AFK | #7 | 50 |
 | 11 | [Pronóstico de ventas + explosión de compras](f2-11-pronostico-ventas-bom.md) | AFK | #7, #4 | 51, 52, 53, 54, 56, 58 |
 | 12 | [Pronóstico de gastos + Cron semanal](f2-12-pronostico-gastos-cron.md) | HITL | #11, #9 | 55, 57 |

@@ -725,3 +725,63 @@ model OrdenVentaLinea {
   @@map("orden_venta_lineas")
   @@schema("erp")
 }
+
+// ── Rebanada #9 · gastos y estado de resultados ──────────────────────────────
+
+enum TipoER {
+  GASTO_OPERATIVO_ADMIN
+  GASTO_OPERATIVO_VENTAS
+  OTRO_GASTO
+  OTRO_INGRESO
+  GASTO_FINANCIERO
+  INGRESO_FINANCIERO
+  IMPUESTO
+
+  @@schema("erp")
+}
+
+enum Periodicidad {
+  UNICA
+  QUINCENAL
+  MENSUAL
+  BIMESTRAL
+  SEMESTRAL
+  ANUAL
+
+  @@schema("erp")
+}
+
+/// Catálogo de categorías de gasto, con su mapeo al estado de resultados (tipoER)
+/// y porcentajes de IVA/ISR para auto-cálculo al capturar.
+model CategoriaGasto {
+  id     String  @id @default(cuid())
+  nombre String  @unique
+  tipoER TipoER
+  cuenta String?
+  ivaPct Decimal @default(16) @db.Decimal(7, 4)
+  isrPct Decimal @default(0) @db.Decimal(7, 4)
+  gastos Gasto[]
+
+  @@map("categorias_gasto")
+  @@schema("erp")
+}
+
+/// Gasto (o ingreso no operativo). `tiendaId` nulo = gasto general (todas).
+model Gasto {
+  id               String         @id @default(cuid())
+  fecha            DateTime       @default(now())
+  categoriaGasto   CategoriaGasto @relation(fields: [categoriaGastoId], references: [id])
+  categoriaGastoId String
+  descripcion      String
+  monto            Decimal        @db.Decimal(14, 2)
+  iva              Decimal        @default(0) @db.Decimal(14, 2)
+  isr              Decimal        @default(0) @db.Decimal(14, 2)
+  tiendaId         String?
+  periodicidad     Periodicidad   @default(UNICA)
+
+  createdAt DateTime @default(now())
+
+  @@index([fecha])
+  @@map("gastos")
+  @@schema("erp")
+}

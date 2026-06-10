@@ -4,6 +4,8 @@ import { requireCan } from "@/lib/erp/session.server";
 const SECCIONES = [
   { href: "/finanzas/compras", label: "Compras", desc: "Entradas de inventario y recosteo (CPM)" },
   { href: "/finanzas/inventario", label: "Inventario", desc: "Existencias y costo por tienda" },
+  { href: "/finanzas/gastos", label: "Gastos", desc: "Captura de gastos por categoría" },
+  { href: "/finanzas/estado-resultados", label: "Estado de resultados", desc: "P&L por periodo y tienda" },
 ];
 
 export default async function FinanzasPage() {
