@@ -235,6 +235,7 @@ model Unidad {
   codigo       String        @unique
   nombre       String
   ingredientes Ingrediente[]
+  productos    Producto[]
 
   @@map("unidades")
   @@schema("erp")
@@ -242,10 +243,11 @@ model Unidad {
 
 /// Categoría de receta/producto (postres, bebidas, …). Eje del margen objetivo.
 model Categoria {
-  id       String           @id @default(cuid())
-  nombre   String           @unique
-  recetas  Receta[]
-  margenes MargenObjetivo[]
+  id        String           @id @default(cuid())
+  nombre    String           @unique
+  recetas   Receta[]
+  productos Producto[]
+  margenes  MargenObjetivo[]
 
   @@map("categorias")
   @@schema("erp")
@@ -253,9 +255,12 @@ model Categoria {
 
 /// Canal de venta (Tienda, Uber, …). Eje de precios, comisiones y margen objetivo.
 model Canal {
-  id       String           @id @default(cuid())
-  nombre   String           @unique
-  margenes MargenObjetivo[]
+  id              String           @id @default(cuid())
+  nombre          String           @unique
+  margenes        MargenObjetivo[]
+  preciosReceta   PrecioReceta[]
+  preciosProducto ProductoPrecio[]
+  comisiones      Comision[]
 
   @@map("canales")
   @@schema("erp")
@@ -296,6 +301,7 @@ model Receta {
   tamanoId    String?
 
   componentes RecetaComponente[]
+  precios     PrecioReceta[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -377,5 +383,79 @@ model MargenObjetivo {
 
   @@unique([categoriaId, canalId])
   @@map("margen_objetivo")
+  @@schema("erp")
+}
+
+// ── Rebanada #5 · productos, precios por canal y comisiones ──────────────────
+
+/// Producto no-receta (artículo vendible que no se compone de ingredientes).
+model Producto {
+  id          String           @id @default(cuid())
+  codigo      String           @unique
+  descripcion String
+  categoria   Categoria        @relation(fields: [categoriaId], references: [id])
+  categoriaId String
+  unidad      Unidad           @relation(fields: [unidadId], references: [id])
+  unidadId    String
+  costo       Decimal          @default(0) @db.Decimal(14, 6)
+  minCompra   Decimal          @default(0) @db.Decimal(14, 4)
+  precios     ProductoPrecio[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("productos")
+  @@schema("erp")
+}
+
+/// Precio de venta (con IVA) de un producto por canal.
+model ProductoPrecio {
+  id         String   @id @default(cuid())
+  producto   Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  productoId String
+  canal      Canal    @relation(fields: [canalId], references: [id], onDelete: Cascade)
+  canalId    String
+  precio     Decimal  @db.Decimal(14, 2)
+
+  @@unique([productoId, canalId])
+  @@map("producto_precios")
+  @@schema("erp")
+}
+
+/// Precio de venta (con IVA) de una receta por canal.
+model PrecioReceta {
+  id       String  @id @default(cuid())
+  receta   Receta  @relation(fields: [recetaId], references: [id], onDelete: Cascade)
+  recetaId String
+  canal    Canal   @relation(fields: [canalId], references: [id], onDelete: Cascade)
+  canalId  String
+  precio   Decimal @db.Decimal(14, 2)
+
+  @@unique([recetaId, canalId])
+  @@map("precio_recetas")
+  @@schema("erp")
+}
+
+/// Medio de pago (Efectivo, Tarjeta, …). Junto con el canal define la comisión.
+model MedioPago {
+  id         String     @id @default(cuid())
+  nombre     String     @unique
+  comisiones Comision[]
+
+  @@map("medios_pago")
+  @@schema("erp")
+}
+
+/// Comisión (%) por (canal, medio de pago). La aplica el POS y las finanzas.
+model Comision {
+  id          String    @id @default(cuid())
+  canal       Canal     @relation(fields: [canalId], references: [id], onDelete: Cascade)
+  canalId     String
+  medioPago   MedioPago @relation(fields: [medioPagoId], references: [id], onDelete: Cascade)
+  medioPagoId String
+  comisionPct Decimal   @db.Decimal(7, 4)
+
+  @@unique([canalId, medioPagoId])
+  @@map("comisiones")
   @@schema("erp")
 }

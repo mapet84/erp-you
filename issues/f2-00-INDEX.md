@@ -10,7 +10,7 @@ Orden de dependencias: **1 → 2 → 3 → 4 → 5**, con **6** tras #3, **7** t
 | 2 | [Usuarios, tiendas y permisos](f2-02-usuarios-tiendas-rbac.md) ✅ | AFK | #1 | 2, 3, 5, 6, 7, 8, 9, 10 |
 | 3 | [De ingrediente a precio sugerido](f2-03-ingrediente-a-precio.md) ✅ | AFK | #2 | 11, 12, 17, 19, 20, 60 |
 | 4 | [Recetas completas](f2-04-recetas-completas.md) ✅ | AFK | #3 | 13, 14, 16 |
-| 5 | [Repreciado por impacto + productos + canales](f2-05-repreciado-productos-canales.md) | AFK | #4 | 15, 21, 22, 23, 24 |
+| 5 | [Repreciado por impacto + productos + canales](f2-05-repreciado-productos-canales.md) ✅ | AFK | #4 | 15, 21, 22, 23, 24 |
 | 6 | [Compras y recosteo (CPM por tienda)](f2-06-compras-recosteo-cpm.md) | AFK | #3 | 18, 40, 41, 42, 43 |
 | 7 | [POS: vender, ticket y descuento de inventario](f2-07-pos-venta-ticket.md) | AFK | #5, #6 | 30–39 |
 | 8 | [Órdenes de venta con estados](f2-08-ordenes-venta.md) | AFK | #5 | 25, 26, 27, 28, 29 |

@@ -48,8 +48,12 @@ async function seedErp() {
   for (const nombre of tamanos) {
     await prisma.tamano.upsert({ where: { nombre }, update: {}, create: { nombre } });
   }
+  const medios = ["Efectivo", "Tarjeta"];
+  for (const nombre of medios) {
+    await prisma.medioPago.upsert({ where: { nombre }, update: {}, create: { nombre } });
+  }
   console.log(
-    `ERP: ${unidades.length} unidades, ${categorias.length} categorías, ${canales.length} canales, ${tamanos.length} tamaños.`,
+    `ERP: ${unidades.length} unidades, ${categorias.length} categorías, ${canales.length} canales, ${tamanos.length} tamaños, ${medios.length} medios.`,
   );
 }
 

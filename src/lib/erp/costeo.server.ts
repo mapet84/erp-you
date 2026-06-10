@@ -1,21 +1,18 @@
-// Construye el árbol de componentes de una receta desde la BD, resolviendo
-// semi-terminados anidados. Reutilizado por el detalle de receta y la explosión
-// de compras (#11). La detección de ciclos vive aquí (al construir) y en el
-// módulo puro `costeo` (al costear/explotar).
+// Construye árboles de componentes de recetas desde la BD, resolviendo
+// semi-terminados anidados. Reutilizado por el detalle de receta, la
+// repreciación/reporte (#5) y la explosión de compras (#11). La detección de
+// ciclos vive aquí (al construir) y en el módulo puro `costeo`.
 
 import { prisma } from "@/lib/db";
 import { Decimal } from "./money";
-import type { Componente, Insumo } from "./costeo";
+import { costoRecetaArbol, type Componente, type Insumo } from "./costeo";
 
-/// Componentes de una receta con el costo de compra general como hoja.
-export async function componentesCompraDeReceta(recetaId: string): Promise<Componente[]> {
-  const [receta, ingredientes, semis] = await Promise.all([
-    prisma.receta.findUnique({ where: { id: recetaId }, include: { componentes: true } }),
+/// Carga los mapas necesarios para construir árboles (costo de compra como hoja).
+async function cargarMapasCompra() {
+  const [ingredientes, semis] = await Promise.all([
     prisma.ingrediente.findMany({ select: { id: true, costoCompra: true } }),
     prisma.semiTerminado.findMany({ include: { componentes: true } }),
   ]);
-  if (!receta) return [];
-
   const costoIng = new Map(ingredientes.map((i) => [i.id, i.costoCompra]));
   const partesSemi = new Map(semis.map((s) => [s.id, s.componentes]));
 
@@ -37,12 +34,37 @@ export async function componentesCompraDeReceta(recetaId: string): Promise<Compo
       })),
     };
   };
-
-  return receta.componentes.map((c) => ({
-    insumo: c.ingredienteId
-      ? hojaIngrediente(c.ingredienteId)
-      : nodoSemi(c.semiTerminadoId!, new Set()),
+  const aComponente = (c: {
+    ingredienteId: string | null;
+    semiTerminadoId: string | null;
+    cantidad: Decimal;
+    rendimiento: Decimal;
+  }): Componente => ({
+    insumo: c.ingredienteId ? hojaIngrediente(c.ingredienteId) : nodoSemi(c.semiTerminadoId!, new Set()),
     cantidad: c.cantidad,
     rendimiento: c.rendimiento,
-  }));
+  });
+
+  return { aComponente };
+}
+
+/// Componentes (árbol, costo de compra) de una receta.
+export async function componentesCompraDeReceta(recetaId: string): Promise<Componente[]> {
+  const receta = await prisma.receta.findUnique({ where: { id: recetaId }, include: { componentes: true } });
+  if (!receta) return [];
+  const { aComponente } = await cargarMapasCompra();
+  return receta.componentes.map(aComponente);
+}
+
+/// Costo de compra total por receta (todas), en una sola pasada. recetaId → costo.
+export async function costosCompraPorReceta(): Promise<Map<string, Decimal>> {
+  const [recetas, { aComponente }] = await Promise.all([
+    prisma.receta.findMany({ include: { componentes: true } }),
+    cargarMapasCompra(),
+  ]);
+  const out = new Map<string, Decimal>();
+  for (const r of recetas) {
+    out.set(r.id, costoRecetaArbol(r.componentes.map(aComponente)));
+  }
+  return out;
 }

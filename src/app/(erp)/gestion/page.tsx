@@ -5,7 +5,10 @@ const SECCIONES = [
   { href: "/gestion/ingredientes", label: "Ingredientes", desc: "Materia prima y costo de compra" },
   { href: "/gestion/semiterminados", label: "Semi-terminados", desc: "Preparaciones reutilizables" },
   { href: "/gestion/recetas", label: "Recetas", desc: "Recetas, costo y precio sugerido" },
+  { href: "/gestion/productos", label: "Productos", desc: "Artículos no-receta y su precio" },
+  { href: "/gestion/precios", label: "Precios y márgenes", desc: "Repreciar y reporte por canal" },
   { href: "/gestion/margenes", label: "Márgenes objetivo", desc: "Margen por categoría y canal" },
+  { href: "/gestion/comisiones", label: "Comisiones", desc: "Comisión por canal y medio de pago" },
 ];
 
 export default async function GestionPage() {
