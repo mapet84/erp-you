@@ -3,6 +3,7 @@ import { requireCan } from "@/lib/erp/session.server";
 
 const SECCIONES = [
   { href: "/gestion/ingredientes", label: "Ingredientes", desc: "Materia prima y costo de compra" },
+  { href: "/gestion/semiterminados", label: "Semi-terminados", desc: "Preparaciones reutilizables" },
   { href: "/gestion/recetas", label: "Recetas", desc: "Recetas, costo y precio sugerido" },
   { href: "/gestion/margenes", label: "Márgenes objetivo", desc: "Margen por categoría y canal" },
 ];

@@ -7,13 +7,15 @@ export default async function RecetasPage() {
   const user = await requireCan("GESTION", "read");
   const puedeEditar = user.esAdmin || user.roles.some((r) => r.modulo === "GESTION" && r.rol === "CONFIGURADOR");
 
-  const [recetas, categorias, ingredientes] = await Promise.all([
+  const [recetas, categorias, tamanos, ingredientes, semis] = await Promise.all([
     prisma.receta.findMany({
       orderBy: { sku: "asc" },
       include: { categoria: true, _count: { select: { componentes: true } } },
     }),
     prisma.categoria.findMany({ orderBy: { nombre: "asc" } }),
+    prisma.tamano.findMany({ orderBy: { nombre: "asc" } }),
     prisma.ingrediente.findMany({ orderBy: { codigo: "asc" } }),
+    prisma.semiTerminado.findMany({ orderBy: { sku: "asc" } }),
   ]);
 
   return (
@@ -31,7 +33,9 @@ export default async function RecetasPage() {
         ) : (
           <RecetaForm
             categorias={categorias.map((c) => ({ id: c.id, nombre: c.nombre }))}
+            tamanos={tamanos.map((t) => ({ id: t.id, nombre: t.nombre }))}
             ingredientes={ingredientes.map((i) => ({ id: i.id, codigo: i.codigo, nombre: i.nombre }))}
+            semis={semis.map((s) => ({ id: s.id, codigo: s.sku, nombre: s.nombre }))}
           />
         )
       )}

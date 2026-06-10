@@ -4,23 +4,20 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireCan } from "@/lib/erp/session.server";
 
-export interface RecetaState {
+export interface SemiState {
   ok?: boolean;
   error?: string;
-  recetaId?: string;
 }
 
-export async function crearReceta(
-  _prev: RecetaState,
+export async function crearSemiTerminado(
+  _prev: SemiState,
   formData: FormData,
-): Promise<RecetaState> {
+): Promise<SemiState> {
   await requireCan("GESTION", "configure");
 
   const sku = String(formData.get("sku") ?? "").trim();
   const nombre = String(formData.get("nombre") ?? "").trim();
-  const categoriaId = String(formData.get("categoriaId") ?? "");
-  const tamanoId = String(formData.get("tamanoId") ?? "") || null;
-  if (!sku || !nombre || !categoriaId) return { error: "SKU, nombre y categoría son obligatorios." };
+  if (!sku || !nombre) return { error: "SKU y nombre son obligatorios." };
 
   const tipos = formData.getAll("comp_tipo").map(String); // "ing" | "semi"
   const refIds = formData.getAll("comp_refId").map(String);
@@ -29,7 +26,7 @@ export async function crearReceta(
 
   const componentes: {
     ingredienteId?: string;
-    semiTerminadoId?: string;
+    hijoId?: string;
     cantidad: string;
     rendimiento: string;
   }[] = [];
@@ -40,30 +37,21 @@ export async function crearReceta(
     if (Number.isNaN(Number(cantidad)) || Number(cantidad) <= 0) {
       return { error: "Cada componente necesita una cantidad mayor que 0." };
     }
-    if (Number.isNaN(Number(rendimiento)) || Number(rendimiento) <= 0) {
-      return { error: "El rendimiento debe ser mayor que 0." };
-    }
     componentes.push(
       tipos[k] === "semi"
-        ? { semiTerminadoId: refIds[k], cantidad, rendimiento }
+        ? { hijoId: refIds[k], cantidad, rendimiento }
         : { ingredienteId: refIds[k], cantidad, rendimiento },
     );
   }
   if (componentes.length === 0) return { error: "Agrega al menos un componente." };
 
   try {
-    const receta = await prisma.receta.create({
-      data: {
-        sku: sku.toUpperCase(),
-        nombre,
-        categoriaId,
-        tamanoId,
-        componentes: { create: componentes },
-      },
+    await prisma.semiTerminado.create({
+      data: { sku: sku.toUpperCase(), nombre, componentes: { create: componentes } },
     });
-    revalidatePath("/gestion/recetas");
-    return { ok: true, recetaId: receta.id };
   } catch {
-    return { error: "Ya existe una receta con ese SKU." };
+    return { error: "Ya existe un semi-terminado con ese SKU." };
   }
+  revalidatePath("/gestion/semiterminados");
+  return { ok: true };
 }

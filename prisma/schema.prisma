@@ -274,7 +274,8 @@ model Ingrediente {
   /// Mínimo de compra (para redondeo en la explosión de compras, #11).
   minCompra   Decimal @default(0) @db.Decimal(14, 4)
 
-  componentes RecetaComponente[]
+  componentes     RecetaComponente[]
+  semiComponentes SemiTerminadoComponente[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -286,11 +287,13 @@ model Ingrediente {
 /// Receta (producto vendible compuesto). El costo se calcula en vivo desde sus
 /// componentes (no se guarda snapshot). Semi-terminados y tamaño: rebanada #4.
 model Receta {
-  id          String  @id @default(cuid())
-  sku         String  @unique
+  id          String    @id @default(cuid())
+  sku         String    @unique
   nombre      String
   categoria   Categoria @relation(fields: [categoriaId], references: [id])
   categoriaId String
+  tamano      Tamano?   @relation(fields: [tamanoId], references: [id])
+  tamanoId    String?
 
   componentes RecetaComponente[]
 
@@ -301,16 +304,62 @@ model Receta {
   @@schema("erp")
 }
 
-/// Componente de una receta. `cantidad` está en la unidad base del ingrediente;
-/// `rendimiento` (%) ajusta por merma/rendimiento del proceso (100 = sin ajuste).
+/// Tamaño/presentación de una receta (Individual, Familiar, …). Eje de precios (#5).
+model Tamano {
+  id      String   @id @default(cuid())
+  nombre  String   @unique
+  recetas Receta[]
+
+  @@map("tamanos")
+  @@schema("erp")
+}
+
+/// Semi-terminado: preparación reutilizable y componible (incluso anidada) dentro
+/// de recetas u otros semi-terminados. Su costo se calcula recursivamente.
+model SemiTerminado {
+  id     String @id @default(cuid())
+  sku    String @unique
+  nombre String
+
+  componentes    SemiTerminadoComponente[] @relation("SemiPartes")
+  usadoEnRecetas RecetaComponente[]
+  usadoEnSemis   SemiTerminadoComponente[] @relation("SemiHijo")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("semi_terminados")
+  @@schema("erp")
+}
+
+/// Componente de un semi-terminado: un ingrediente XOR otro semi-terminado (hijo).
+model SemiTerminadoComponente {
+  id              String        @id @default(cuid())
+  semiTerminado   SemiTerminado @relation("SemiPartes", fields: [semiTerminadoId], references: [id], onDelete: Cascade)
+  semiTerminadoId String
+  ingrediente     Ingrediente?  @relation(fields: [ingredienteId], references: [id])
+  ingredienteId   String?
+  hijo            SemiTerminado? @relation("SemiHijo", fields: [hijoId], references: [id])
+  hijoId          String?
+  cantidad        Decimal       @db.Decimal(14, 4)
+  rendimiento     Decimal       @default(100) @db.Decimal(7, 4)
+
+  @@map("semi_componentes")
+  @@schema("erp")
+}
+
+/// Componente de una receta: un ingrediente XOR un semi-terminado. `cantidad` en
+/// la unidad base; `rendimiento` (%) ajusta por merma (100 = sin ajuste).
 model RecetaComponente {
-  id            String      @id @default(cuid())
-  receta        Receta      @relation(fields: [recetaId], references: [id], onDelete: Cascade)
-  recetaId      String
-  ingrediente   Ingrediente @relation(fields: [ingredienteId], references: [id])
-  ingredienteId String
-  cantidad      Decimal     @db.Decimal(14, 4)
-  rendimiento   Decimal     @default(100) @db.Decimal(7, 4)
+  id              String         @id @default(cuid())
+  receta          Receta         @relation(fields: [recetaId], references: [id], onDelete: Cascade)
+  recetaId        String
+  ingrediente     Ingrediente?   @relation(fields: [ingredienteId], references: [id])
+  ingredienteId   String?
+  semiTerminado   SemiTerminado? @relation(fields: [semiTerminadoId], references: [id])
+  semiTerminadoId String?
+  cantidad        Decimal        @db.Decimal(14, 4)
+  rendimiento     Decimal        @default(100) @db.Decimal(7, 4)
 
   @@map("receta_componentes")
   @@schema("erp")

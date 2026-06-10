@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireCan } from "@/lib/erp/session.server";
-import { costoComponente, costoReceta } from "@/lib/erp/costeo";
+import { costoRecetaArbol } from "@/lib/erp/costeo";
+import { componentesCompraDeReceta } from "@/lib/erp/costeo.server";
 import { precioDesdeMargen } from "@/lib/erp/pricing";
 import { formatMXN, formatPct } from "@/lib/erp/money";
 
@@ -18,30 +19,22 @@ export default async function RecetaDetallePage({
     where: { id },
     include: {
       categoria: true,
-      componentes: { include: { ingrediente: { include: { unidad: true } } } },
+      tamano: true,
+      componentes: { include: { ingrediente: true, semiTerminado: true } },
     },
   });
   if (!receta) notFound();
 
-  // Costo de compra (general) calculado en vivo desde el costo de los ingredientes.
-  const lineas = receta.componentes.map((c) => ({
-    nombre: c.ingrediente.nombre,
-    unidad: c.ingrediente.unidad.codigo,
+  // Árbol de costo (compra), resolviendo semi-terminados anidados.
+  const arbol = await componentesCompraDeReceta(receta.id);
+  const lineas = receta.componentes.map((c, k) => ({
+    nombre: c.ingrediente?.nombre ?? c.semiTerminado?.nombre ?? "—",
+    tipo: c.ingredienteId ? "Ingrediente" : "Semi",
     cantidad: c.cantidad.toString(),
     rendimiento: c.rendimiento.toString(),
-    costo: costoComponente({
-      costoUnitario: c.ingrediente.costoCompra,
-      cantidad: c.cantidad,
-      rendimiento: c.rendimiento,
-    }),
+    costo: arbol[k] ? costoRecetaArbol([arbol[k]]) : undefined,
   }));
-  const costoTotal = costoReceta(
-    receta.componentes.map((c) => ({
-      costoUnitario: c.ingrediente.costoCompra,
-      cantidad: c.cantidad,
-      rendimiento: c.rendimiento,
-    })),
-  );
+  const costoTotal = costoRecetaArbol(arbol);
 
   // Precio sugerido por canal = costo + margen objetivo (categoría, canal).
   const [canales, margenes] = await Promise.all([
@@ -57,14 +50,17 @@ export default async function RecetaDetallePage({
         <h1 className="mt-1 text-xl font-semibold text-neutral-900">
           <span className="font-mono text-neutral-500">{receta.sku}</span> · {receta.nombre}
         </h1>
-        <p className="text-sm text-neutral-500">{receta.categoria.nombre}</p>
+        <p className="text-sm text-neutral-500">
+          {receta.categoria.nombre}{receta.tamano ? ` · ${receta.tamano.nombre}` : ""}
+        </p>
       </div>
 
       <section className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
         <table className="w-full text-sm">
           <thead className="bg-neutral-50 text-left text-neutral-500">
             <tr>
-              <th className="px-4 py-2 font-medium">Ingrediente</th>
+              <th className="px-4 py-2 font-medium">Componente</th>
+              <th className="px-4 py-2 font-medium">Tipo</th>
               <th className="px-4 py-2 font-medium">Cantidad</th>
               <th className="px-4 py-2 font-medium">Rend.</th>
               <th className="px-4 py-2 font-medium text-right">Costo</th>
@@ -74,13 +70,14 @@ export default async function RecetaDetallePage({
             {lineas.map((l, k) => (
               <tr key={k} className="border-t border-neutral-100">
                 <td className="px-4 py-2 text-neutral-800">{l.nombre}</td>
-                <td className="px-4 py-2 text-neutral-500">{l.cantidad} {l.unidad}</td>
+                <td className="px-4 py-2 text-neutral-500">{l.tipo}</td>
+                <td className="px-4 py-2 text-neutral-500">{l.cantidad}</td>
                 <td className="px-4 py-2 text-neutral-500">{formatPct(l.rendimiento)}</td>
-                <td className="px-4 py-2 text-right text-neutral-800">{formatMXN(l.costo)}</td>
+                <td className="px-4 py-2 text-right text-neutral-800">{l.costo ? formatMXN(l.costo) : "—"}</td>
               </tr>
             ))}
             <tr className="border-t-2 border-neutral-200 font-medium">
-              <td className="px-4 py-2 text-neutral-900" colSpan={3}>Costo de compra total</td>
+              <td className="px-4 py-2 text-neutral-900" colSpan={4}>Costo de compra total</td>
               <td className="px-4 py-2 text-right text-neutral-900">{formatMXN(costoTotal)}</td>
             </tr>
           </tbody>
