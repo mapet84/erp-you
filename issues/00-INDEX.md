@@ -19,5 +19,6 @@ PRD padre: [`../PRD.md`](../PRD.md)
 
 **HITL (requieren intervención humana):** #2 (credenciales sandbox + CSD de prueba), #3 (primer timbrado real en sandbox), #5 (API key Resend + verificación de dominio).
 
-**Estado:** #1 ✅ · #2 ✅ · #3 ✅ · #4 ✅ · #6 ✅ · #7 ✅ · #8 ✅ · #9 ✅ — todo verificado contra el sandbox real.
-**Único pendiente: #5** (entrega por correo con Resend — HITL: requiere API key + dominio verificado). Con eso cierra la Fase 1.
+**Estado:** #1–#9 ✅ **TODOS COMPLETADOS** y verificados contra servicios reales (Facturama sandbox + Resend).
+**🎉 Fase 1 COMPLETA (2026-06-10).** El portal de autofacturación CFDI 4.0 timbra, conserva XML/PDF, valida,
+maneja errores del PAC y entrega por correo, end-to-end.

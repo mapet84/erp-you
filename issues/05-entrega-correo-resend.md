@@ -18,11 +18,10 @@ siguen siendo válidos; el fallo de correo se registra sin romper el flujo.
 - [x] Plantilla de correo en español con XML y PDF adjuntos. *(`email/template.ts` + adjuntos base64 en `send-invoice.ts`.)*
 - [x] El envío se dispara tras un timbrado + persistencia de archivos exitosos. *(en la Server Action, después de `guardarArchivos`.)*
 - [x] Un fallo de correo no invalida el timbrado ni la descarga; queda registrado para reintento. *(best-effort; `Invoice.correoEnviado/correoError`.)*
-- [ ] Verificación manual (HITL): con la key y el dominio configurados, llega el correo con ambos adjuntos. *(pendiente: requiere `RESEND_API_KEY`.)*
+- [x] Verificación manual (HITL): con la key y el dominio configurados, llega el correo con ambos adjuntos. *(2026-06-10: envío real con `RESEND_API_KEY` a mapet84@gmail.com, `from=onboarding@resend.dev`, CFDI `c9d8b3cc-…`, Resend aceptó con id y adjuntó XML+PDF.)*
 
 ## Estado
-**Código completo (2026-06-10).** Falta sólo la verificación HITL real (enviar un correo con una API
-key de Resend). En pruebas basta `from="onboarding@resend.dev"` enviando al propio correo de la cuenta.
+**COMPLETADO (2026-06-10, HITL).** Envío real verificado contra Resend. Cierra la Fase 1.
 
 ## Blocked by
 - #4 · [Descarga y conservación de XML/PDF](04-descarga-conservacion-archivos.md)

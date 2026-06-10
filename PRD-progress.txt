@@ -120,10 +120,22 @@ ERP YOU — Fase 1 · Bitácora de progreso
   - +9 tests (resend-client, template, send-invoice: no-config/adjuntos/fallo). 91 verdes, lint+build OK.
   - Verificado el camino "sin configurar": timbra ok, correoEnviado=false, correoError registrado.
 
-PENDIENTE:
-  - Slice #5 (HITL): falta SOLO la verificación real — con RESEND_API_KEY (+ remitente) llega el
-    correo con XML y PDF adjuntos. En pruebas: from="onboarding@resend.dev" y enviar al propio correo
-    de la cuenta Resend (sin verificar dominio). Con eso cierra la Fase 1.
+2026-06-10 (HITL) — Slice #5 VERIFICADO: envío real con Resend. CFDI c9d8b3cc-… enviado a
+  mapet84@gmail.com (from=onboarding@resend.dev) con XML+PDF adjuntos; Resend aceptó con id,
+  correoEnviado=true.
+
+==================================================================================
+🎉 FASE 1 COMPLETA (2026-06-10) — Portal de Autofacturación CFDI 4.0
+   #1–#9 todos cerrados y verificados contra servicios reales (Facturama sandbox + Resend).
+   El portal: resuelve tenant por slug, captura ticket + datos fiscales, valida (formato +
+   catálogos + ventana + folio único), timbra CFDI 4.0 en sandbox, conserva XML/PDF (descarga),
+   traduce errores del PAC con reintento, y entrega por correo. 91 tests verdes; lint/build limpios.
+==================================================================================
+
+SIGUIENTE (futuro, fuera de Fase 1):
+  - Producción: cuenta Facturama productiva + CSD reales del emisor; dominio verificado en Resend
+    para un remitente con marca (hoy se usa onboarding@resend.dev de pruebas).
+  - Fase 2 (del PRD): validación de monto vs venta real, panel admin, más emisores, etc.
   - Nota producto: receptor con RFC real se valida contra el padrón del SAT (nombre+CP+régimen). El
     happy path de demo usa Público en General (XAXX010101000/616/S01). El emisor debe darse de alta
     con el nombre EXACTO del padrón sin "SA DE CV".
