@@ -136,11 +136,10 @@ model CatalogoSat {
 // ERP · Fase 2 — esquema `erp`
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// Usuario del ERP (módulo único de usuarios). Fase 2 · rebanada #1.
-/// La autenticación es por credenciales (Auth.js v5, sesión JWT): `authorize`
-/// busca por `email`, compara `passwordHash` con bcrypt y exige `activo`.
-/// Los roles por módulo (UserModuleRole) y el alcance por tienda (UserStore)
-/// llegan en la rebanada #2.
+/// Usuario del ERP (módulo único de usuarios). Fase 2 · rebanadas #1 y #2.
+/// Autenticación por credenciales (Auth.js v5, sesión JWT): `authorize` busca por
+/// `email`, compara `passwordHash` con bcrypt y exige `activo`. El acceso a cada
+/// módulo y su rol viven en `moduleRoles`; el alcance por tienda en `stores`.
 model User {
   id           String  @id @default(cuid())
   email        String  @unique
@@ -149,10 +148,81 @@ model User {
   passwordHash String
   /// Usuario desactivado: conserva historial pero no puede iniciar sesión.
   activo       Boolean @default(true)
+  /// Administrador del ERP: gestiona el directorio de usuarios y las tiendas, y
+  /// tiene acceso total a todos los módulos y tiendas (super-usuario).
+  esAdmin      Boolean @default(false)
+
+  moduleRoles UserModuleRole[]
+  stores      UserStore[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("usuarios")
+  @@schema("erp")
+}
+
+/// Los 4 módulos del ERP.
+enum Modulo {
+  GESTION
+  POS
+  FINANZAS
+  PRONOSTICOS
+
+  @@schema("erp")
+}
+
+/// Rol dentro de un módulo. LECTOR = solo lectura; OPERATIVO = + transacciones;
+/// CONFIGURADOR = + datos maestros/precios/configuración del módulo.
+enum Rol {
+  CONFIGURADOR
+  OPERATIVO
+  LECTOR
+
+  @@schema("erp")
+}
+
+/// Tienda (sucursal). Una empresa, varias tiendas. Dimensión operativa/reporte;
+/// el catálogo/maestros se comparten y lo transaccional se filtra por tienda.
+model Tienda {
+  id        String  @id @default(cuid())
+  codigo    String  @unique
+  nombre    String
+  direccion String?
+  activo    Boolean @default(true)
+
+  usuarios UserStore[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("tiendas")
+  @@schema("erp")
+}
+
+/// Rol de un usuario en un módulo (uno por módulo).
+model UserModuleRole {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  modulo Modulo
+  rol    Rol
+
+  @@unique([userId, modulo])
+  @@map("usuario_modulo_rol")
+  @@schema("erp")
+}
+
+/// Alcance de un usuario a una tienda. Sin filas: un CONFIGURADOR/admin ve todas;
+/// un OPERATIVO/LECTOR sin tiendas no puede operar acciones por tienda.
+model UserStore {
+  id       String @id @default(cuid())
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String
+  tienda   Tienda @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
+  tiendaId String
+
+  @@unique([userId, tiendaId])
+  @@map("usuario_tienda")
   @@schema("erp")
 }

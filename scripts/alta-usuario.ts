@@ -4,9 +4,11 @@
 // el primer administrador; la gestión por UI llega en la rebanada #2.
 //
 // Uso:
-//   npm run usuario:alta -- --email admin@empresa.mx --nombre "Admin" --password "secreta123"
+//   npm run usuario:alta -- --email admin@empresa.mx --nombre "Admin" --password "secreta123" --admin
 //   npm run usuario:alta -- --email admin@empresa.mx --nombre "Admin" --password "nueva" --reactivar
 //
+// --admin marca al usuario como administrador del ERP (gestiona usuarios/tiendas
+// y tiene acceso total). El primer usuario del sistema debe crearse con --admin.
 // Requiere DATABASE_URL en el entorno (se carga vía --env-file=.env).
 
 import { parseArgs } from "node:util";
@@ -22,6 +24,7 @@ function parse() {
       nombre: { type: "string" },
       password: { type: "string" },
       reactivar: { type: "boolean", default: false },
+      admin: { type: "boolean", default: false },
     },
   });
   const faltantes = (["email", "nombre", "password"] as const).filter(
@@ -50,16 +53,20 @@ async function main() {
       nombre: v.nombre as string,
       passwordHash,
       ...(v.reactivar ? { activo: true } : {}),
+      ...(v.admin ? { esAdmin: true } : {}),
     },
     create: {
       email,
       nombre: v.nombre as string,
       passwordHash,
       activo: true,
+      esAdmin: Boolean(v.admin),
     },
   });
 
-  console.log(`✔ Usuario "${user.email}" listo (id ${user.id}). Inicia sesión en /login`);
+  console.log(
+    `✔ Usuario "${user.email}" listo (id ${user.id}${user.esAdmin ? ", admin" : ""}). Inicia sesión en /login`,
+  );
 }
 
 main()

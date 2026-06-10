@@ -24,14 +24,24 @@ Matriz de roles (módulo `rbac`): `LECTOR`={read}, `OPERATIVO`={read,write},
 `OPERATIVO`/`LECTOR` requieren ≥1 tienda.
 
 ## Acceptance criteria
-- [ ] Modelos `Tienda`, `UserModuleRole` (`@@unique([userId,modulo])`) y `UserStore` (`@@unique([userId,tiendaId])`) con enums `Modulo{GESTION,POS,FINANZAS,PRONOSTICOS}` y `Rol{CONFIGURADOR,OPERATIVO,LECTOR}`.
-- [ ] Módulo puro `rbac.can(user, modulo, accion, tiendaId?)` con su matriz y la regla de scope por tienda.
-- [ ] `session.server` enriquece la sesión con `moduleRoles` + `stores` para que `can()` no haga consultas extra.
-- [ ] Pantallas `admin/tiendas` (CRUD) y `admin/usuarios` (alta/edición, asignar rol por módulo, asignar tiendas, activar/desactivar) — solo accesibles a CONFIGURADOR.
-- [ ] Guard en cada página del grupo `(erp)` y en cada server action mutante; acceso a módulo sin rol → 403; escritura sin permiso → `State{error}`.
-- [ ] Selector de tienda en la barra para usuarios con varias tiendas; tienda fija si solo tiene una.
-- [ ] **Tests** de `rbac`: matriz completa rol×acción, scope por tienda (incluye default de CONFIGURADOR), módulo sin rol = deny.
-- [ ] **Verificable:** un usuario OPERATIVO-en-POS-1-tienda solo ve POS y recibe 403 en Finanzas; un LECTOR no puede escribir.
+- [x] Modelos `Tienda`, `UserModuleRole` (`@@unique([userId,modulo])`) y `UserStore` (`@@unique([userId,tiendaId])`) con enums `Modulo{GESTION,POS,FINANZAS,PRONOSTICOS}` y `Rol{CONFIGURADOR,OPERATIVO,LECTOR}`. Migración solo en esquema `erp`.
+- [x] Módulo puro `rbac.can(user, modulo, accion, tiendaId?)` (+ `puedeEnTienda`, `modulosVisibles`) con su matriz y la regla de scope por tienda.
+- [x] `session.server` enriquece la sesión con `roles` + `tiendas` + `esAdmin` (revalidados en el callback `session`) para que `can()` no haga consultas extra.
+- [x] Pantallas `admin/tiendas` (alta + activar/desactivar) y `admin/usuarios` (alta + edición: rol por módulo, tiendas, activar/desactivar, admin) — solo **admin** (ver desviación).
+- [x] Guard en cada página del ERP (`requireCan`/`requireAdmin`) y en cada server action mutante; acceso a módulo sin rol → **403** vía `forbidden()` (`experimental.authInterrupts` + `forbidden.tsx`); escritura sin permiso en acción → guard. Rutas placeholder `/gestion|/pos|/finanzas|/pronosticos` protegidas por `requireCan(read)`.
+- [x] Selector de tienda en la barra (cookie) para usuarios con varias tiendas; fija si solo tiene una.
+- [x] **Tests** de `rbac` (18): matriz completa rol×acción, scope por tienda (incl. default de CONFIGURADOR), módulo sin rol = deny, admin = acceso total, `modulosVisibles`.
+- [x] **Verificable (e2e dev):** cajero OPERATIVO-en-POS-1-tienda → sesión con `roles:[{POS,OPERATIVO}]`+`tiendas:[T1]`; `/pos` 200, `/finanzas` **403**, `/gestion` **403**, `/admin/usuarios` **403**, `/dashboard` 200. Admin → `/finanzas`, `/admin/usuarios`, `/admin/tiendas` 200. **117 tests verdes**, `tsc`/`eslint`/`next build` limpios.
+
+## Desviación respecto al plan (justificada)
+El RBAC por módulo no define **quién administra el directorio de usuarios y las tiendas**. Se añade un
+flag **`esAdmin`** en `User` (super-usuario): gestiona usuarios/tiendas y tiene acceso total a todo
+módulo/tienda. Los guards de las pantallas de administración usan `requireAdmin()`. El primer admin se
+crea con `npm run usuario:alta -- … --admin`. El borrado de tiendas se ofrece como **desactivar** (no
+DELETE) para preservar el historial transaccional.
+
+## Estado
+**COMPLETADO (2026-06-10, AFK).** Verificado end-to-end contra la BD local.
 
 ## Blocked by
 - F2·1 · [Login al ERP (esqueleto vertical)](f2-01-login-esqueleto.md)

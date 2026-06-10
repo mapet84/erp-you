@@ -53,11 +53,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const uid = token.sub;
       if (!uid || !session.user) return session;
 
-      // Revalida contra la BD: si el usuario fue desactivado/borrado, la sesión
-      // queda sin id utilizable (los guards la tratarán como no autenticada).
+      // Revalida contra la BD en cada request: refleja desactivación y trae los
+      // roles por módulo + tiendas para que `can()` no haga consultas extra.
       const user = await prisma.user.findUnique({
         where: { id: uid },
-        select: { id: true, activo: true, nombre: true, email: true },
+        select: {
+          id: true,
+          activo: true,
+          nombre: true,
+          email: true,
+          esAdmin: true,
+          moduleRoles: { select: { modulo: true, rol: true } },
+          stores: { select: { tiendaId: true } },
+        },
       });
       if (!user || !user.activo) {
         session.user.id = "";
@@ -66,7 +74,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       session.user.id = user.id;
       session.user.name = user.nombre;
       session.user.email = user.email;
-      // Rebanada #2 enriquecerá aquí con `moduleRoles` y `stores`.
+      session.user.esAdmin = user.esAdmin;
+      session.user.roles = user.moduleRoles;
+      session.user.tiendas = user.stores.map((s) => s.tiendaId);
       return session;
     },
   },
