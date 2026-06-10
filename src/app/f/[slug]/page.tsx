@@ -13,6 +13,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { FacturaForm } from "./factura-form";
+import { REGIMENES_FISCALES, USOS_CFDI, FORMAS_PAGO } from "@/lib/catalogs";
 
 export default async function PortalEmisorPage({
   params,
@@ -52,11 +54,19 @@ export default async function PortalEmisorPage({
           <CardDescription>Autofacturación CFDI 4.0</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-neutral-600">
-            Portal de autofacturación de{" "}
-            <span className="font-medium">{emisor.razonSocial}</span>. Próximamente
-            podrás capturar tu ticket y obtener tu factura.
+          <p className="mb-4 text-sm text-neutral-600">
+            Captura los datos de tu ticket y tus datos fiscales para obtener tu
+            factura de <span className="font-medium">{emisor.razonSocial}</span>.
           </p>
+          <FacturaForm
+            slug={emisor.slug}
+            color={color}
+            catalogos={{
+              regimenFiscal: REGIMENES_FISCALES,
+              usoCfdi: USOS_CFDI,
+              formaPago: FORMAS_PAGO,
+            }}
+          />
         </CardContent>
       </Card>
     </main>

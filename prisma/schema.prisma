@@ -34,8 +34,48 @@ model Emisor {
   /// Referencia del emisor en Facturama Multiemisor (se llena al cargar el CSD).
   facturamaIssuerRef String?
 
+  invoices Invoice[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("emisores")
+}
+
+/// Una factura (CFDI) emitida por autofacturación. Slice #3: camino feliz.
+model Invoice {
+  id       String @id @default(cuid())
+  emisor   Emisor @relation(fields: [emisorId], references: [id])
+  emisorId String
+
+  /// Folio del ticket capturado por el cliente (clave anti-duplicado en F1).
+  folioTicket String
+  /// Montos del comprobante (con IVA desglosado en centavos por `tax`).
+  total    Decimal @db.Decimal(12, 2)
+  subtotal Decimal @db.Decimal(12, 2)
+  iva      Decimal @db.Decimal(12, 2)
+
+  // --- Datos fiscales del receptor capturados en el portal ---
+  receptorRfc     String
+  receptorNombre  String
+  receptorCp      String
+  receptorRegimen String
+  usoCfdi         String
+  formaPago       String
+  email           String
+
+  // --- Resultado del PAC ---
+  /// Estatus de la factura. F1 camino feliz: "timbrada".
+  estatus         String  @default("timbrada")
+  /// Folio fiscal (UUID del timbre). Único cuando existe.
+  uuid            String? @unique
+  /// Id del CFDI en Facturama (para descargar PDF/XML en el slice #4).
+  facturamaCfdiId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  /// Anti-duplicado básico (#3): un folio de ticket por emisor. #7 lo endurece.
+  @@unique([emisorId, folioTicket])
+  @@map("invoices")
 }

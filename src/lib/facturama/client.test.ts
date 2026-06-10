@@ -3,6 +3,8 @@ import {
   FacturamaClient,
   FacturamaError,
   FACTURAMA_BASE_URLS,
+  extractUuid,
+  type StampedCfdi,
   type UploadCsdInput,
 } from "./client";
 
@@ -197,6 +199,43 @@ describe("FacturamaClient · manejo de error", () => {
     await expect(client.uploadCsd(CSD_INPUT)).rejects.toBeInstanceOf(
       FacturamaError,
     );
+  });
+});
+
+describe("FacturamaClient · createCfdi", () => {
+  it("hace POST a api-lite/3/cfdis con el payload tal cual", async () => {
+    const { impl, calls } = fakeFetch({
+      body: { Id: "cfdi-1", Complement: { TaxStamp: { Uuid: "UUID-123" } } },
+    });
+    const client = new FacturamaClient({ user: "u", password: "p", fetchImpl: impl });
+
+    const payload = { Issuer: { Rfc: "EKU9003173C9" }, Items: [] };
+    const cfdi = await client.createCfdi(payload);
+
+    const { url, init } = calls[0];
+    expect(url).toBe(FACTURAMA_BASE_URLS.sandbox + "api-lite/3/cfdis");
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body as string)).toEqual(payload);
+    expect(cfdi.Id).toBe("cfdi-1");
+  });
+});
+
+describe("extractUuid", () => {
+  it("lee el UUID desde Complement.TaxStamp", () => {
+    const cfdi = { Id: "x", Complement: { TaxStamp: { Uuid: "U-1" } } } as StampedCfdi;
+    expect(extractUuid(cfdi)).toBe("U-1");
+  });
+
+  it("lee el UUID desde TaxStamp en la raíz", () => {
+    const cfdi = { Id: "x", TaxStamp: { Uuid: "U-2" } } as StampedCfdi;
+    expect(extractUuid(cfdi)).toBe("U-2");
+  });
+
+  it("prefiere la raíz pero cae a Complement si falta", () => {
+    const soloComplement = { Id: "x", Complement: { TaxStamp: { Uuid: "U-3" } } } as StampedCfdi;
+    expect(extractUuid(soloComplement)).toBe("U-3");
+    const sinTimbre = { Id: "x" } as StampedCfdi;
+    expect(extractUuid(sinTimbre)).toBeUndefined();
   });
 });
 

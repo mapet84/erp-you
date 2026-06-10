@@ -38,6 +38,30 @@ export interface Csd {
   [key: string]: unknown;
 }
 
+/** Bloque del timbre fiscal (TFD) en la respuesta del CFDI. */
+export interface TaxStamp {
+  Uuid?: string;
+  Date?: string;
+  [key: string]: unknown;
+}
+
+/** CFDI timbrado devuelto por Facturama (POST api-lite/3/cfdis). */
+export interface StampedCfdi {
+  Id: string;
+  Status?: string;
+  Date?: string;
+  Folio?: string;
+  /** El timbre puede venir en la raíz o dentro de Complement, según la versión. */
+  TaxStamp?: TaxStamp;
+  Complement?: { TaxStamp?: TaxStamp; [key: string]: unknown };
+  [key: string]: unknown;
+}
+
+/** Extrae el folio fiscal (UUID) de un CFDI timbrado, venga donde venga. */
+export function extractUuid(cfdi: StampedCfdi): string | undefined {
+  return cfdi.TaxStamp?.Uuid ?? cfdi.Complement?.TaxStamp?.Uuid;
+}
+
 /** Error tipado de la API de Facturama (incluye el status y el cuerpo crudo). */
 export class FacturamaError extends Error {
   constructor(
@@ -154,6 +178,15 @@ export class FacturamaClient {
       }
       throw e;
     }
+  }
+
+  /**
+   * Timbra un CFDI 4.0 en la API Multiemisor (POST api-lite/3/cfdis).
+   * Recibe el payload ya armado por `cfdi-builder`. Devuelve el CFDI timbrado
+   * con su Id (para descargar PDF/XML) y el timbre con el UUID.
+   */
+  createCfdi(payload: unknown): Promise<StampedCfdi> {
+    return this.request<StampedCfdi>("POST", "api-lite/3/cfdis", payload);
   }
 
   /** Lista los CSD cargados en la cuenta. */

@@ -21,18 +21,22 @@ Este slice establece los dos módulos puros centrales (`tax`, `cfdi-builder`) co
 ## Acceptance criteria
 - [x] Módulo `tax`: total con IVA → { subtotal, iva } a 2 decimales con `subtotal + iva === total`.
 - [x] Módulo `cfdi-builder`: arma el payload Multiemisor con todos los defaults fijos y el concepto/impuestos correctos a partir de emisor + receptor + monto.
-- [ ] `facturama-client.createCfdi` integrado contra sandbox; idempotencia básica (no timbrar dos veces por doble submit).
-- [ ] Modelo `Invoice` (emisorId, montos, datos del receptor, formaPago, estatus, uuid, facturamaCfdiId, createdAt) persistido en estatus `timbrada` al éxito.
-- [ ] Formulario mínimo en `/f/[slug]` que dispara el flujo y muestra pantalla de éxito con UUID.
+- [x] `facturama-client.createCfdi` integrado contra sandbox; idempotencia básica (no timbrar dos veces por doble submit).
+- [x] Modelo `Invoice` (emisorId, montos, datos del receptor, formaPago, estatus, uuid, facturamaCfdiId, createdAt) persistido en estatus `timbrada` al éxito.
+- [x] Formulario mínimo en `/f/[slug]` que dispara el flujo y muestra pantalla de éxito con UUID.
 - [x] **Tests** de `tax` (tabla amplia de montos, casos de descuadre de centavos) y `cfdi-builder` (defaults, mapeo, persona física RFC 13 y moral RFC 12) verdes.
-- [ ] Verificación manual (HITL): un submit con datos de prueba válidos genera un CFDI timbrado en sandbox con UUID real.
+- [x] Verificación manual (HITL): un submit con datos de prueba válidos genera un CFDI timbrado en sandbox con UUID real.
 
 ## Estado
-**Parcial (2026-06-10, autónomo):** adelantados los dos módulos puros del slice —
-`tax` (src/lib/tax.ts) y `cfdi-builder` (src/lib/cfdi-builder.ts) — con sus tests
-verdes (contrato de payload Multiemisor verificado vs SDK oficial de Facturama).
-Falta la parte de integración/HITL: `createCfdi` contra sandbox, modelo `Invoice`,
-formulario en `/f/[slug]`, y el primer timbrado real (requiere credenciales + CSD del #2).
+**COMPLETADO (2026-06-10, HITL).** Camino feliz end-to-end verificado contra el sandbox real:
+la Server Action `emitirFactura` valida → desglosa IVA → arma CFDI 4.0 → timbra (`createCfdi`)
+→ persiste `Invoice` "timbrada" con UUID. Idempotente por `(emisorId, folioTicket)`. Formulario
+`useActionState` + pantalla de éxito con el UUID. 71 tests verdes, lint y build limpios.
+
+Hallazgos CFDI 4.0 (reglas del SAT, no bugs): el `Name` de emisor/receptor debe ser el nombre
+exacto del padrón sin "SA DE CV", y `DomicilioFiscalReceptor` de un RFC real se valida contra el
+padrón del SAT. El camino feliz determinista usa Público en General (XAXX010101000/616/S01). La
+traducción amable de esos rechazos del PAC es el slice #8.
 
 ## Blocked by
 - #2 · [Alta de emisor por CLI + facturama-client](02-alta-emisor-cli.md)

@@ -49,8 +49,43 @@ ERP YOU — Fase 1 · Bitácora de progreso
   - FALTA de #6/#7 (dependen de #3/UI): seed de catálogos, dropdowns, formulario, restricción
     única (emisorId, folioTicket) + idempotencia (necesitan el modelo Invoice del #3).
 
-PENDIENTE (requiere intervención humana antes de continuar la cadena):
-  - Slice #2 (HITL): alta de emisor por CLI + facturama-client. Necesita credenciales
-    de la cuenta SANDBOX de Facturama + un CSD de prueba (.cer/.key/contraseña).
-  - Slice #3 (HITL): primer timbrado real en sandbox. Desbloquea la tanda AFK (#4,#6,#7,#8).
+2026-06-10 (HITL con el usuario) — Slice #2: CERRADO end-to-end contra sandbox real
+  - Cuenta sandbox propia creada (user "youerp"); credenciales en .env (gitignored).
+    Las shared pruebas/pruebas2011 ya no sirven (401). Multiemisor (api-lite) OK con la cuenta nueva.
+  - CSD de prueba del SAT (EKU9003173C9, pass 12345678a, vigente 2023-2027) descargado a csd/
+    (csd/ a .gitignore). Bundle: cdnfacturama.azureedge.net/content/csd-pruebas.zip.
+  - La corrida real destapó 2 bugs que los mocks no veían, ya corregidos (commit 4240c42):
+      a) uploadCsd: éxito = 200 con cuerpo VACÍO → el cliente devolvía undefined y el CLI
+         tronaba en csd.Rfc. Ahora devuelve { Rfc } del input.
+      b) No idempotente: re-correr daba 400 "Ya existe un CSD asociado a este RFC" (texto en
+         ModelState, no en Message). Nuevo ensureCsd: si ya existe, recupera con getCsd.
+      c) tsx no cargaba .env → emisor:alta ahora usa `tsx --env-file=.env`.
+  - +3 tests (cuerpo vacío, ensureCsd recupera/propaga). Suite: 67 verdes.
+  - Emisor "demo" (EKU9003173C9, régimen 601, CP 64000, concepto "Consumo de alimentos" IVA 16%)
+    dado de alta en sandbox y persistido en Postgres → portal /f/demo. Re-ejecución idempotente OK.
+
+2026-06-10 (HITL con el usuario) — Slice #3: CERRADO — primer timbrado real end-to-end
+  - Modelo Invoice (emisorId, montos subtotal/iva/total Decimal, receptor, formaPago, estatus,
+    uuid @unique, facturamaCfdiId) + relación en Emisor. @@unique([emisorId, folioTicket]) =
+    anti-duplicado básico. Migración 20260610170441_invoice_model aplicada.
+  - facturama-client.createCfdi (POST api-lite/3/cfdis) + extractUuid (raíz o Complement.TaxStamp).
+  - catalogs.ts: subconjunto curado de c_RegimenFiscal/c_UsoCFDI/c_FormaPago (#6 lo amplía).
+  - Server Action emitirFactura ('use server'): valida receptor (billing-rules + catálogos),
+    desglosa IVA, idempotencia por (emisor, folio), arma CFDI, timbra, persiste Invoice "timbrada",
+    devuelve estado con UUID o errores por campo. Formulario cliente (useActionState) + pantalla
+    de éxito con el UUID en /f/[slug]. Build de producción OK (ruta dinámica).
+  - +4 tests (createCfdi contrato, extractUuid raíz/Complement/ausente). 71 verdes. Lint limpio.
+  - TIMBRADO REAL en sandbox verificado por la Server Action misma:
+      · submit válido → ok:true, UUID real (p.ej. cc350e97-…), Invoice persistido.
+      · re-submit mismo folio → yaExistia:true, mismo UUID (sin doble timbrado).
+      · submit inválido → ok:false con error por campo, valores conservados.
+  - HALLAZGOS CFDI 4.0 (reglas del SAT, NO bugs): (a) Issuer/Receiver Name debe ser el nombre
+    EXACTO del padrón SIN "SA DE CV" (test EKU = "ESCUELA KEMPER URGATE"); (b) DomicilioFiscalReceptor
+    de un RFC real se valida contra el padrón del SAT (tuple RFC+nombre+CP+régimen). El camino feliz
+    determinista usa Público en General (XAXX010101000 / 616 / S01, DomicilioFiscal = CP de expedición).
+    La traducción amable de estos rechazos es el slice #8.
+
+PENDIENTE:
+  - Tanda AFK desbloqueada por #3: #4 (descarga PDF/XML — usar facturamaCfdiId), #6 (catálogos
+    completos + formulario), #7 (candado anti-abuso fuerte), #8 (traducción de errores del PAC).
   - Slice #5 (HITL): API key de Resend + dominio verificado.
