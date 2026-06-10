@@ -62,6 +62,14 @@ export function extractUuid(cfdi: StampedCfdi): string | undefined {
   return cfdi.TaxStamp?.Uuid ?? cfdi.Complement?.TaxStamp?.Uuid;
 }
 
+/** Respuesta de descarga de archivo (XML/PDF) en base64. */
+export interface FileDownload {
+  ContentEncoding?: string;
+  ContentType?: string;
+  ContentLength?: number;
+  Content: string;
+}
+
 /** Error tipado de la API de Facturama (incluye el status y el cuerpo crudo). */
 export class FacturamaError extends Error {
   constructor(
@@ -187,6 +195,30 @@ export class FacturamaClient {
    */
   createCfdi(payload: unknown): Promise<StampedCfdi> {
     return this.request<StampedCfdi>("POST", "api-lite/3/cfdis", payload);
+  }
+
+  /**
+   * Descarga el XML del CFDI timbrado (#4). Devuelve los bytes ya decodificados.
+   * Endpoint verificado: GET cfdi/xml/issuedLite/{id} → { Content: base64 }.
+   */
+  async getXml(cfdiId: string): Promise<Buffer> {
+    return this.downloadFile("xml", cfdiId);
+  }
+
+  /** Descarga el PDF del CFDI timbrado (#4). Devuelve los bytes ya decodificados. */
+  async getPdf(cfdiId: string): Promise<Buffer> {
+    return this.downloadFile("pdf", cfdiId);
+  }
+
+  private async downloadFile(formato: "xml" | "pdf", cfdiId: string): Promise<Buffer> {
+    const res = await this.request<FileDownload>(
+      "GET",
+      `cfdi/${formato}/issuedLite/${encodeURIComponent(cfdiId)}`,
+    );
+    if (!res?.Content) {
+      throw new FacturamaError(`Descarga ${formato} sin contenido`, 200, res);
+    }
+    return Buffer.from(res.Content, "base64");
   }
 
   /** Lista los CSD cargados en la cuenta. */

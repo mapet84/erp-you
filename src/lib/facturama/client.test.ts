@@ -239,6 +239,39 @@ describe("extractUuid", () => {
   });
 });
 
+describe("FacturamaClient · getXml / getPdf", () => {
+  it("getXml hace GET a cfdi/xml/issuedLite/{id} y decodifica base64", async () => {
+    const xml = "<cfdi>hola</cfdi>";
+    const { impl, calls } = fakeFetch({
+      body: { ContentEncoding: "base64", ContentType: "xml", Content: Buffer.from(xml).toString("base64") },
+    });
+    const client = new FacturamaClient({ user: "u", password: "p", fetchImpl: impl });
+
+    const buf = await client.getXml("ABC123");
+    expect(calls[0].url).toBe(FACTURAMA_BASE_URLS.sandbox + "cfdi/xml/issuedLite/ABC123");
+    expect(calls[0].init.method).toBe("GET");
+    expect(buf.toString("utf8")).toBe(xml);
+  });
+
+  it("getPdf decodifica los bytes del PDF", async () => {
+    const pdfBytes = Buffer.from([0x25, 0x50, 0x44, 0x46]); // %PDF
+    const { impl, calls } = fakeFetch({
+      body: { ContentType: "pdf", Content: pdfBytes.toString("base64") },
+    });
+    const client = new FacturamaClient({ user: "u", password: "p", fetchImpl: impl });
+
+    const buf = await client.getPdf("XYZ");
+    expect(calls[0].url).toBe(FACTURAMA_BASE_URLS.sandbox + "cfdi/pdf/issuedLite/XYZ");
+    expect(buf.equals(pdfBytes)).toBe(true);
+  });
+
+  it("lanza si la descarga viene sin contenido", async () => {
+    const { impl } = fakeFetch({ body: {} });
+    const client = new FacturamaClient({ user: "u", password: "p", fetchImpl: impl });
+    await expect(client.getXml("NOPE")).rejects.toBeInstanceOf(FacturamaError);
+  });
+});
+
 describe("FacturamaClient · getCsd / removeCsd", () => {
   it("getCsd hace GET a api-lite/csds/{rfc}", async () => {
     const { impl, calls } = fakeFetch({ body: { Rfc: "EKU9003173C9" } });

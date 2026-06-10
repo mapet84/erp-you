@@ -85,7 +85,30 @@ ERP YOU — Fase 1 · Bitácora de progreso
     determinista usa Público en General (XAXX010101000 / 616 / S01, DomicilioFiscal = CP de expedición).
     La traducción amable de estos rechazos es el slice #8.
 
+2026-06-10 (AFK, desatendido) — Tanda #4/#6/#7/#8/#9: COMPLETADA, verificada contra sandbox real
+  - Migración files_catalogs_error: InvoiceFile (bytea xml/pdf), CatalogoSat (tipo/clave/desc/orden),
+    Invoice += fechaTicket, errorPac. Seed siembra 15 claves de catálogo.
+  - #8 pac-errors.ts (puro): extraerDetallePac (lee ModelState) + traducirErrorPac (patrones →
+    mensajes accionables en español). Invoice estatus "error" + errorPac; reintento del mismo folio
+    sí timbra. +11 tests.
+  - #4 facturama-client.getXml/getPdf (GET cfdi/{xml,pdf}/issuedLite/{id} → base64, verificado por
+    curl real). guardarArchivos best-effort tras timbrar (no tumba el UUID si falla la descarga).
+    Ruta GET /factura/[invoiceId]/[tipo] sirve los bytes con Content-Type + filename=UUID.
+  - #6 catálogos desde BD: catalogs.server.ts loadCatalogos/clavesValidas; dropdowns y validación
+    (billing-rules) alimentados desde CatalogoSat. catalogs.ts queda como fuente de la siembra.
+  - #7 ventana mismo-mes aplicada (dentroDeVentana con fechaTicket+ventanaFacturacion del emisor);
+    folio único (emisorId, folioTicket): timbrada bloquea, error se reintenta. Captura folio+fecha+monto.
+  - #9 preview de desglose en vivo (tax) en el formulario; pantalla de éxito pulida (resumen receptor,
+    UUID, descargas PDF/XML); consulta read-only `npm run facturas:list -- --slug demo`.
+  - Verificación real (Server Action contra sandbox): happy path → UUID + XML(<?xml,4.8KB)/PDF(%PDF,54KB)
+    conservados; idempotencia (yaExistia, mismo UUID); ventana fuera de mes bloqueada; rechazo del PAC
+    (CP equivocado) → mensaje traducido + Invoice "error"; reintento mismo folio → timbra y limpia errorPac.
+    Ruta de descarga: PDF/XML 200 con Content-Type correcto, 404/400 en faltante/tipo inválido.
+  - 82 tests verdes. Lint, typecheck y build de producción limpios. (commit pendiente)
+
 PENDIENTE:
-  - Tanda AFK desbloqueada por #3: #4 (descarga PDF/XML — usar facturamaCfdiId), #6 (catálogos
-    completos + formulario), #7 (candado anti-abuso fuerte), #8 (traducción de errores del PAC).
-  - Slice #5 (HITL): API key de Resend + dominio verificado.
+  - Slice #5 (HITL): entrega por correo (Resend) — requiere API key + dominio verificado. Único
+    slice de F1 que falta; el "aviso de correo" en la pantalla de éxito queda como placeholder.
+  - Nota producto: receptor con RFC real se valida contra el padrón del SAT (nombre+CP+régimen). El
+    happy path de demo usa Público en General (XAXX010101000/616/S01). El emisor debe darse de alta
+    con el nombre EXACTO del padrón sin "SA DE CV".

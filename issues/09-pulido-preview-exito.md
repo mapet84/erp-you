@@ -12,10 +12,13 @@ ticket. La pantalla de éxito final queda pulida (resumen de la factura, UUID, d
 correo enviado). Se agrega una consulta básica de facturas emitidas en BD para soporte/auditoría.
 
 ## Acceptance criteria
-- [ ] Preview de subtotal/IVA/total mostrado antes de confirmar, derivado de `tax` a partir del total capturado.
-- [ ] Pantalla de éxito pulida: resumen del receptor, UUID, botones de descarga XML/PDF y aviso de correo enviado.
-- [ ] Consulta básica (read-only) de `Invoice` por emisor para soporte/auditoría.
-- [ ] Estados de carga y error consistentes en el flujo de captura → confirmación → éxito.
+- [x] Preview de subtotal/IVA/total mostrado antes de confirmar, derivado de `tax` a partir del total capturado. *(preview en vivo en el formulario al teclear el total.)*
+- [x] Pantalla de éxito pulida: resumen del receptor, UUID, botones de descarga XML/PDF y aviso de correo enviado. *(el envío real de correo es #5; por ahora es un aviso "próximamente".)*
+- [x] Consulta básica (read-only) de `Invoice` por emisor para soporte/auditoría. *(`npm run facturas:list -- --slug demo`.)*
+- [x] Estados de carga y error consistentes en el flujo de captura → confirmación → éxito. *(`useActionState`: pending + errores por campo + mensaje general.)*
+
+## Estado
+**COMPLETADO (2026-06-10, AFK).** Falta sólo el envío real de correo (slice #5, HITL: Resend).
 
 ## Blocked by
 - #6 · [Catálogos + formulario fiscal completo](06-catalogos-formulario-fiscal.md)

@@ -15,7 +15,8 @@
     "db:migrate:dev": "prisma migrate dev",
     "db:seed": "prisma db seed",
     "db:reset": "prisma migrate reset --force",
-    "emisor:alta": "tsx --env-file=.env scripts/alta-emisor.ts"
+    "emisor:alta": "tsx --env-file=.env scripts/alta-emisor.ts",
+    "facturas:list": "tsx --env-file=.env scripts/listar-facturas.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

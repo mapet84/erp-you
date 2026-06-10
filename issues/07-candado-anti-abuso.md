@@ -17,10 +17,10 @@ RFC del emisor. El formulario captura folio del ticket + fecha + monto. Se aplic
 El monto capturado se guarda para auditoría; su validación contra venta real es Fase 2.
 
 ## Acceptance criteria
-- [ ] Captura de folio, fecha del ticket y monto en el formulario.
-- [ ] Restricción única `(emisorId, folioTicket)` en `Invoice` + chequeo que bloquea folios ya usados con mensaje claro.
+- [x] Captura de folio, fecha del ticket y monto en el formulario.
+- [x] Restricción única `(emisorId, folioTicket)` en `Invoice` + chequeo que bloquea folios ya usados con mensaje claro. *(folio ya timbrado → pantalla "ese folio ya estaba facturado" con su UUID.)*
 - [x] `billing-rules`: regla de ventana (default mismo mes calendario, configurable por emisor) que rechaza fechas fuera de ventana con mensaje claro. *(src/lib/billing-rules.ts: `dentroDeVentana`.)*
-- [ ] Idempotencia: un doble submit del mismo folio no produce dos timbrados.
+- [x] Idempotencia: un doble submit del mismo folio no produce dos timbrados. *(verificado: re-submit devuelve el mismo UUID; un row en estatus "error" sí se reintenta.)*
 - [x] **Tests** de `billing-rules` para la ventana: dentro/fuera, cruces de fin de mes, configuración por emisor.
 
 > Avance autónomo 2026-06-10: la regla pura de ventana (`dentroDeVentana`) y sus tests están hechos.

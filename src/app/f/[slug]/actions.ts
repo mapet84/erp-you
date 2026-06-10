@@ -1,24 +1,39 @@
 "use server";
 
-// Server Action del portal de autofacturación (slice #3, camino feliz).
-// Valida los datos del receptor, desglosa el IVA, arma el CFDI 4.0, lo timbra
-// en Facturama Multiemisor y persiste la factura. Idempotente por (emisor, folio).
+// Server Action del portal de autofacturación.
+// #3 timbrado feliz · #6 catálogos de BD · #7 ventana + folio único + retry ·
+// #8 traducción de errores del PAC · #4 conservación de XML/PDF.
 
 import { prisma } from "@/lib/db";
 import { construirCfdi, type ConceptoEmisor } from "@/lib/cfdi-builder";
-import { receptorSchema } from "@/lib/billing-rules";
-import { catalogosValidos } from "@/lib/catalogs";
+import { receptorSchema, dentroDeVentana, type VentanaPolitica } from "@/lib/billing-rules";
+import { loadCatalogos, clavesValidas } from "@/lib/catalogs.server";
 import { desglosarIva } from "@/lib/tax";
+import { traducirErrorPac } from "@/lib/pac-errors";
 import { facturamaClientFromEnv } from "@/lib/facturama/config";
-import { FacturamaError, extractUuid } from "@/lib/facturama/client";
+import {
+  FacturamaError,
+  extractUuid,
+  type FacturamaClient,
+} from "@/lib/facturama/client";
+
+export interface FacturaResumen {
+  invoiceId: string;
+  uuid?: string;
+  receptorRfc: string;
+  receptorNombre: string;
+  subtotal: number;
+  iva: number;
+  total: number;
+}
 
 export interface EmitirState {
   ok?: boolean;
-  /** Folio fiscal del CFDI timbrado (en éxito). */
-  uuid?: string;
-  /** Indica que el folio ya estaba facturado (idempotencia). */
+  /** Datos de la factura timbrada (para la pantalla de éxito). */
+  factura?: FacturaResumen;
+  /** El folio ya estaba facturado (idempotencia / candado anti-abuso). */
   yaExistia?: boolean;
-  /** Mensaje de error general (validación o PAC). */
+  /** Mensaje de error general (validación, ventana o rechazo del PAC). */
   error?: string;
   /** Errores por campo del formulario. */
   fieldErrors?: Record<string, string>;
@@ -28,6 +43,32 @@ export interface EmitirState {
 
 function str(formData: FormData, key: string): string {
   return String(formData.get(key) ?? "").trim();
+}
+
+/** Descarga y conserva XML/PDF del CFDI (best-effort: no tumba el timbrado). */
+async function guardarArchivos(
+  facturama: FacturamaClient,
+  invoiceId: string,
+  cfdiId: string,
+): Promise<void> {
+  const archivos = [
+    { tipo: "xml", contentType: "application/xml", fetch: () => facturama.getXml(cfdiId) },
+    { tipo: "pdf", contentType: "application/pdf", fetch: () => facturama.getPdf(cfdiId) },
+  ] as const;
+
+  for (const a of archivos) {
+    try {
+      const contenido = new Uint8Array(await a.fetch());
+      await prisma.invoiceFile.upsert({
+        where: { invoiceId_tipo: { invoiceId, tipo: a.tipo } },
+        update: { contenido, contentType: a.contentType },
+        create: { invoiceId, tipo: a.tipo, contenido, contentType: a.contentType },
+      });
+    } catch {
+      // Si Facturama falla la descarga, el Invoice queda timbrado (no se pierde
+      // el UUID); el archivo faltante se puede reintentar después (#4).
+    }
+  }
 }
 
 export async function emitirFactura(
@@ -44,24 +85,22 @@ export async function emitirFactura(
     formaPago: str(formData, "formaPago"),
     email: str(formData, "email"),
     folioTicket: str(formData, "folioTicket"),
+    fechaTicket: str(formData, "fechaTicket"),
     total: str(formData, "total"),
   };
 
-  // 1. Emisor (tenant). Debe existir y estar activo.
+  // 1. Emisor (tenant). Debe existir, estar activo y tener config fiscal.
   const emisor = await prisma.emisor.findUnique({ where: { slug } });
   if (!emisor || !emisor.activo) {
     return { ok: false, error: "Emisor no disponible.", values };
   }
   if (!emisor.conceptoDefault || !emisor.regimenFiscal || !emisor.cpExpedicion) {
-    return {
-      ok: false,
-      error: "El emisor no tiene configuración fiscal completa.",
-      values,
-    };
+    return { ok: false, error: "El emisor no tiene configuración fiscal completa.", values };
   }
 
-  // 2. Validación de los datos fiscales del receptor (formato + catálogos).
-  const parsed = receptorSchema(catalogosValidos).safeParse({
+  // 2. Validación de los datos fiscales del receptor (formato + catálogos de BD).
+  const catalogos = await loadCatalogos();
+  const parsed = receptorSchema(clavesValidas(catalogos)).safeParse({
     rfc: values.rfc,
     nombre: values.nombre,
     cp: values.cp,
@@ -80,34 +119,48 @@ export async function emitirFactura(
   }
   const receptor = parsed.data;
 
-  // 3. Folio y total.
+  // 3. Folio, total y fecha del ticket (#7).
+  const fieldErrors: Record<string, string> = {};
   const total = Number(values.total);
   if (!Number.isFinite(total) || total <= 0) {
-    return {
-      ok: false,
-      error: "Captura un total válido.",
-      fieldErrors: { total: "El total debe ser un monto mayor a 0." },
-      values,
-    };
+    fieldErrors.total = "El total debe ser un monto mayor a 0.";
   }
   if (!values.folioTicket) {
-    return {
-      ok: false,
-      error: "Captura el folio del ticket.",
-      fieldErrors: { folioTicket: "El folio del ticket es obligatorio." },
-      values,
-    };
+    fieldErrors.folioTicket = "El folio del ticket es obligatorio.";
+  }
+  const fechaTicket = values.fechaTicket ? new Date(values.fechaTicket + "T12:00:00") : null;
+  if (!fechaTicket || Number.isNaN(fechaTicket.getTime())) {
+    fieldErrors.fechaTicket = "Captura la fecha del ticket.";
+  } else {
+    const ventana = dentroDeVentana(
+      fechaTicket,
+      new Date(),
+      (emisor.ventanaFacturacion as VentanaPolitica) ?? "MISMO_MES",
+    );
+    if (!ventana.ok) fieldErrors.fechaTicket = ventana.motivo!;
+  }
+  if (Object.keys(fieldErrors).length) {
+    return { ok: false, error: "Revisa los datos capturados.", fieldErrors, values };
   }
 
-  // 4. Idempotencia: si ya se facturó ese folio para el emisor, regresa el UUID.
+  // 4. Candado de folio único (#7): un folio ya TIMBRADO se bloquea; un row en
+  //    estatus "error" (rechazo previo del PAC) sí se puede reintentar (#8).
   const existente = await prisma.invoice.findUnique({
     where: { emisorId_folioTicket: { emisorId: emisor.id, folioTicket: values.folioTicket } },
   });
-  if (existente) {
+  if (existente && existente.estatus === "timbrada") {
     return {
       ok: true,
-      uuid: existente.uuid ?? undefined,
       yaExistia: true,
+      factura: {
+        invoiceId: existente.id,
+        uuid: existente.uuid ?? undefined,
+        receptorRfc: existente.receptorRfc,
+        receptorNombre: existente.receptorNombre,
+        subtotal: Number(existente.subtotal),
+        iva: Number(existente.iva),
+        total: Number(existente.total),
+      },
       values,
     };
   }
@@ -131,46 +184,76 @@ export async function emitirFactura(
       regimenFiscal: receptor.regimenFiscal,
       usoCfdi: receptor.usoCfdi,
     },
-    comprobante: {
-      formaPago: receptor.formaPago,
-      folio: values.folioTicket,
-      total: totalExacto,
-    },
+    comprobante: { formaPago: receptor.formaPago, folio: values.folioTicket, total: totalExacto },
   });
 
-  // 6. Timbrado en sandbox + persistencia de la factura.
+  // 6. Timbrado + persistencia. Datos comunes del receptor para crear/actualizar.
+  const datosReceptor = {
+    fechaTicket,
+    total: totalExacto,
+    subtotal,
+    iva,
+    receptorRfc: receptor.rfc,
+    receptorNombre: receptor.nombre,
+    receptorCp: receptor.cp,
+    receptorRegimen: receptor.regimenFiscal,
+    usoCfdi: receptor.usoCfdi,
+    formaPago: receptor.formaPago,
+    email: receptor.email,
+  };
+
   try {
     const facturama = facturamaClientFromEnv();
     const cfdi = await facturama.createCfdi(payload);
     const uuid = extractUuid(cfdi);
 
-    await prisma.invoice.create({
-      data: {
+    const invoice = await prisma.invoice.upsert({
+      where: { emisorId_folioTicket: { emisorId: emisor.id, folioTicket: values.folioTicket } },
+      update: { ...datosReceptor, estatus: "timbrada", uuid, facturamaCfdiId: cfdi.Id, errorPac: null },
+      create: {
         emisorId: emisor.id,
         folioTicket: values.folioTicket,
-        total: totalExacto,
-        subtotal,
-        iva,
-        receptorRfc: receptor.rfc,
-        receptorNombre: receptor.nombre,
-        receptorCp: receptor.cp,
-        receptorRegimen: receptor.regimenFiscal,
-        usoCfdi: receptor.usoCfdi,
-        formaPago: receptor.formaPago,
-        email: receptor.email,
+        ...datosReceptor,
         estatus: "timbrada",
         uuid,
         facturamaCfdiId: cfdi.Id,
       },
     });
 
-    return { ok: true, uuid, values };
+    // #4: conservación de archivos (best-effort, no bloquea el éxito).
+    await guardarArchivos(facturama, invoice.id, cfdi.Id);
+
+    return {
+      ok: true,
+      factura: {
+        invoiceId: invoice.id,
+        uuid,
+        receptorRfc: receptor.rfc,
+        receptorNombre: receptor.nombre,
+        subtotal,
+        iva,
+        total: totalExacto,
+      },
+      values,
+    };
   } catch (e) {
-    // La traducción fina de errores del PAC es el slice #8; aquí pasamos el mensaje.
-    const error =
-      e instanceof FacturamaError
-        ? `El PAC rechazó la factura: ${e.message}`
-        : "No se pudo timbrar la factura. Intenta de nuevo.";
-    return { ok: false, error, values };
+    // #8: traduce el rechazo del PAC y deja el Invoice en estatus "error"
+    //     (folio NO consumido para timbrado → un reintento exitoso sí timbra).
+    if (e instanceof FacturamaError) {
+      const { mensaje, detalle } = traducirErrorPac(e);
+      await prisma.invoice.upsert({
+        where: { emisorId_folioTicket: { emisorId: emisor.id, folioTicket: values.folioTicket } },
+        update: { ...datosReceptor, estatus: "error", errorPac: detalle, uuid: null },
+        create: {
+          emisorId: emisor.id,
+          folioTicket: values.folioTicket,
+          ...datosReceptor,
+          estatus: "error",
+          errorPac: detalle,
+        },
+      });
+      return { ok: false, error: mensaje, values };
+    }
+    return { ok: false, error: "No se pudo timbrar la factura. Intenta de nuevo.", values };
   }
 }

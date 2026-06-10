@@ -14,7 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { FacturaForm } from "./factura-form";
-import { REGIMENES_FISCALES, USOS_CFDI, FORMAS_PAGO } from "@/lib/catalogs";
+import { loadCatalogos } from "@/lib/catalogs.server";
 
 export default async function PortalEmisorPage({
   params,
@@ -42,6 +42,10 @@ export default async function PortalEmisorPage({
   const nombre = nombreParaMostrar(emisor);
   const color = emisor.branding.colorPrimario ?? "#0f172a";
 
+  const catalogos = await loadCatalogos();
+  const concepto = (row!.conceptoDefault ?? {}) as { tasaIva?: number };
+  const tasaIva = concepto.tasaIva ?? 0.16;
+
   return (
     <main className="flex flex-1 items-center justify-center p-6">
       <Card className="w-full max-w-md">
@@ -61,11 +65,8 @@ export default async function PortalEmisorPage({
           <FacturaForm
             slug={emisor.slug}
             color={color}
-            catalogos={{
-              regimenFiscal: REGIMENES_FISCALES,
-              usoCfdi: USOS_CFDI,
-              formaPago: FORMAS_PAGO,
-            }}
+            tasaIva={tasaIva}
+            catalogos={catalogos}
           />
         </CardContent>
       </Card>

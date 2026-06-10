@@ -19,4 +19,5 @@ PRD padre: [`../PRD.md`](../PRD.md)
 
 **HITL (requieren intervención humana):** #2 (credenciales sandbox + CSD de prueba), #3 (primer timbrado real en sandbox), #5 (API key Resend + verificación de dominio).
 
-**Estado:** #1 ✅ · #2 ✅ (cerrado contra sandbox real) · #3 ✅ (timbrado real verificado). Desbloqueada la tanda AFK #4/#6/#7/#8. Pendientes: #4, #6, #7, #8, #9 y #5 (HITL Resend).
+**Estado:** #1 ✅ · #2 ✅ · #3 ✅ · #4 ✅ · #6 ✅ · #7 ✅ · #8 ✅ · #9 ✅ — todo verificado contra el sandbox real.
+**Único pendiente: #5** (entrega por correo con Resend — HITL: requiere API key + dominio verificado). Con eso cierra la Fase 1.

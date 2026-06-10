@@ -16,9 +16,9 @@ Reemplaza el formulario mínimo del slice #3 por la captura completa: RFC, Nombr
 Fiscal, Uso CFDI, Forma de Pago y correo.
 
 ## Acceptance criteria
-- [ ] Seed curado de `c_RegimenFiscal`, `c_UsoCFDI` y `c_FormaPago` (claves vigentes relevantes para autofactura).
-- [ ] Dropdowns de Régimen, Uso CFDI y Forma de Pago alimentados desde la BD.
-- [ ] Formulario completo del receptor cableado al flujo de timbrado.
+- [x] Seed curado de `c_RegimenFiscal`, `c_UsoCFDI` y `c_FormaPago` (claves vigentes relevantes para autofactura). *(modelo `CatalogoSat`, 15 claves sembradas desde `catalogs.ts`.)*
+- [x] Dropdowns de Régimen, Uso CFDI y Forma de Pago alimentados desde la BD. *(`catalogs.server.ts` → `loadCatalogos`.)*
+- [x] Formulario completo del receptor cableado al flujo de timbrado.
 - [x] `billing-rules`: validación de formato (RFC 12 moral / 13 física, CP 5 dígitos, pertenencia a catálogo) vía Zod, ejecutada antes de llamar al PAC. *(src/lib/billing-rules.ts: `receptorSchema`, `esRfcValido`, `esCpValido`, `perteneceACatalogo`.)*
 - [x] **Tests** de `billing-rules` para validación de formato: RFC válidos/ inválidos (12 y 13), CP, clave fuera de catálogo.
 

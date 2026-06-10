@@ -50,6 +50,8 @@ model Invoice {
 
   /// Folio del ticket capturado por el cliente (clave anti-duplicado en F1).
   folioTicket String
+  /// Fecha del ticket capturada (para la regla de ventana de facturación, #7).
+  fechaTicket DateTime?
   /// Montos del comprobante (con IVA desglosado en centavos por `tax`).
   total    Decimal @db.Decimal(12, 2)
   subtotal Decimal @db.Decimal(12, 2)
@@ -65,17 +67,54 @@ model Invoice {
   email           String
 
   // --- Resultado del PAC ---
-  /// Estatus de la factura. F1 camino feliz: "timbrada".
+  /// Estatus de la factura: "timbrada" | "error" (rechazo del PAC, #8).
   estatus         String  @default("timbrada")
   /// Folio fiscal (UUID del timbre). Único cuando existe.
   uuid            String? @unique
   /// Id del CFDI en Facturama (para descargar PDF/XML en el slice #4).
   facturamaCfdiId String?
+  /// Detalle del rechazo del PAC cuando estatus = "error" (#8).
+  errorPac        String?
+
+  files InvoiceFile[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  /// Anti-duplicado básico (#3): un folio de ticket por emisor. #7 lo endurece.
+  /// Anti-duplicado (#7): un folio de ticket por emisor. Un row en estatus
+  /// "error" se reintenta (se actualiza), uno "timbrada" bloquea el re-timbrado.
   @@unique([emisorId, folioTicket])
   @@map("invoices")
+}
+
+/// Archivo fiscal (XML/PDF) del CFDI, conservado como bytea (#4).
+model InvoiceFile {
+  id        String  @id @default(cuid())
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoiceId String
+  /// "xml" | "pdf".
+  tipo        String
+  /// Bytes del archivo (XML o PDF ya decodificado de base64).
+  contenido   Bytes
+  /// Content-Type para servir la descarga (application/xml | application/pdf).
+  contentType String
+
+  createdAt DateTime @default(now())
+
+  @@unique([invoiceId, tipo])
+  @@map("invoice_files")
+}
+
+/// Catálogo del SAT sembrado en BD (#6): c_RegimenFiscal, c_UsoCFDI, c_FormaPago.
+model CatalogoSat {
+  id          String @id @default(cuid())
+  /// "regimenFiscal" | "usoCfdi" | "formaPago".
+  tipo        String
+  clave       String
+  descripcion String
+  /// Orden de presentación en el dropdown.
+  orden       Int    @default(0)
+
+  @@unique([tipo, clave])
+  @@map("catalogos_sat")
 }
