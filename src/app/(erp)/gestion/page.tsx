@@ -9,6 +9,8 @@ const SECCIONES = [
   { href: "/gestion/precios", label: "Precios y márgenes", desc: "Repreciar y reporte por canal" },
   { href: "/gestion/margenes", label: "Márgenes objetivo", desc: "Margen por categoría y canal" },
   { href: "/gestion/comisiones", label: "Comisiones", desc: "Comisión por canal y medio de pago" },
+  { href: "/gestion/clientes", label: "Clientes", desc: "Clientes para órdenes de venta" },
+  { href: "/gestion/ordenes", label: "Órdenes de venta", desc: "Pedidos y su seguimiento" },
 ];
 
 export default async function GestionPage() {

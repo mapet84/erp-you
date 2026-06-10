@@ -197,6 +197,7 @@ model Tienda {
   compras      Compra[]
   tickets      TicketPOS[]
   ventas       Venta[]
+  ordenes      OrdenVenta[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -632,5 +633,95 @@ model Venta {
 
   @@index([tiendaId, fecha])
   @@map("ventas")
+  @@schema("erp")
+}
+
+// ── Rebanada #8 · clientes y órdenes de venta (pedidos) ──────────────────────
+
+enum EstadoEntrega {
+  PENDIENTE
+  ENTREGADO
+  CANCELADO
+
+  @@schema("erp")
+}
+
+enum EstadoFactura {
+  SIN_FACTURA
+  FACTURADA
+  CANCELADA
+
+  @@schema("erp")
+}
+
+enum EstadoCobro {
+  PENDIENTE
+  PAGADO
+  CANCELADO
+
+  @@schema("erp")
+}
+
+/// Cliente (para órdenes de venta / pedidos B2B).
+model Cliente {
+  id             String       @id @default(cuid())
+  nombre         String
+  rfc            String?
+  correos        String[]
+  telefono       String?
+  diasPago       Int?
+  dirFacturacion String?
+  dirEntrega     String?
+  banco          String?
+  clabe          String?
+  ordenes        OrdenVenta[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("clientes")
+  @@schema("erp")
+}
+
+/// Orden de venta (pedido por entregar) con triple seguimiento de estado.
+model OrdenVenta {
+  id                String        @id @default(cuid())
+  folio             String        @unique
+  fecha             DateTime      @default(now())
+  cliente           Cliente       @relation(fields: [clienteId], references: [id])
+  clienteId         String
+  tienda            Tienda        @relation(fields: [tiendaId], references: [id])
+  tiendaId          String
+  usuarioId         String
+  totalPedido       Decimal       @db.Decimal(14, 2)
+  estadoEntrega     EstadoEntrega @default(PENDIENTE)
+  estadoFactura     EstadoFactura @default(SIN_FACTURA)
+  estadoCobro       EstadoCobro   @default(PENDIENTE)
+  fechaEntrega      DateTime?
+  fechaFacturacion  DateTime?
+  fechaPago         DateTime?
+  /// Fecha estimada de pago (fecha + díasPago del cliente).
+  fechaPagoEstimada DateTime?
+  folioFactura      String?
+
+  lineas OrdenVentaLinea[]
+
+  @@index([tiendaId, fecha])
+  @@map("ordenes_venta")
+  @@schema("erp")
+}
+
+/// Renglón de una orden de venta.
+model OrdenVentaLinea {
+  id         String     @id @default(cuid())
+  orden      OrdenVenta @relation(fields: [ordenId], references: [id], onDelete: Cascade)
+  ordenId    String
+  codigo     String
+  articulo   String
+  qty        Decimal    @db.Decimal(14, 4)
+  precioUnit Decimal    @db.Decimal(14, 2)
+  subtotal   Decimal    @db.Decimal(14, 2)
+
+  @@map("orden_venta_lineas")
   @@schema("erp")
 }
