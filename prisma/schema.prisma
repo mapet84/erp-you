@@ -1,6 +1,6 @@
 // Prisma schema — ERP YOU · Fase 1 (Portal de Autofacturación CFDI 4.0)
-// Slice #1: solo el modelo Emisor para la resolución de tenant por slug.
-// Slices posteriores (#2 en adelante) extienden Emisor con su config fiscal.
+// Slice #1: modelo Emisor para la resolución de tenant por slug.
+// Slice #2: Emisor extendido con su config fiscal + referencia a Facturama.
 
 generator client {
   provider = "prisma-client-js"
@@ -20,8 +20,22 @@ model Emisor {
   /// Marca del portal público: { nombreComercial?, colorPrimario?, logoUrl? }
   branding    Json     @default("{}")
   activo      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+
+  // --- Config fiscal (slice #2) ---
+  /// Régimen fiscal del emisor (clave c_RegimenFiscal del SAT, p.ej. "601").
+  regimenFiscal String?
+  /// CP del lugar de expedición (LugarExpedicion del CFDI).
+  cpExpedicion  String?
+  /// Concepto genérico por emisor:
+  /// { claveProdServ, claveUnidad, descripcion, tasaIva }
+  conceptoDefault Json?
+  /// Política de ventana de facturación. Default: mismo mes calendario.
+  ventanaFacturacion String @default("MISMO_MES")
+  /// Referencia del emisor en Facturama Multiemisor (se llena al cargar el CSD).
+  facturamaIssuerRef String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("emisores")
 }

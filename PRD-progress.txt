@@ -14,6 +14,20 @@ ERP YOU — Fase 1 · Bitácora de progreso
   - Decisión técnica: Prisma fijado a v6. Prisma 7 ya no admite `url` en el schema
     (exige prisma.config.ts + driver adapter); se difiere esa migración a un slice futuro.
 
+2026-06-10 (autónomo) — Slice #2: Alta de emisor CLI + facturama-client — CÓDIGO COMPLETADO (5/6)
+  - Modelo Emisor extendido: regimenFiscal, cpExpedicion, conceptoDefault (Json),
+    ventanaFacturacion (default MISMO_MES), facturamaIssuerRef. Migración aplicada.
+  - facturama-client (src/lib/facturama/): auth Basic, switch sandbox/prod por env,
+    uploadCsd/listCsds/getCsd/removeCsd. Contrato verificado contra los SDKs oficiales:
+    POST api-lite/csds con body { Rfc, Certificate(b64), PrivateKey(b64), PrivateKeyPassword }.
+    En Multiemisor el emisor se crea implícitamente al cargar el CSD (no hay createIssuer).
+  - config.ts: credenciales desde env (FACTURAMA_USER/PASSWORD/ENV) validadas con Zod.
+  - CLI scripts/alta-emisor.ts (npm run emisor:alta): lee .cer/.key → base64, carga CSD,
+    upserta Emisor con config fiscal + marca. Validación de args y smoke test OK.
+  - 9 tests de contrato (fetch inyectado, sin red): auth header, base URL por ambiente,
+    body de uploadCsd, parseo de respuesta, FacturamaError en fallo, get/remove. Total suite: 15 verdes.
+  - FALTA (HITL): verificación manual con CSD real en sandbox → necesita credenciales + CSD.
+
 PENDIENTE (requiere intervención humana antes de continuar la cadena):
   - Slice #2 (HITL): alta de emisor por CLI + facturama-client. Necesita credenciales
     de la cuenta SANDBOX de Facturama + un CSD de prueba (.cer/.key/contraseña).
