@@ -16,13 +16,10 @@ export function IngredienteForm({ unidades }: { unidades: { id: string; codigo: 
 
   return (
     <form ref={ref} action={action} className="flex flex-wrap items-end gap-3 rounded-xl border border-neutral-200 bg-white p-4">
-      <div>
-        <label className="block text-xs text-neutral-500">Código</label>
-        <input name="codigo" required className={`mt-1 w-28 ${inputCls}`} />
-      </div>
       <div className="flex-1">
         <label className="block text-xs text-neutral-500">Nombre</label>
         <input name="nombre" required className={`mt-1 ${inputCls}`} />
+        <p className="mt-1 text-xs text-neutral-400">El código se asigna automático (100001+).</p>
       </div>
       <div>
         <label className="block text-xs text-neutral-500">Unidad</label>

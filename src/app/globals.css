@@ -12,15 +12,18 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* La UI del ERP es de tema claro (fondos blancos + texto neutral oscuro).
+   Forzamos color de texto oscuro y fondo blanco en los campos para que el modo
+   oscuro del navegador no deje texto claro sobre fondo blanco (invisible). */
+input,
+select,
+textarea {
+  color: #171717;
+  background-color: #ffffff;
 }

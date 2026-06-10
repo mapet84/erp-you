@@ -4,6 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireCan } from "@/lib/erp/session.server";
+import { siguienteCodigoIngrediente } from "@/lib/erp/codigos.server";
 
 export interface IngredienteState {
   ok?: boolean;
@@ -16,7 +17,6 @@ const decimal = z
   .refine((v) => v !== "" && !Number.isNaN(Number(v)) && Number(v) >= 0, "Número inválido");
 
 const crearSchema = z.object({
-  codigo: z.string().trim().min(1),
   nombre: z.string().trim().min(1),
   unidadId: z.string().min(1),
   costoCompra: decimal,
@@ -30,18 +30,19 @@ export async function crearIngrediente(
   await requireCan("GESTION", "configure");
 
   const parsed = crearSchema.safeParse({
-    codigo: formData.get("codigo"),
     nombre: formData.get("nombre"),
     unidadId: formData.get("unidadId"),
     costoCompra: formData.get("costoCompra"),
     minCompra: formData.get("minCompra") || "0",
   });
-  if (!parsed.success) return { error: "Revisa los campos (código, nombre, unidad y costo)." };
+  if (!parsed.success) return { error: "Revisa los campos (nombre, unidad y costo)." };
 
   try {
+    // Código consecutivo automático (100001–199999).
+    const codigo = await siguienteCodigoIngrediente();
     await prisma.ingrediente.create({
       data: {
-        codigo: parsed.data.codigo.toUpperCase(),
+        codigo,
         nombre: parsed.data.nombre,
         unidadId: parsed.data.unidadId,
         costoCompra: parsed.data.costoCompra,
@@ -49,7 +50,7 @@ export async function crearIngrediente(
       },
     });
   } catch {
-    return { error: "Ya existe un ingrediente con ese código." };
+    return { error: "No se pudo crear el ingrediente." };
   }
   revalidatePath("/gestion/ingredientes");
   return { ok: true };
