@@ -785,3 +785,102 @@ model Gasto {
   @@map("gastos")
   @@schema("erp")
 }
+
+// ── Rebanada #11 · pronósticos (ventas y explosión de compras) ───────────────
+
+enum MetodoPronostico {
+  LINEAL
+  EXPONENCIAL
+  PLANO
+
+  @@schema("erp")
+}
+
+enum EstadoPronostico {
+  BORRADOR
+  CONFIRMADO
+
+  @@schema("erp")
+}
+
+/// Agregado semanal de ventas (materializado desde Venta). Base del pronóstico.
+model VentaSemanal {
+  id            String  @id @default(cuid())
+  anio          Int
+  semana        Int
+  tiendaId      String
+  canalId       String
+  codigo        String
+  articulo      String
+  ventas        Decimal @db.Decimal(14, 2)
+  costo         Decimal @db.Decimal(14, 2)
+  utilidad      Decimal @db.Decimal(14, 2)
+  unidades      Decimal @db.Decimal(14, 4)
+  transacciones Int     @default(0)
+
+  @@unique([anio, semana, tiendaId, canalId, codigo])
+  @@map("ventas_semanales")
+  @@schema("erp")
+}
+
+/// Corrida de pronóstico (parámetros + resultados). Se confirma para bloquear.
+model Pronostico {
+  id               String           @id @default(cuid())
+  tiendaId         String
+  metodo           MetodoPronostico
+  semanasHistoria  Int
+  horizonteSemanas Int
+  usaEstacional    Boolean          @default(false)
+  usaTendencia     Boolean          @default(false)
+  crecimiento      Decimal          @default(1) @db.Decimal(7, 4)
+  estado           EstadoPronostico @default(BORRADOR)
+  createdAt        DateTime         @default(now())
+
+  lineas  PronosticoLinea[]
+  compras PronosticoCompra[]
+
+  @@map("pronosticos")
+  @@schema("erp")
+}
+
+/// Línea de pronóstico de ventas por artículo (receta/producto).
+model PronosticoLinea {
+  id           String     @id @default(cuid())
+  pronostico   Pronostico @relation(fields: [pronosticoId], references: [id], onDelete: Cascade)
+  pronosticoId String
+  codigo       String
+  articulo     String
+  unidades     Decimal    @db.Decimal(14, 4)
+  ventas       Decimal    @db.Decimal(14, 2)
+  costo        Decimal    @db.Decimal(14, 2)
+
+  @@map("pronostico_lineas")
+  @@schema("erp")
+}
+
+/// Compra pronosticada (explosión BOM a ingredientes), con redondeo a mínimo.
+model PronosticoCompra {
+  id                 String     @id @default(cuid())
+  pronostico         Pronostico @relation(fields: [pronosticoId], references: [id], onDelete: Cascade)
+  pronosticoId       String
+  ingredienteCodigo  String
+  nombre             String
+  cantidad           Decimal    @db.Decimal(14, 4)
+  cantidadRedondeada Decimal    @db.Decimal(14, 4)
+  costoEstimado      Decimal    @db.Decimal(14, 2)
+
+  @@map("pronostico_compras")
+  @@schema("erp")
+}
+
+/// Bitácora/candado del pronóstico semanal automático (Vercel Cron, #12).
+model PronStatus {
+  id     String   @id @default(cuid())
+  anio   Int
+  semana Int
+  ranAt  DateTime @default(now())
+
+  @@unique([anio, semana])
+  @@map("pron_status")
+  @@schema("erp")
+}

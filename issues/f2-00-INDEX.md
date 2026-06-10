@@ -16,7 +16,7 @@ Orden de dependencias: **1 → 2 → 3 → 4 → 5**, con **6** tras #3, **7** t
 | 8 | [Órdenes de venta con estados](f2-08-ordenes-venta.md) ✅ | AFK | #5 | 25, 26, 27, 28, 29 |
 | 9 | [Gastos y estado de resultados](f2-09-gastos-estado-resultados.md) ✅ | AFK | #7 | 44, 45, 46, 47, 48, 49 |
 | 10 | [Estado de factura (integración portal CFDI)](f2-10-estado-factura-portal.md) ✅ | AFK | #7 | 50 |
-| 11 | [Pronóstico de ventas + explosión de compras](f2-11-pronostico-ventas-bom.md) | AFK | #7, #4 | 51, 52, 53, 54, 56, 58 |
+| 11 | [Pronóstico de ventas + explosión de compras](f2-11-pronostico-ventas-bom.md) ✅ | AFK | #7, #4 | 51, 52, 53, 54, 56, 58 |
 | 12 | [Pronóstico de gastos + Cron semanal](f2-12-pronostico-gastos-cron.md) | HITL | #11, #9 | 55, 57 |
 
 **Cobertura de tests (módulos puros, dentro de su rebanada):**
