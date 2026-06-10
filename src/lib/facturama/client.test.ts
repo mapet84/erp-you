@@ -119,6 +119,61 @@ describe("FacturamaClient · uploadCsd", () => {
     const csd = await client.uploadCsd(CSD_INPUT);
     expect(csd.Rfc).toBe("EKU9003173C9");
   });
+
+  it("ante éxito con cuerpo vacío devuelve { Rfc } del input", async () => {
+    // La API real responde 200 sin cuerpo al cargar el CSD.
+    const { impl } = fakeFetch({ status: 200, body: "" });
+    const client = new FacturamaClient({
+      user: "u",
+      password: "p",
+      fetchImpl: impl,
+    });
+    const csd = await client.uploadCsd(CSD_INPUT);
+    expect(csd.Rfc).toBe("EKU9003173C9");
+  });
+});
+
+describe("FacturamaClient · ensureCsd (idempotente)", () => {
+  it("recupera el CSD existente cuando Facturama responde que ya existe", async () => {
+    // Primera llamada (POST) → 400 'Ya existe'; segunda (GET) → el CSD.
+    const calls: string[] = [];
+    const impl = (async (url: string | URL | Request, init: RequestInit = {}) => {
+      calls.push(`${init.method ?? "GET"} ${String(url)}`);
+      const isPost = (init.method ?? "GET") === "POST";
+      return {
+        ok: !isPost,
+        status: isPost ? 400 : 200,
+        text: async () =>
+          isPost
+            ? JSON.stringify({
+                Message: "La solicitud no es válida.",
+                ModelState: { Rfc: ["Ya existe un CSD asociado a este RFC"] },
+              })
+            : JSON.stringify({ Rfc: "EKU9003173C9" }),
+      } as Response;
+    }) as unknown as typeof fetch;
+
+    const client = new FacturamaClient({ user: "u", password: "p", fetchImpl: impl });
+    const csd = await client.ensureCsd(CSD_INPUT);
+
+    expect(csd.Rfc).toBe("EKU9003173C9");
+    expect(calls[0]).toContain("POST");
+    expect(calls[1]).toContain("GET");
+    expect(calls[1]).toContain("api-lite/csds/EKU9003173C9");
+  });
+
+  it("propaga otros errores del PAC sin tragárselos", async () => {
+    const { impl } = fakeFetch({
+      ok: false,
+      status: 400,
+      body: { Message: "El certificado no corresponde al RFC" },
+    });
+    const client = new FacturamaClient({ user: "u", password: "p", fetchImpl: impl });
+    await expect(client.ensureCsd(CSD_INPUT)).rejects.toMatchObject({
+      name: "FacturamaError",
+      statusCode: 400,
+    });
+  });
 });
 
 describe("FacturamaClient · manejo de error", () => {

@@ -55,6 +55,16 @@ function buildAuthHeader(user: string, password: string): string {
   return `Basic ${token}`;
 }
 
+/**
+ * Detecta el error idempotente de Facturama: el CSD ya está asociado al RFC.
+ * El texto viene en ModelState (no en Message), por eso revisamos todo el body.
+ */
+function csdAlreadyExists(e: FacturamaError): boolean {
+  if (e.statusCode !== 400) return false;
+  const haystack = `${e.message} ${JSON.stringify(e.body ?? "")}`;
+  return /ya existe un csd/i.test(haystack);
+}
+
 function extractErrorMessage(status: number, parsed: unknown, raw: string): string {
   if (parsed && typeof parsed === "object") {
     const obj = parsed as Record<string, unknown>;
@@ -115,14 +125,35 @@ export class FacturamaClient {
     return parsed as T;
   }
 
-  /** Carga (da de alta) el CSD de un RFC en Facturama. */
-  uploadCsd(input: UploadCsdInput): Promise<Csd> {
-    return this.request<Csd>("POST", "api-lite/csds", {
+  /**
+   * Carga (da de alta) el CSD de un RFC en Facturama.
+   * En éxito la API responde con cuerpo vacío; en ese caso devolvemos
+   * `{ Rfc }` para que el llamador siempre tenga un Csd usable.
+   */
+  async uploadCsd(input: UploadCsdInput): Promise<Csd> {
+    const result = await this.request<Csd | undefined>("POST", "api-lite/csds", {
       Rfc: input.rfc,
       Certificate: input.certificateBase64,
       PrivateKey: input.privateKeyBase64,
       PrivateKeyPassword: input.privateKeyPassword,
     });
+    return result ?? { Rfc: input.rfc };
+  }
+
+  /**
+   * Garantiza que el CSD del RFC quede cargado, de forma idempotente.
+   * Si Facturama responde que el CSD ya existe (400), lo recupera con getCsd
+   * en lugar de fallar — así el alta de emisor se puede re-ejecutar sin error.
+   */
+  async ensureCsd(input: UploadCsdInput): Promise<Csd> {
+    try {
+      return await this.uploadCsd(input);
+    } catch (e) {
+      if (e instanceof FacturamaError && csdAlreadyExists(e)) {
+        return this.getCsd(input.rfc);
+      }
+      throw e;
+    }
   }
 
   /** Lista los CSD cargados en la cuenta. */

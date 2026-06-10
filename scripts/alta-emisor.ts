@@ -82,13 +82,13 @@ async function main() {
   const privateKeyBase64 = fileToBase64(v.key!);
 
   console.log(`Cargando CSD de ${rfc} en Facturama…`);
-  const csd = await facturama.uploadCsd({
+  const csd = await facturama.ensureCsd({
     rfc,
     certificateBase64,
     privateKeyBase64,
     privateKeyPassword: v["key-pass"]!,
   });
-  console.log(`✔ CSD cargado (RFC ${csd.Rfc ?? rfc}).`);
+  console.log(`✔ CSD listo (RFC ${csd?.Rfc ?? rfc}).`);
 
   // 2. Persistir / actualizar el Emisor con su config fiscal y de marca.
   const conceptoDefault = {
