@@ -1,0 +1,21 @@
+ERP YOU — Fase 1 · Bitácora de progreso
+========================================
+
+2026-06-10 (AFK, sesión desatendida) — Slice #1: Esqueleto + resolución de tenant — COMPLETADO
+  - Scaffold Next.js 16 (App Router, TS, src/) + Tailwind v4 vía create-next-app.
+  - Prisma 6 + Postgres (docker-compose). Modelo Emisor (id, slug, rfc, razonSocial,
+    branding Json, activo, timestamps). Migración init aplicada.
+  - Seed: emisor 'demo' (activo) + 'inactivo' (para probar 404).
+  - Ruta /f/[slug]: resuelve tenant, renderiza marca (Card shadcn/ui); 404 si no
+    existe o está inactivo (lógica pura isRenderableEmisor / nombreParaMostrar).
+  - Vitest configurado; 6 tests verdes sobre la lógica pura de tenant.
+  - Verificación e2e: /f/demo=200 (con marca), /f/inactivo=404, /f/inexistente=404, /=200.
+  - README con pasos de arranque (docker, migrate, seed, dev) y scripts.
+  - Decisión técnica: Prisma fijado a v6. Prisma 7 ya no admite `url` en el schema
+    (exige prisma.config.ts + driver adapter); se difiere esa migración a un slice futuro.
+
+PENDIENTE (requiere intervención humana antes de continuar la cadena):
+  - Slice #2 (HITL): alta de emisor por CLI + facturama-client. Necesita credenciales
+    de la cuenta SANDBOX de Facturama + un CSD de prueba (.cer/.key/contraseña).
+  - Slice #3 (HITL): primer timbrado real en sandbox. Desbloquea la tanda AFK (#4,#6,#7,#8).
+  - Slice #5 (HITL): API key de Resend + dominio verificado.

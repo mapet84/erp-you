@@ -1,0 +1,27 @@
+// Prisma schema — ERP YOU · Fase 1 (Portal de Autofacturación CFDI 4.0)
+// Slice #1: solo el modelo Emisor para la resolución de tenant por slug.
+// Slices posteriores (#2 en adelante) extienden Emisor con su config fiscal.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Un emisor = un tenant del portal. Se resuelve por `slug` en /f/[slug].
+model Emisor {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  rfc         String
+  razonSocial String
+  /// Marca del portal público: { nombreComercial?, colorPrimario?, logoUrl? }
+  branding    Json     @default("{}")
+  activo      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("emisores")
+}
