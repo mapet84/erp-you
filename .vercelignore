@@ -1,0 +1,10 @@
+# No subir al deploy lo que la app no usa en runtime.
+App RM 2005
+csd
+docker-compose.yml
+PRD.md
+PRD-fase2.md
+PRD-progress.txt
+PRODUCTION-CHECKLIST.md
+issues
+**/*.test.ts
