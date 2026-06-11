@@ -30,4 +30,28 @@ Orden de dependencias: **1 → 2 → 3 → 4 → 5**, con **6** tras #3, **7** t
 
 El resto son **AFK** (implementables y mergeables sin intervención).
 
+## Estado general
+
+**Las 12 rebanadas están en producción.** El ERP está **desplegado en Vercel + Neon**:
+👉 **https://erp-you.vercel.app** (admin de prueba: `admin@empresa.mx`). Repo en GitHub `mapet84/erp-you`
+(cada push redepliega). Datos reales cargados desde la hoja del prototipo (127 ingredientes, 15
+semi-terminados, 16 recetas, catálogos). Falta solo el HITL de #12 (definir `CRON_SECRET` en Vercel).
+
+## Mejoras post-deploy (tras la 1ª prueba — todas en producción)
+
+Documentadas en el PRD como historias **61–70**. No son rebanadas nuevas; son ampliaciones sobre la base:
+
+| Mejora | User stories (PRD) | Estado |
+|--------|--------------------|--------|
+| Deploy Vercel + Neon (raíz `/` → ERP) | 59 | ✅ |
+| Buscador en selectores + búsqueda POS | 61 | ✅ |
+| Botones Inicio / Atrás (toda pantalla) | 62, 63 | ✅ |
+| Barra lateral por módulo | 64 | ✅ |
+| Códigos/SKU automáticos (ing/receta/producto/semi) | 65, 67 | ✅ |
+| Importación masiva CSV (4 catálogos) | 66 | ✅ |
+| Sección **Configuración** (8 catálogos + conversiones) | 68 | ✅ |
+| Eliminar (admin) + borrado masivo ing/recetas | 69 | ✅ |
+| Editar ingredientes y recetas | 70 | ✅ |
+| Fix: márgenes/comisiones con un solo botón "Guardar" por sección | (61–68) | ✅ |
+
 **No tocar:** el `00-INDEX.md` y los issues `01`–`09` de la Fase 1 (portal CFDI, ya completos).
