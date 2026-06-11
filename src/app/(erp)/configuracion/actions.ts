@@ -2,12 +2,34 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
-import { requireCan } from "@/lib/erp/session.server";
+import { requireCan, requireAdmin } from "@/lib/erp/session.server";
 import { abreviar } from "@/lib/erp/codigos";
 import type { CatalogState } from "@/components/erp/catalog-form";
 
 const guard = () => requireCan("GESTION", "configure");
 const txt = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim();
+
+/// Borra un registro (solo admin). FK-safe: si está en uso, no truena (no borra).
+async function borrar(modelo: { delete: (a: { where: { id: string } }) => Promise<unknown> }, fd: FormData, ruta: string) {
+  await requireAdmin();
+  const id = txt(fd, "id");
+  if (id) {
+    try {
+      await modelo.delete({ where: { id } });
+    } catch {
+      /* referenciado por otros datos: no se elimina */
+    }
+  }
+  revalidatePath(ruta);
+}
+
+export async function borrarCategoria(fd: FormData) { await borrar(prisma.categoria, fd, "/configuracion/categorias"); }
+export async function borrarTamano(fd: FormData) { await borrar(prisma.tamano, fd, "/configuracion/tamanos"); }
+export async function borrarUnidad(fd: FormData) { await borrar(prisma.unidad, fd, "/configuracion/unidades"); }
+export async function borrarCanal(fd: FormData) { await borrar(prisma.canal, fd, "/configuracion/canales"); }
+export async function borrarMedioPago(fd: FormData) { await borrar(prisma.medioPago, fd, "/configuracion/medios-pago"); }
+export async function borrarMedioCompra(fd: FormData) { await borrar(prisma.medioCompra, fd, "/configuracion/medios-compra"); }
+export async function borrarTienda(fd: FormData) { await borrar(prisma.tienda, fd, "/configuracion/tiendas"); }
 
 // ── Categorías ───────────────────────────────────────────────────────────────
 export async function crearCategoria(_p: CatalogState, fd: FormData): Promise<CatalogState> {

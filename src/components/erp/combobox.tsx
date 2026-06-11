@@ -19,17 +19,21 @@ export function ComboBox({
   options,
   placeholder = "Buscar por nombre o código…",
   required = false,
+  defaultValue,
   onSelect,
 }: {
   name: string;
   options: ComboOption[];
   placeholder?: string;
   required?: boolean;
+  defaultValue?: string;
   onSelect?: (value: string) => void;
 }) {
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
-  const [sel, setSel] = useState<ComboOption | null>(null);
+  const [sel, setSel] = useState<ComboOption | null>(
+    defaultValue ? options.find((o) => o.value === defaultValue) ?? null : null,
+  );
 
   const filtradas = useMemo(() => {
     const s = q.trim().toLowerCase();

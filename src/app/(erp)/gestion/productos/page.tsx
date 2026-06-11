@@ -1,12 +1,14 @@
 import { prisma } from "@/lib/db";
 import { requireCan } from "@/lib/erp/session.server";
 import { formatMXN } from "@/lib/erp/money";
+import { DeleteButton } from "@/components/erp/delete-button";
 import { ProductoForm } from "./producto-form";
-import { guardarPrecioProducto } from "./actions";
+import { guardarPrecioProducto, borrarProducto } from "./actions";
 
 export default async function ProductosPage() {
   const user = await requireCan("GESTION", "read");
   const puedeEditar = user.esAdmin || user.roles.some((r) => r.modulo === "GESTION" && r.rol === "CONFIGURADOR");
+  const puedeBorrar = user.esAdmin;
 
   const [productos, categorias, unidades, canales] = await Promise.all([
     prisma.producto.findMany({ orderBy: { codigo: "asc" }, include: { categoria: true, unidad: true, precios: true } }),
@@ -41,7 +43,10 @@ export default async function ProductosPage() {
                   <span className="font-medium text-neutral-900">{p.descripcion}</span>
                   <span className="ml-2 text-xs text-neutral-400">{p.categoria.nombre} · {p.unidad.codigo}</span>
                 </div>
-                <span className="text-sm text-neutral-500">Costo {formatMXN(p.costo.toString())}</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-neutral-500">Costo {formatMXN(p.costo.toString())}</span>
+                  {puedeBorrar && <DeleteButton action={borrarProducto} id={p.id} />}
+                </div>
               </div>
               <div className="mt-3 flex flex-wrap gap-4">
                 {canales.map((can) => (

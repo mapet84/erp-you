@@ -3,8 +3,16 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
-import { requireCan } from "@/lib/erp/session.server";
+import { requireCan, requireAdmin } from "@/lib/erp/session.server";
 import { siguienteCodigoProducto } from "@/lib/erp/codigos.server";
+
+/// Elimina un producto (solo admin). FK-safe.
+export async function borrarProducto(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  if (id) { try { await prisma.producto.delete({ where: { id } }); } catch { /* en uso */ } }
+  revalidatePath("/gestion/productos");
+}
 
 export interface ProductoState {
   ok?: boolean;

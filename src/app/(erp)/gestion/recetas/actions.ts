@@ -2,13 +2,33 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
-import { requireCan } from "@/lib/erp/session.server";
+import { requireCan, requireAdmin } from "@/lib/erp/session.server";
 import { siguienteSkuReceta } from "@/lib/erp/codigos.server";
 
 export interface RecetaState {
   ok?: boolean;
   error?: string;
   recetaId?: string;
+}
+
+/// Lee los componentes (tipo/refId/cantidad/rendimiento) del formulario.
+function leerComponentes(formData: FormData):
+  | { ingredienteId?: string; semiTerminadoId?: string; cantidad: string; rendimiento: string }[]
+  | { error: string } {
+  const tipos = formData.getAll("comp_tipo").map(String);
+  const refIds = formData.getAll("comp_refId").map(String);
+  const cantidades = formData.getAll("comp_cantidad").map(String);
+  const rendimientos = formData.getAll("comp_rendimiento").map(String);
+  const componentes: { ingredienteId?: string; semiTerminadoId?: string; cantidad: string; rendimiento: string }[] = [];
+  for (let k = 0; k < refIds.length; k++) {
+    if (!refIds[k]) continue;
+    const cantidad = cantidades[k];
+    const rendimiento = rendimientos[k] || "100";
+    if (Number.isNaN(Number(cantidad)) || Number(cantidad) <= 0) return { error: "Cada componente necesita una cantidad mayor que 0." };
+    if (Number.isNaN(Number(rendimiento)) || Number(rendimiento) <= 0) return { error: "El rendimiento debe ser mayor que 0." };
+    componentes.push(tipos[k] === "semi" ? { semiTerminadoId: refIds[k], cantidad, rendimiento } : { ingredienteId: refIds[k], cantidad, rendimiento });
+  }
+  return componentes;
 }
 
 export async function crearReceta(
@@ -61,4 +81,48 @@ export async function crearReceta(
   } catch {
     return { error: "No se pudo crear la receta." };
   }
+}
+
+/// Edita una receta: nombre, categoría, tamaño y reemplaza sus componentes.
+/// El SKU NO cambia (preserva referencias).
+export async function editarReceta(_prev: RecetaState, formData: FormData): Promise<RecetaState> {
+  await requireCan("GESTION", "configure");
+  const id = String(formData.get("id") ?? "");
+  const nombre = String(formData.get("nombre") ?? "").trim();
+  const categoriaId = String(formData.get("categoriaId") ?? "");
+  const tamanoId = String(formData.get("tamanoId") ?? "") || null;
+  if (!id || !nombre || !categoriaId) return { error: "Nombre y categoría son obligatorios." };
+
+  const comps = leerComponentes(formData);
+  if ("error" in comps) return { error: comps.error };
+  if (comps.length === 0) return { error: "Agrega al menos un componente." };
+
+  await prisma.$transaction([
+    prisma.recetaComponente.deleteMany({ where: { recetaId: id } }),
+    prisma.receta.update({
+      where: { id },
+      data: { nombre, categoriaId, tamanoId, componentes: { create: comps } },
+    }),
+  ]);
+  revalidatePath("/gestion/recetas");
+  revalidatePath(`/gestion/recetas/${id}`);
+  return { ok: true, recetaId: id };
+}
+
+/// Elimina una receta (solo admin). Cascada de componentes y precios.
+export async function borrarReceta(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  if (id) { try { await prisma.receta.delete({ where: { id } }); } catch { /* en uso */ } }
+  revalidatePath("/gestion/recetas");
+}
+
+/// Borrado masivo de recetas seleccionadas (solo admin).
+export async function borrarRecetasMasivo(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const ids = formData.getAll("ids").map(String).filter(Boolean);
+  if (ids.length) {
+    try { await prisma.receta.deleteMany({ where: { id: { in: ids } } }); } catch { /* ignore */ }
+  }
+  revalidatePath("/gestion/recetas");
 }

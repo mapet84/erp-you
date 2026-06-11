@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/db";
 import { requireCan } from "@/lib/erp/session.server";
 import { CatalogForm } from "@/components/erp/catalog-form";
-import { crearCanal, actualizarMedioPrincipal, guardarComision } from "../actions";
+import { DeleteButton } from "@/components/erp/delete-button";
+import { crearCanal, actualizarMedioPrincipal, guardarComision, borrarCanal } from "../actions";
 
 export default async function CanalesPage() {
-  await requireCan("GESTION", "configure");
+  const user = await requireCan("GESTION", "configure");
   const [canales, medios, comisiones] = await Promise.all([
     prisma.canal.findMany({ orderBy: { nombre: "asc" } }),
     prisma.medioPago.findMany({ orderBy: { nombre: "asc" } }),
@@ -32,7 +33,7 @@ export default async function CanalesPage() {
         <h2 className="text-sm font-medium text-neutral-800">Canales y medio principal</h2>
         <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
           <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-left text-neutral-500"><tr><th className="px-4 py-2 font-medium">Canal</th><th className="px-4 py-2 font-medium">Medio principal</th></tr></thead>
+            <thead className="bg-neutral-50 text-left text-neutral-500"><tr><th className="px-4 py-2 font-medium">Canal</th><th className="px-4 py-2 font-medium">Medio principal</th><th className="px-4 py-2" /></tr></thead>
             <tbody>
               {canales.map((c) => (
                 <tr key={c.id} className="border-t border-neutral-100">
@@ -47,6 +48,7 @@ export default async function CanalesPage() {
                       <button className="text-xs text-neutral-500 hover:text-neutral-900">Guardar</button>
                     </form>
                   </td>
+                  <td className="px-4 py-2 text-right">{user.esAdmin && <DeleteButton action={borrarCanal} id={c.id} />}</td>
                 </tr>
               ))}
             </tbody>

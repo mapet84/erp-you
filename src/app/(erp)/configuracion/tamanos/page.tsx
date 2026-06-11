@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/db";
 import { requireCan } from "@/lib/erp/session.server";
 import { CatalogForm } from "@/components/erp/catalog-form";
-import { crearTamano, actualizarAbrevTamano } from "../actions";
+import { DeleteButton } from "@/components/erp/delete-button";
+import { crearTamano, actualizarAbrevTamano, borrarTamano } from "../actions";
 
 export default async function TamanosPage() {
-  await requireCan("GESTION", "configure");
+  const user = await requireCan("GESTION", "configure");
   const tamanos = await prisma.tamano.findMany({ orderBy: { nombre: "asc" } });
 
   return (
@@ -23,7 +24,7 @@ export default async function TamanosPage() {
       <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
         <table className="w-full text-sm">
           <thead className="bg-neutral-50 text-left text-neutral-500">
-            <tr><th className="px-4 py-2 font-medium">Nombre</th><th className="px-4 py-2 font-medium">Abreviatura</th></tr>
+            <tr><th className="px-4 py-2 font-medium">Nombre</th><th className="px-4 py-2 font-medium">Abreviatura</th><th className="px-4 py-2" /></tr>
           </thead>
           <tbody>
             {tamanos.map((t) => (
@@ -36,6 +37,7 @@ export default async function TamanosPage() {
                     <button className="text-xs text-neutral-500 hover:text-neutral-900">Guardar</button>
                   </form>
                 </td>
+                <td className="px-4 py-2 text-right">{user.esAdmin && <DeleteButton action={borrarTamano} id={t.id} />}</td>
               </tr>
             ))}
           </tbody>

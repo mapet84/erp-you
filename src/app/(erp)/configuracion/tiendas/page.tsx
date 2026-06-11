@@ -2,9 +2,11 @@ import { prisma } from "@/lib/db";
 import { requireCan } from "@/lib/erp/session.server";
 import { TiendaForm } from "@/app/(erp)/admin/tiendas/tienda-form";
 import { toggleTienda } from "@/app/(erp)/admin/tiendas/actions";
+import { DeleteButton } from "@/components/erp/delete-button";
+import { borrarTienda } from "../actions";
 
 export default async function TiendasCfgPage() {
-  await requireCan("GESTION", "configure");
+  const user = await requireCan("GESTION", "configure");
   const tiendas = await prisma.tienda.findMany({ orderBy: { codigo: "asc" } });
 
   return (
@@ -23,7 +25,12 @@ export default async function TiendasCfgPage() {
                 <td className="px-4 py-2 font-mono text-neutral-800">{t.codigo}</td>
                 <td className="px-4 py-2 text-neutral-800">{t.nombre}</td>
                 <td className="px-4 py-2"><span className={t.activo ? "rounded-full bg-green-50 px-2 py-0.5 text-xs text-green-700" : "rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-500"}>{t.activo ? "Activa" : "Inactiva"}</span></td>
-                <td className="px-4 py-2 text-right"><form action={toggleTienda}><input type="hidden" name="id" value={t.id} /><button className="text-xs text-neutral-500 hover:text-neutral-900">{t.activo ? "Desactivar" : "Activar"}</button></form></td>
+                <td className="px-4 py-2">
+                  <div className="flex items-center justify-end gap-3">
+                    <form action={toggleTienda}><input type="hidden" name="id" value={t.id} /><button className="text-xs text-neutral-500 hover:text-neutral-900">{t.activo ? "Desactivar" : "Activar"}</button></form>
+                    {user.esAdmin && <DeleteButton action={borrarTienda} id={t.id} confirmar="¿Eliminar la tienda? Se borrarán sus inventarios y movimientos." />}
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>

@@ -2,8 +2,16 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
-import { requireCan } from "@/lib/erp/session.server";
+import { requireCan, requireAdmin } from "@/lib/erp/session.server";
 import { siguienteSkuSemiTerminado } from "@/lib/erp/codigos.server";
+
+/// Elimina un semi-terminado (solo admin). Cascada de componentes; FK-safe si está en recetas.
+export async function borrarSemiTerminado(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  if (id) { try { await prisma.semiTerminado.delete({ where: { id } }); } catch { /* en uso */ } }
+  revalidatePath("/gestion/semiterminados");
+}
 
 export interface SemiState {
   ok?: boolean;
