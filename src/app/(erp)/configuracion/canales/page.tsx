@@ -2,7 +2,7 @@ import { prisma } from "@/lib/db";
 import { requireCan } from "@/lib/erp/session.server";
 import { CatalogForm } from "@/components/erp/catalog-form";
 import { DeleteButton } from "@/components/erp/delete-button";
-import { crearCanal, actualizarMedioPrincipal, guardarComision, borrarCanal } from "../actions";
+import { crearCanal, guardarMediosPrincipales, guardarComisiones, borrarCanal } from "../actions";
 
 export default async function CanalesPage() {
   const user = await requireCan("GESTION", "configure");
@@ -31,6 +31,9 @@ export default async function CanalesPage() {
 
       <section className="space-y-3">
         <h2 className="text-sm font-medium text-neutral-800">Canales y medio principal</h2>
+        {/* Form vacío asociado por id; los selects usan form="mp-form" para no
+            anidarse con el form de borrar canal. */}
+        <form id="mp-form" action={guardarMediosPrincipales} />
         <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
           <table className="w-full text-sm">
             <thead className="bg-neutral-50 text-left text-neutral-500"><tr><th className="px-4 py-2 font-medium">Canal</th><th className="px-4 py-2 font-medium">Medio principal</th><th className="px-4 py-2" /></tr></thead>
@@ -39,14 +42,10 @@ export default async function CanalesPage() {
                 <tr key={c.id} className="border-t border-neutral-100">
                   <td className="px-4 py-2 text-neutral-800">{c.nombre}</td>
                   <td className="px-4 py-2">
-                    <form action={actualizarMedioPrincipal} className="flex items-center gap-2">
-                      <input type="hidden" name="id" value={c.id} />
-                      <select name="medioPagoPrincipalId" defaultValue={c.medioPagoPrincipalId ?? ""} className="rounded-md border border-neutral-300 px-2 py-1 text-sm">
-                        <option value="">—</option>
-                        {medios.map((m) => (<option key={m.id} value={m.id}>{m.nombre}</option>))}
-                      </select>
-                      <button className="text-xs text-neutral-500 hover:text-neutral-900">Guardar</button>
-                    </form>
+                    <select name={`mp_${c.id}`} form="mp-form" defaultValue={c.medioPagoPrincipalId ?? ""} className="rounded-md border border-neutral-300 px-2 py-1 text-sm">
+                      <option value="">—</option>
+                      {medios.map((m) => (<option key={m.id} value={m.id}>{m.nombre}</option>))}
+                    </select>
                   </td>
                   <td className="px-4 py-2 text-right">{user.esAdmin && <DeleteButton action={borrarCanal} id={c.id} />}</td>
                 </tr>
@@ -54,31 +53,30 @@ export default async function CanalesPage() {
             </tbody>
           </table>
         </div>
+        <button type="submit" form="mp-form" className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800">Guardar medios principales</button>
       </section>
 
       <section className="space-y-3">
         <h2 className="text-sm font-medium text-neutral-800">Comisiones (%) por canal y medio de pago</h2>
-        <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
-          <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-left text-neutral-500"><tr><th className="px-4 py-2 font-medium">Canal</th><th className="px-4 py-2 font-medium">Medio</th><th className="px-4 py-2 font-medium">Comisión %</th></tr></thead>
-            <tbody>
-              {canales.flatMap((can) => medios.map((med) => (
-                <tr key={`${can.id}:${med.id}`} className="border-t border-neutral-100">
-                  <td className="px-4 py-2 text-neutral-800">{can.nombre}</td>
-                  <td className="px-4 py-2 text-neutral-500">{med.nombre}</td>
-                  <td className="px-4 py-2">
-                    <form action={guardarComision} className="flex items-center gap-2">
-                      <input type="hidden" name="canalId" value={can.id} />
-                      <input type="hidden" name="medioPagoId" value={med.id} />
-                      <input name="comisionPct" inputMode="decimal" defaultValue={com.get(`${can.id}:${med.id}`) ?? ""} placeholder="0" className="w-20 rounded-md border border-neutral-300 px-2 py-1 text-sm" />
-                      <button className="text-xs text-neutral-500 hover:text-neutral-900">Guardar</button>
-                    </form>
-                  </td>
-                </tr>
-              )))}
-            </tbody>
-          </table>
-        </div>
+        <form action={guardarComisiones} className="space-y-3">
+          <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+            <table className="w-full text-sm">
+              <thead className="bg-neutral-50 text-left text-neutral-500"><tr><th className="px-4 py-2 font-medium">Canal</th><th className="px-4 py-2 font-medium">Medio</th><th className="px-4 py-2 font-medium">Comisión %</th></tr></thead>
+              <tbody>
+                {canales.flatMap((can) => medios.map((med) => (
+                  <tr key={`${can.id}:${med.id}`} className="border-t border-neutral-100">
+                    <td className="px-4 py-2 text-neutral-800">{can.nombre}</td>
+                    <td className="px-4 py-2 text-neutral-500">{med.nombre}</td>
+                    <td className="px-4 py-2">
+                      <input name={`c_${can.id}_${med.id}`} inputMode="decimal" defaultValue={com.get(`${can.id}:${med.id}`) ?? ""} placeholder="—" className="w-20 rounded-md border border-neutral-300 px-2 py-1 text-sm" />
+                    </td>
+                  </tr>
+                )))}
+              </tbody>
+            </table>
+          </div>
+          <button type="submit" className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800">Guardar comisiones</button>
+        </form>
       </section>
     </div>
   );

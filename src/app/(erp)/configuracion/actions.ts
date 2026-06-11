@@ -124,24 +124,34 @@ export async function crearCanal(_p: CatalogState, fd: FormData): Promise<Catalo
   revalidatePath("/configuracion/canales");
   return { ok: true };
 }
-export async function actualizarMedioPrincipal(fd: FormData): Promise<void> {
+/// Guarda el medio principal de TODOS los canales en un envío. Campo: `mp_<canalId>`.
+export async function guardarMediosPrincipales(fd: FormData): Promise<void> {
   await guard();
-  const id = txt(fd, "id");
-  if (id) await prisma.canal.update({ where: { id }, data: { medioPagoPrincipalId: txt(fd, "medioPagoPrincipalId") || null } });
+  const canales = await prisma.canal.findMany({ select: { id: true } });
+  await prisma.$transaction(
+    canales.map((c) => prisma.canal.update({ where: { id: c.id }, data: { medioPagoPrincipalId: txt(fd, `mp_${c.id}`) || null } })),
+  );
   revalidatePath("/configuracion/canales");
 }
-export async function guardarComision(fd: FormData): Promise<void> {
+
+/// Guarda TODAS las comisiones en un envío. Campo: `c_<canalId>_<medioPagoId>`.
+export async function guardarComisiones(fd: FormData): Promise<void> {
   await guard();
-  const canalId = txt(fd, "canalId");
-  const medioPagoId = txt(fd, "medioPagoId");
-  const valor = txt(fd, "comisionPct");
-  const n = Number(valor);
-  if (!canalId || !medioPagoId || Number.isNaN(n) || n < 0 || n > 100) return;
-  await prisma.comision.upsert({
-    where: { canalId_medioPagoId: { canalId, medioPagoId } },
-    update: { comisionPct: valor },
-    create: { canalId, medioPagoId, comisionPct: valor },
-  });
+  const [canales, medios] = await Promise.all([
+    prisma.canal.findMany({ select: { id: true } }),
+    prisma.medioPago.findMany({ select: { id: true } }),
+  ]);
+  const ops = [];
+  for (const ca of canales) {
+    for (const m of medios) {
+      const raw = txt(fd, `c_${ca.id}_${m.id}`).replace(",", ".");
+      if (raw === "") { ops.push(prisma.comision.deleteMany({ where: { canalId: ca.id, medioPagoId: m.id } })); continue; }
+      const n = Number(raw);
+      if (Number.isNaN(n) || n < 0 || n > 100) continue;
+      ops.push(prisma.comision.upsert({ where: { canalId_medioPagoId: { canalId: ca.id, medioPagoId: m.id } }, update: { comisionPct: raw }, create: { canalId: ca.id, medioPagoId: m.id, comisionPct: raw } }));
+    }
+  }
+  await prisma.$transaction(ops);
   revalidatePath("/configuracion/canales");
 }
 
