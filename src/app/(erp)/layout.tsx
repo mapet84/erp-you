@@ -6,7 +6,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/erp/session.server";
-import { modulosVisibles, type Modulo } from "@/lib/erp/rbac";
+import { modulosVisibles, can, type Modulo } from "@/lib/erp/rbac";
 import { logoutAction } from "./actions";
 import { TIENDA_COOKIE } from "./constants";
 import { StoreSwitcher } from "./store-switcher";
@@ -61,6 +61,11 @@ export default async function ErpLayout({
                   {RUTA_MODULO[m].label}
                 </Link>
               ))}
+              {can(user, "GESTION", "configure") && (
+                <Link href="/configuracion" className="text-neutral-600 hover:text-neutral-900">
+                  Configuración
+                </Link>
+              )}
               {user.esAdmin && (
                 <>
                   <Link href="/admin/usuarios" className="text-neutral-600 hover:text-neutral-900">

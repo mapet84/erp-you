@@ -28,5 +28,6 @@ export const config = {
     "/finanzas/:path*",
     "/pronosticos/:path*",
     "/admin/:path*",
+    "/configuracion/:path*",
   ],
 };

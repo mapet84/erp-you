@@ -139,6 +139,7 @@ el cliente se autofactura en `/f/[slug]`, y el ERP refleja el estado leyendo `In
 **Carga masiva (CSV) y códigos automáticos — añadido tras la 1ª prueba**
 66. Como configurador, quiero **importar por CSV** ingredientes, productos, semi-terminados y recetas, para cargar muchos de una sola vez (recetas y semi-terminados en formato largo: una fila por componente, agrupadas por nombre). La importación es idempotente por nombre.
 67. Como sistema, quiero asignar los **códigos/SKU automáticamente**: receta (producto terminado) = abrevCategoría + abrevTamaño + consecutivo; producto = abrevCategoría + consecutivo; semi-terminado = `ST` + consecutivo; ingrediente = consecutivo 100001–199999. Para ello cada categoría/tamaño tiene una **abreviatura** (configurable; si falta, se deriva del nombre).
+68. Como configurador, quiero una sección de **Configuración** con catálogos: **categorías** (con abreviatura), **tamaños** (con abreviatura), **unidades de medida y sus conversiones** (1 origen = factor × destino), **canales** (con medio de pago principal y comisión por medio), **medios de pago**, **medios de compra** (con días de crédito), **motivos de ajuste de inventario** y **tiendas**, para administrar todos los parámetros desde un solo lugar.
 
 ## Implementation Decisions
 
@@ -186,6 +187,7 @@ el cliente se autofactura en `/f/[slug]`, y el ERP refleja el estado leyendo `In
 - **Código de ingrediente automático:** `siguienteCodigoIngrediente()` asigna el consecutivo en [100001, 199999]; el formulario ya no pide el código.
 - **Códigos/SKU automáticos:** módulo puro `codigos.ts` (`abreviar`, `siguienteNumero`, `prefijoReceta`) + `codigos.server.ts` (`siguienteSkuReceta`/`siguienteCodigoProducto`/`siguienteSkuSemiTerminado`). Categoría y Tamaño ganan `abreviatura?` (derivada del nombre si falta). Los formularios de receta/producto/semi ya no piden el código.
 - **Importación CSV:** parser puro `csv.ts` (`parseCsv`/`parseCsvObjects`, con comillas/saltos) + `import-csv.server.ts` (4 importadores que resuelven catálogos por nombre — creándolos si faltan —, asignan códigos y son idempotentes por nombre). UI en `/gestion/importar` (subida de archivo o pegado), con formato y resumen de creados/saltados/errores.
+- **Sección Configuración (`/configuracion`):** grupo de rutas gateado por `requireCan("GESTION","configure")`, con la barra lateral propia. Componente cliente genérico `components/erp/CatalogForm` (campos declarativos + reset). Nuevos modelos `ConversionUnidad` (origen/destino/factor) y `MotivoAjuste`; `Canal` gana `medioPagoPrincipalId`. Sub-páginas: categorías, tamaños, unidades+conversiones, canales (+medio principal +comisiones), medios de pago, medios de compra, motivos de ajuste y tiendas.
 
 ## Testing Decisions
 

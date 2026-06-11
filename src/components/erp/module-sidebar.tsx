@@ -46,6 +46,19 @@ const SECCIONES: Record<string, { titulo: string; items: { href: string; label: 
       { href: "/admin/tiendas", label: "Tiendas" },
     ],
   },
+  configuracion: {
+    titulo: "Configuración",
+    items: [
+      { href: "/configuracion/categorias", label: "Categorías" },
+      { href: "/configuracion/tamanos", label: "Tamaños" },
+      { href: "/configuracion/unidades", label: "Unidades y conversiones" },
+      { href: "/configuracion/canales", label: "Canales" },
+      { href: "/configuracion/medios-pago", label: "Medios de pago" },
+      { href: "/configuracion/medios-compra", label: "Medios de compra" },
+      { href: "/configuracion/motivos", label: "Motivos de ajuste" },
+      { href: "/configuracion/tiendas", label: "Tiendas" },
+    ],
+  },
 };
 
 /// Barra lateral con las secciones del módulo actual (según la URL). No aparece

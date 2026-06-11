@@ -237,13 +237,39 @@ model UserStore {
 
 /// Unidad de medida (kg, pza, l, …).
 model Unidad {
-  id           String        @id @default(cuid())
-  codigo       String        @unique
-  nombre       String
-  ingredientes Ingrediente[]
-  productos    Producto[]
+  id                  String             @id @default(cuid())
+  codigo              String             @unique
+  nombre              String
+  ingredientes        Ingrediente[]
+  productos           Producto[]
+  conversionesOrigen  ConversionUnidad[] @relation("ConvOrigen")
+  conversionesDestino ConversionUnidad[] @relation("ConvDestino")
 
   @@map("unidades")
+  @@schema("erp")
+}
+
+/// Conversión entre unidades: 1 `origen` = `factor` `destino` (p. ej. 1 kg = 1000 g).
+model ConversionUnidad {
+  id        String  @id @default(cuid())
+  origen    Unidad  @relation("ConvOrigen", fields: [origenId], references: [id], onDelete: Cascade)
+  origenId  String
+  destino   Unidad  @relation("ConvDestino", fields: [destinoId], references: [id], onDelete: Cascade)
+  destinoId String
+  factor    Decimal @db.Decimal(18, 8)
+
+  @@unique([origenId, destinoId])
+  @@map("conversiones_unidad")
+  @@schema("erp")
+}
+
+/// Motivo de ajuste de inventario (merma, caducidad, conteo, …).
+model MotivoAjuste {
+  id     String  @id @default(cuid())
+  nombre String  @unique
+  activo Boolean @default(true)
+
+  @@map("motivos_ajuste")
   @@schema("erp")
 }
 
@@ -264,12 +290,15 @@ model Categoria {
 
 /// Canal de venta (Tienda, Uber, …). Eje de precios, comisiones y margen objetivo.
 model Canal {
-  id              String           @id @default(cuid())
-  nombre          String           @unique
-  margenes        MargenObjetivo[]
-  preciosReceta   PrecioReceta[]
-  preciosProducto ProductoPrecio[]
-  comisiones      Comision[]
+  id                   String           @id @default(cuid())
+  nombre               String           @unique
+  /// Medio de pago principal del canal (informativo / default en el POS).
+  medioPagoPrincipal   MedioPago?       @relation("CanalPrincipal", fields: [medioPagoPrincipalId], references: [id])
+  medioPagoPrincipalId String?
+  margenes             MargenObjetivo[]
+  preciosReceta        PrecioReceta[]
+  preciosProducto      ProductoPrecio[]
+  comisiones           Comision[]
 
   @@map("canales")
   @@schema("erp")
@@ -449,9 +478,10 @@ model PrecioReceta {
 
 /// Medio de pago (Efectivo, Tarjeta, …). Junto con el canal define la comisión.
 model MedioPago {
-  id         String     @id @default(cuid())
-  nombre     String     @unique
-  comisiones Comision[]
+  id               String     @id @default(cuid())
+  nombre           String     @unique
+  comisiones       Comision[]
+  canalesPrincipal Canal[]    @relation("CanalPrincipal")
 
   @@map("medios_pago")
   @@schema("erp")
