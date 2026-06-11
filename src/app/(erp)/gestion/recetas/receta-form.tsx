@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { crearReceta, type RecetaState } from "./actions";
+import { ComboBox } from "@/components/erp/combobox";
 
 const initial: RecetaState = {};
 const inputCls =
@@ -30,12 +31,9 @@ function ComponenteRow({ ingredientes, semis }: { ingredientes: Item[]; semis: I
         <option value="ing">Ingrediente</option>
         <option value="semi">Semi-terminado</option>
       </select>
-      <select name="comp_refId" className={`${inputCls} flex-1`}>
-        <option value="">— elegir —</option>
-        {items.map((i) => (
-          <option key={i.id} value={i.id}>{i.codigo} · {i.nombre}</option>
-        ))}
-      </select>
+      <div className="min-w-48 flex-1">
+        <ComboBox key={tipo} name="comp_refId" options={items.map((i) => ({ value: i.id, label: i.nombre, codigo: i.codigo }))} />
+      </div>
       <input name="comp_cantidad" inputMode="decimal" placeholder="cantidad" className={`w-28 ${inputCls}`} />
       <input name="comp_rendimiento" inputMode="decimal" defaultValue="100" title="rendimiento %" className={`w-20 ${inputCls}`} />
       <span className="text-xs text-neutral-400">% rend.</span>

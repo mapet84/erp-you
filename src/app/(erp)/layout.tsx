@@ -10,6 +10,8 @@ import { modulosVisibles, type Modulo } from "@/lib/erp/rbac";
 import { logoutAction } from "./actions";
 import { TIENDA_COOKIE } from "./constants";
 import { StoreSwitcher } from "./store-switcher";
+import { NavButtons } from "@/components/erp/nav-buttons";
+import { ModuleSidebar } from "@/components/erp/module-sidebar";
 
 const RUTA_MODULO: Record<Modulo, { href: string; label: string }> = {
   GESTION: { href: "/gestion", label: "Gestión" },
@@ -44,7 +46,8 @@ export default async function ErpLayout({
     <div className="flex min-h-full flex-1 flex-col bg-neutral-50">
       <header className="border-b border-neutral-200 bg-white">
         <div className="flex items-center justify-between px-6 py-3">
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
+            <NavButtons />
             <Link href="/dashboard" className="font-semibold text-neutral-900">
               ERP YOU
             </Link>
@@ -84,7 +87,10 @@ export default async function ErpLayout({
           </div>
         </div>
       </header>
-      <main className="flex-1 px-6 py-8">{children}</main>
+      <div className="flex flex-1">
+        <ModuleSidebar />
+        <main className="flex-1 px-6 py-8">{children}</main>
+      </div>
     </div>
   );
 }

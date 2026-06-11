@@ -27,13 +27,18 @@ export function PosClient({ tiendas, canales, medios, items }: Props) {
   const [medioPagoId, setMedioPagoId] = useState(medios[0]?.id ?? "");
   const [modo, setModo] = useState<"VENTA" | "DEVOLUCION">("VENTA");
   const [cat, setCat] = useState<string>("Todas");
+  const [busqueda, setBusqueda] = useState("");
   const [cart, setCart] = useState<Record<string, number>>({});
   const [ticket, setTicket] = useState<TicketResumen | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   const categorias = useMemo(() => ["Todas", ...Array.from(new Set(items.map((i) => i.categoria)))], [items]);
-  const visibles = items.filter((i) => cat === "Todas" || i.categoria === cat);
+  const visibles = items.filter((i) => {
+    if (cat !== "Todas" && i.categoria !== cat) return false;
+    const s = busqueda.trim().toLowerCase();
+    return !s || i.nombre.toLowerCase().includes(s) || i.codigo.toLowerCase().includes(s);
+  });
   const byKey = useMemo(() => new Map(items.map((i) => [`${i.tipo}:${i.id}`, i])), [items]);
 
   const precioDe = (it: Item) => Number(it.precios[canalId] ?? "0");
@@ -124,6 +129,14 @@ export function PosClient({ tiendas, canales, medios, items }: Props) {
             <option value="DEVOLUCION">Devolución</option>
           </select>
         </div>
+
+        <input
+          type="text"
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          placeholder="Buscar artículo por nombre o código…"
+          className="mb-3 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-500"
+        />
 
         <div className="mb-3 flex flex-wrap gap-2">
           {categorias.map((c) => (

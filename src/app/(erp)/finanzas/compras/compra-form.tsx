@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { crearCompra, type CompraState } from "./actions";
+import { ComboBox } from "@/components/erp/combobox";
 
 const initial: CompraState = {};
 const inputCls =
@@ -40,12 +41,11 @@ export function CompraForm({ tiendas, ingredientes, productos, medios }: Props) 
           <option value="PRODUCTO">Producto</option>
         </select>
       </div>
-      <div className="flex-1">
+      <div className="min-w-48 flex-1">
         <label className="block text-xs text-neutral-500">Artículo</label>
-        <select name="itemId" required className={`mt-1 w-full ${inputCls}`}>
-          <option value="">— elegir —</option>
-          {items.map((i) => (<option key={i.id} value={i.id}>{i.codigo} · {i.nombre}</option>))}
-        </select>
+        <div className="mt-1">
+          <ComboBox key={tipo} name="itemId" options={items.map((i) => ({ value: i.id, label: i.nombre, codigo: i.codigo }))} />
+        </div>
       </div>
       <div>
         <label className="block text-xs text-neutral-500">Cantidad</label>

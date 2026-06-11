@@ -129,6 +129,13 @@ el cliente se autofactura en `/f/[slug]`, y el ERP refleja el estado leyendo `In
 59. Como dueño, quiero la app en la nube (Vercel + Neon) con HTTPS, para usarla en varias tiendas.
 60. Como dueño, quiero empezar con datos en blanco y capturar los maestros por la nueva UI, para validar las pantallas de captura.
 
+**Navegación y búsqueda (UX) — añadido tras la 1ª prueba**
+61. Como usuario, quiero que los selectores de artículos sean **buscables**: al escribir la descripción (o el código) en el campo, el sistema filtra y me muestra el código correspondiente, para encontrar el artículo más rápido (en recetas, semi-terminados, compras y órdenes; y un buscador equivalente en la rejilla del POS).
+62. Como usuario, quiero un botón **Inicio** en todas las pantallas que me regrese al punto de partida (dashboard).
+63. Como usuario, quiero un botón **Atrás** en todas las pantallas que me lleve a la pantalla anterior **sin guardar**.
+64. Como usuario, quiero una **barra lateral** con las secciones del módulo en el que estoy, para moverme entre ellas con un clic.
+65. Como configurador, quiero que el **código de ingrediente se asigne automático y consecutivo** en el rango 100001–199999, para no tener que inventarlo.
+
 ## Implementation Decisions
 
 **Arquitectura y datos**
@@ -167,6 +174,12 @@ el cliente se autofactura en `/f/[slug]`, y el ERP refleja el estado leyendo `In
 
 **Despliegue**
 - **Vercel + Neon.** `DATABASE_URL` (pooled, runtime) + `DIRECT_URL` (directo, migraciones). Online-only (sin offline en POS). Pronóstico semanal = **Vercel Cron** (`0 6 * * 1`) en `api/cron/forecast` validando `CRON_SECRET` por header `Bearer`.
+
+**Navegación y búsqueda (UX)**
+- **Selectores buscables:** componente cliente reutilizable `components/erp/ComboBox` — input de texto que filtra por nombre o código (substring, hasta 50 resultados), Enter elige el primero, publica el id en un input oculto con el mismo `name` que el `<select>` que reemplaza. Se aplica a recetas, semi-terminados, compras y órdenes (con `key={tipo}` para reiniciar al cambiar de tipo). El POS suma un campo de búsqueda que filtra la rejilla.
+- **Inicio / Atrás globales:** `components/erp/NavButtons` (cliente) en el encabezado del layout `(erp)` — Atrás usa `router.back()` (no guarda), Inicio enlaza a `/dashboard`. Presente en toda pantalla del ERP.
+- **Barra lateral por módulo:** `components/erp/ModuleSidebar` (cliente) deriva el módulo del primer segmento de la URL (`usePathname`) y lista sus secciones, marcando activa la de prefijo más largo. No aparece fuera de un módulo.
+- **Código de ingrediente automático:** `siguienteCodigoIngrediente()` asigna el consecutivo en [100001, 199999]; el formulario ya no pide el código.
 
 ## Testing Decisions
 

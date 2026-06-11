@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { crearOrden, type OrdenState } from "./actions";
+import { ComboBox } from "@/components/erp/combobox";
 
 const initial: OrdenState = {};
 const inputCls = "rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-500 focus:ring-1 focus:ring-neutral-400";
@@ -24,10 +25,9 @@ function Row({ recetas, productos }: { recetas: Item[]; productos: Item[] }) {
         <option value="receta">Receta</option>
         <option value="producto">Producto</option>
       </select>
-      <select name="comp_refId" className={`${inputCls} flex-1`}>
-        <option value="">— elegir —</option>
-        {items.map((i) => (<option key={i.id} value={i.id}>{i.codigo} · {i.nombre}</option>))}
-      </select>
+      <div className="min-w-48 flex-1">
+        <ComboBox key={tipo} name="comp_refId" options={items.map((i) => ({ value: i.id, label: i.nombre, codigo: i.codigo }))} />
+      </div>
       <input name="comp_qty" inputMode="decimal" placeholder="cant." className={`w-24 ${inputCls}`} />
       <input name="comp_precio" inputMode="decimal" placeholder="precio" className={`w-28 ${inputCls}`} />
     </div>
