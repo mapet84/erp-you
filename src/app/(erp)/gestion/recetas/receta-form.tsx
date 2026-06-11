@@ -53,13 +53,10 @@ export function RecetaForm({ categorias, tamanos, ingredientes, semis }: Props) 
   return (
     <form action={action} className="space-y-4 rounded-xl border border-neutral-200 bg-white p-4">
       <div className="flex flex-wrap items-end gap-3">
-        <div>
-          <label className="block text-xs text-neutral-500">SKU</label>
-          <input name="sku" required className={`mt-1 w-32 ${inputCls}`} />
-        </div>
         <div className="flex-1">
           <label className="block text-xs text-neutral-500">Nombre</label>
           <input name="nombre" required className={`mt-1 w-full ${inputCls}`} />
+          <p className="mt-1 text-xs text-neutral-400">El SKU se asigna automático (categoría+tamaño+consecutivo).</p>
         </div>
         <div>
           <label className="block text-xs text-neutral-500">Categoría</label>

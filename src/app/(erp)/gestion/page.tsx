@@ -11,6 +11,7 @@ const SECCIONES = [
   { href: "/gestion/comisiones", label: "Comisiones", desc: "Comisión por canal y medio de pago" },
   { href: "/gestion/clientes", label: "Clientes", desc: "Clientes para órdenes de venta" },
   { href: "/gestion/ordenes", label: "Órdenes de venta", desc: "Pedidos y su seguimiento" },
+  { href: "/gestion/importar", label: "Importar CSV", desc: "Carga masiva de catálogos" },
 ];
 
 export default async function GestionPage() {

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireCan } from "@/lib/erp/session.server";
+import { siguienteSkuReceta } from "@/lib/erp/codigos.server";
 
 export interface RecetaState {
   ok?: boolean;
@@ -16,11 +17,10 @@ export async function crearReceta(
 ): Promise<RecetaState> {
   await requireCan("GESTION", "configure");
 
-  const sku = String(formData.get("sku") ?? "").trim();
   const nombre = String(formData.get("nombre") ?? "").trim();
   const categoriaId = String(formData.get("categoriaId") ?? "");
   const tamanoId = String(formData.get("tamanoId") ?? "") || null;
-  if (!sku || !nombre || !categoriaId) return { error: "SKU, nombre y categoría son obligatorios." };
+  if (!nombre || !categoriaId) return { error: "Nombre y categoría son obligatorios." };
 
   const tipos = formData.getAll("comp_tipo").map(String); // "ing" | "semi"
   const refIds = formData.getAll("comp_refId").map(String);
@@ -52,18 +52,13 @@ export async function crearReceta(
   if (componentes.length === 0) return { error: "Agrega al menos un componente." };
 
   try {
+    const sku = await siguienteSkuReceta(categoriaId, tamanoId);
     const receta = await prisma.receta.create({
-      data: {
-        sku: sku.toUpperCase(),
-        nombre,
-        categoriaId,
-        tamanoId,
-        componentes: { create: componentes },
-      },
+      data: { sku, nombre, categoriaId, tamanoId, componentes: { create: componentes } },
     });
     revalidatePath("/gestion/recetas");
     return { ok: true, recetaId: receta.id };
   } catch {
-    return { error: "Ya existe una receta con ese SKU." };
+    return { error: "No se pudo crear la receta." };
   }
 }

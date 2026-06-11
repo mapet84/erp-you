@@ -136,6 +136,10 @@ el cliente se autofactura en `/f/[slug]`, y el ERP refleja el estado leyendo `In
 64. Como usuario, quiero una **barra lateral** con las secciones del módulo en el que estoy, para moverme entre ellas con un clic.
 65. Como configurador, quiero que el **código de ingrediente se asigne automático y consecutivo** en el rango 100001–199999, para no tener que inventarlo.
 
+**Carga masiva (CSV) y códigos automáticos — añadido tras la 1ª prueba**
+66. Como configurador, quiero **importar por CSV** ingredientes, productos, semi-terminados y recetas, para cargar muchos de una sola vez (recetas y semi-terminados en formato largo: una fila por componente, agrupadas por nombre). La importación es idempotente por nombre.
+67. Como sistema, quiero asignar los **códigos/SKU automáticamente**: receta (producto terminado) = abrevCategoría + abrevTamaño + consecutivo; producto = abrevCategoría + consecutivo; semi-terminado = `ST` + consecutivo; ingrediente = consecutivo 100001–199999. Para ello cada categoría/tamaño tiene una **abreviatura** (configurable; si falta, se deriva del nombre).
+
 ## Implementation Decisions
 
 **Arquitectura y datos**
@@ -180,6 +184,8 @@ el cliente se autofactura en `/f/[slug]`, y el ERP refleja el estado leyendo `In
 - **Inicio / Atrás globales:** `components/erp/NavButtons` (cliente) en el encabezado del layout `(erp)` — Atrás usa `router.back()` (no guarda), Inicio enlaza a `/dashboard`. Presente en toda pantalla del ERP.
 - **Barra lateral por módulo:** `components/erp/ModuleSidebar` (cliente) deriva el módulo del primer segmento de la URL (`usePathname`) y lista sus secciones, marcando activa la de prefijo más largo. No aparece fuera de un módulo.
 - **Código de ingrediente automático:** `siguienteCodigoIngrediente()` asigna el consecutivo en [100001, 199999]; el formulario ya no pide el código.
+- **Códigos/SKU automáticos:** módulo puro `codigos.ts` (`abreviar`, `siguienteNumero`, `prefijoReceta`) + `codigos.server.ts` (`siguienteSkuReceta`/`siguienteCodigoProducto`/`siguienteSkuSemiTerminado`). Categoría y Tamaño ganan `abreviatura?` (derivada del nombre si falta). Los formularios de receta/producto/semi ya no piden el código.
+- **Importación CSV:** parser puro `csv.ts` (`parseCsv`/`parseCsvObjects`, con comillas/saltos) + `import-csv.server.ts` (4 importadores que resuelven catálogos por nombre — creándolos si faltan —, asignan códigos y son idempotentes por nombre). UI en `/gestion/importar` (subida de archivo o pegado), con formato y resumen de creados/saltados/errores.
 
 ## Testing Decisions
 

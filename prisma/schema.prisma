@@ -249,11 +249,14 @@ model Unidad {
 
 /// Categoría de receta/producto (postres, bebidas, …). Eje del margen objetivo.
 model Categoria {
-  id        String           @id @default(cuid())
-  nombre    String           @unique
-  recetas   Receta[]
-  productos Producto[]
-  margenes  MargenObjetivo[]
+  id          String           @id @default(cuid())
+  nombre      String           @unique
+  /// Abreviatura para construir códigos (receta = abrevCat+abrevTam+consec;
+  /// producto = abrevCat+consec). Si falta, se deriva del nombre.
+  abreviatura String?
+  recetas     Receta[]
+  productos   Producto[]
+  margenes    MargenObjetivo[]
 
   @@map("categorias")
   @@schema("erp")
@@ -318,9 +321,11 @@ model Receta {
 
 /// Tamaño/presentación de una receta (Individual, Familiar, …). Eje de precios (#5).
 model Tamano {
-  id      String   @id @default(cuid())
-  nombre  String   @unique
-  recetas Receta[]
+  id          String   @id @default(cuid())
+  nombre      String   @unique
+  /// Abreviatura para el SKU de receta. Si falta, se deriva del nombre.
+  abreviatura String?
+  recetas     Receta[]
 
   @@map("tamanos")
   @@schema("erp")

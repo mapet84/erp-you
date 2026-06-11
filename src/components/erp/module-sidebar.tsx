@@ -16,6 +16,7 @@ const SECCIONES: Record<string, { titulo: string; items: { href: string; label: 
       { href: "/gestion/comisiones", label: "Comisiones" },
       { href: "/gestion/clientes", label: "Clientes" },
       { href: "/gestion/ordenes", label: "Órdenes de venta" },
+      { href: "/gestion/importar", label: "Importar CSV" },
     ],
   },
   pos: {

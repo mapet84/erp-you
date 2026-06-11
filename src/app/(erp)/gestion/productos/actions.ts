@@ -4,6 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireCan } from "@/lib/erp/session.server";
+import { siguienteCodigoProducto } from "@/lib/erp/codigos.server";
 
 export interface ProductoState {
   ok?: boolean;
@@ -12,7 +13,6 @@ export interface ProductoState {
 
 const dec = z.string().trim().refine((v) => v !== "" && !Number.isNaN(Number(v)) && Number(v) >= 0, "Número inválido");
 const crearSchema = z.object({
-  codigo: z.string().trim().min(1),
   descripcion: z.string().trim().min(1),
   categoriaId: z.string().min(1),
   unidadId: z.string().min(1),
@@ -22,17 +22,17 @@ const crearSchema = z.object({
 export async function crearProducto(_prev: ProductoState, formData: FormData): Promise<ProductoState> {
   await requireCan("GESTION", "configure");
   const parsed = crearSchema.safeParse({
-    codigo: formData.get("codigo"),
     descripcion: formData.get("descripcion"),
     categoriaId: formData.get("categoriaId"),
     unidadId: formData.get("unidadId"),
     costo: formData.get("costo") || "0",
   });
-  if (!parsed.success) return { error: "Revisa los campos." };
+  if (!parsed.success) return { error: "Revisa los campos (descripción, categoría, unidad)." };
   try {
+    const codigo = await siguienteCodigoProducto(parsed.data.categoriaId);
     await prisma.producto.create({
       data: {
-        codigo: parsed.data.codigo.toUpperCase(),
+        codigo,
         descripcion: parsed.data.descripcion,
         categoriaId: parsed.data.categoriaId,
         unidadId: parsed.data.unidadId,
@@ -40,7 +40,7 @@ export async function crearProducto(_prev: ProductoState, formData: FormData): P
       },
     });
   } catch {
-    return { error: "Ya existe un producto con ese código." };
+    return { error: "No se pudo crear el producto." };
   }
   revalidatePath("/gestion/productos");
   return { ok: true };

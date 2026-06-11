@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireCan } from "@/lib/erp/session.server";
+import { siguienteSkuSemiTerminado } from "@/lib/erp/codigos.server";
 
 export interface SemiState {
   ok?: boolean;
@@ -15,9 +16,8 @@ export async function crearSemiTerminado(
 ): Promise<SemiState> {
   await requireCan("GESTION", "configure");
 
-  const sku = String(formData.get("sku") ?? "").trim();
   const nombre = String(formData.get("nombre") ?? "").trim();
-  if (!sku || !nombre) return { error: "SKU y nombre son obligatorios." };
+  if (!nombre) return { error: "El nombre es obligatorio." };
 
   const tipos = formData.getAll("comp_tipo").map(String); // "ing" | "semi"
   const refIds = formData.getAll("comp_refId").map(String);
@@ -46,11 +46,12 @@ export async function crearSemiTerminado(
   if (componentes.length === 0) return { error: "Agrega al menos un componente." };
 
   try {
+    const sku = await siguienteSkuSemiTerminado();
     await prisma.semiTerminado.create({
-      data: { sku: sku.toUpperCase(), nombre, componentes: { create: componentes } },
+      data: { sku, nombre, componentes: { create: componentes } },
     });
   } catch {
-    return { error: "Ya existe un semi-terminado con ese SKU." };
+    return { error: "No se pudo crear el semi-terminado." };
   }
   revalidatePath("/gestion/semiterminados");
   return { ok: true };
